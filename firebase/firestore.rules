@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Baseline: deny everything. Collections are opened one by one in Phase 1,
+// each with rules unit tests running against the emulator.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

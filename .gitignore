@@ -1,0 +1,22 @@
+node_modules/
+.next/
+dist/
+coverage/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets: never commit real env files (see .env.example)
+.env
+.env.*
+!.env.example
+
+# Firebase local state
+.firebase/
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+ui-debug.log
+firebase/emulator-data/
+
+.DS_Store

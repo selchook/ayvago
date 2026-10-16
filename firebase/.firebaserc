@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "ayvago-dev",
+    "dev": "ayvago-dev",
+    "prod": "ayvago-prod"
+  }
+}
