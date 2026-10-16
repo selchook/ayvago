@@ -1,18 +1,18 @@
-# ADR 0002 — Oyunlar iframe + postMessage SDK ile entegre edilir
+# ADR 0002 — Games integrate through an iframe + postMessage SDK
 
-- Durum: Kabul edildi (2026-10-16)
+- Status: Accepted (2026-10-16)
 
-## Bağlam
-GameHub Arena iki model kullanıyordu: `eval()` ile yüklenen tek dosya sınıf modülleri ve iframe + postMessage SDK v1. Ayvago ileride üçüncü taraf oyunları da barındıracak; mevcut oyunlar farklı motorlarda (Phaser, Three.js, React, Canvas).
+## Context
+GameHub Arena used two models: single-file class modules loaded with `eval()`, and an iframe + postMessage SDK v1. Ayvago will later host third-party games, and the existing games use different engines (Phaser, Three.js, React, Canvas).
 
-## Karar
-- Sadece iframe modeli. `eval()` modeli bırakıldı (platform sayfasında yabancı kod çalıştırmak güvenlik riski).
-- SDK v2, v1 mesaj isimleriyle (`GHA_READY`, `GHA_START`, `GHA_END`, `GHA_SCORE`, `GHA_MOVE_IN/OUT`…) geriye uyumlu.
-- Platform her mesajda `event.source` ve `event.origin` doğrular; SDK `'*'` yerine izinli platform origin'ine yollar.
-- Oyunlar Firebase'e veya Cloudflare'e doğrudan erişmez. Skor, reklam, kullanıcı ve çok oyunculu bağlantı platform üzerinden geçer.
-- Oyunlar `ayvago.json` manifesti yayınlar (`packages/shared` içindeki şema).
-- CrazyGames entegrasyonu yok; mevcut oyunlardaki CrazyGames SDK'sı import sırasında kaldırılır.
+## Decision
+- iframe model only. The `eval()` model is dropped (running foreign code in the platform page is a security risk).
+- SDK v2 stays backward-compatible with the v1 message names (`GHA_READY`, `GHA_START`, `GHA_END`, `GHA_SCORE`, `GHA_MOVE_IN/OUT`…).
+- The platform validates `event.source` and `event.origin` on every message; the SDK posts to the allow-listed platform origin instead of `'*'`.
+- Games never access Firebase or Cloudflare directly. Scores, ads, users and multiplayer go through the platform.
+- Games publish an `ayvago.json` manifest (schema in `packages/shared`).
+- No CrazyGames integration; the CrazyGames SDK in existing games is removed during import.
 
-## Sonuçlar
-- Oyunların Vercel header'ları `frame-ancestors` ile Ayvago'ya izin vermeli (5 oyunda `X-Frame-Options: SAMEORIGIN` var, düzeltilecek).
-- Tarayıcı depolama bölümlemesi nedeniyle oyunların eski localStorage rekorları platforma taşınmaz.
+## Consequences
+- Games' Vercel headers must allow Ayvago via `frame-ancestors` (five games set `X-Frame-Options: SAMEORIGIN` and need fixing).
+- Because of browser storage partitioning, the games' existing localStorage records are not carried over to the platform.

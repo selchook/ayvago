@@ -1,18 +1,18 @@
-# ADR 0001 — Backend olarak Firebase
+# ADR 0001 — Firebase as the backend
 
-- Durum: Kabul edildi (2026-10-16)
+- Status: Accepted (2026-10-16)
 
-## Bağlam
-Platformun kimlik doğrulama, katalog, skor tablosu, oylama, satın alma yetkileri ve çok oyunculu lobi/sinyalleşme için bir backend'e ihtiyacı var. İlk taslakta Supabase önerilmişti; ürün sahibi Firebase'i seçti.
+## Context
+The platform needs a backend for authentication, the catalog, leaderboards, voting, purchase entitlements and multiplayer lobbies/signaling. The first draft proposed Supabase; the product owner chose Firebase.
 
-## Karar
-- Auth: Firebase Authentication (anonim giriş → Google/Apple/e-posta ile hesaba yükseltme, aynı uid).
-- Kalıcı veri: Cloud Firestore. Anlık veri (presence, lobi, WebRTC sinyalleşme): Realtime Database.
-- Sunucu mantığı: Cloud Functions (2nd gen). Gizli anahtarlar Secret Manager'da.
-- Bölge: `europe-west1` (Firestore konumu sonradan değiştirilemez).
-- Ortamlar: `ayvago-dev` ve `ayvago-prod` ayrı projeler; yerelde Emulator Suite.
-- Kurallar her koleksiyon için varsayılan **reddet** ile başlar; her açılım emülatör testiyle gelir.
+## Decision
+- Auth: Firebase Authentication (anonymous sign-in → upgrade to Google/Apple/email with the same uid).
+- Persistent data: Cloud Firestore. Realtime data (presence, lobbies, WebRTC signaling): Realtime Database.
+- Server logic: Cloud Functions (2nd gen). Secrets in Secret Manager.
+- Region: `europe-west1` (the Firestore location cannot be changed later).
+- Environments: separate `ayvago-dev` and `ayvago-prod` projects; Emulator Suite locally.
+- Rules start as **deny-all** for every collection; each opening ships with emulator tests.
 
-## Sonuçlar
-- Functions için Blaze planı gerekir → bütçe alarmı zorunlu.
-- Firestore'da JOIN yok: skor tablosu ilk 100'ü tek belgede önbelleklenir, sıra `count()` ile hesaplanır.
+## Consequences
+- Functions require the Blaze plan → budget alerts are mandatory.
+- Firestore has no joins: each leaderboard's top 100 is cached in one document and ranks use `count()`.

@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { parseGameManifest, resolveAssetUrl, type GameManifestInput } from './manifest';
+import {
+  parseGameManifest,
+  pickLocalized,
+  resolveAssetUrl,
+  type GameManifestInput,
+} from './manifest';
 
 const orbSurge: GameManifestInput = {
   id: 'orbsurge',
   title: { tr: 'Orb Surge', en: 'Orb Surge' },
-  description: { tr: 'Neon küreleri patlat.' },
+  description: { en: 'Pop the neon orbs.', tr: 'Neon küreleri patlat.' },
   category: 'retro_action',
   tags: ['arcade', 'reflex'],
   entry: 'https://orb-surge.vercel.app/',
@@ -73,6 +78,23 @@ describe('parseGameManifest', () => {
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');
+  });
+});
+
+describe('localized text', () => {
+  it('requires English', () => {
+    expect(issuePaths({ ...orbSurge, title: { tr: 'Orb Surge' } })).toContain('title.en');
+  });
+
+  it('rejects unsupported locales', () => {
+    expect(issuePaths({ ...orbSurge, title: { en: 'Orb Surge', de: 'Orb Surge' } })).toContain(
+      'title',
+    );
+  });
+
+  it('falls back to English when a locale is missing', () => {
+    expect(pickLocalized({ en: 'Score' }, 'tr')).toBe('Score');
+    expect(pickLocalized({ en: 'Score', tr: 'Puan' }, 'tr')).toBe('Puan');
   });
 });
 

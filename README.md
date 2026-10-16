@@ -1,35 +1,46 @@
 # Ayvago
 
-Retro aksiyon, casual ve bulmaca oyunlarını tek çatı altında toplayan web oyun platformu — [ayvago.com](https://ayvago.com).
+A web game platform that brings retro action, casual and puzzle games together in one place — [ayvago.com](https://ayvago.com).
 
-## Durum
+## Status
 
-**Faz 0 — Hazırlık.** Monorepo iskeleti, CI, Firebase güvenlik kuralı tabanı ve oyun manifest şeması hazır.
-Yol haritası: [`docs/plan/yol-haritasi.md`](docs/plan/yol-haritasi.md) · Oyun import planı: [`docs/plan/oyun-import-plani.md`](docs/plan/oyun-import-plani.md) · Faz 0 kontrol listesi: [`docs/setup/faz-0.md`](docs/setup/faz-0.md)
+**Phase 0 — Preparation.** Monorepo scaffold, CI, Firebase security-rule baseline, i18n foundation (English and Turkish) and the game manifest schema are in place.
 
-## Yapı
+- Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
+- Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)
+- Phase 0 checklist: [`docs/setup/phase-0.md`](docs/setup/phase-0.md)
+- Architecture decisions: [`docs/adr/`](docs/adr/)
+
+## Layout
 
 ```
-apps/web            Next.js platform uygulaması (Vercel)
-packages/shared     Ortak tipler ve zod şemaları (ayvago.json oyun manifesti)
-firebase/           Firebase yapılandırması ve güvenlik kuralları
-docs/               Yol haritası, ADR'ler, kurulum kontrol listeleri
+apps/web            Next.js platform app (Vercel), localized with next-intl
+  messages/         UI translations (en.json is the source of truth, tr.json)
+packages/shared     Shared constants, types and zod schemas (locales, categories, ayvago.json manifest)
+firebase/           Firebase configuration and security rules
+docs/               Roadmap, ADRs, setup checklists
 ```
 
-## Geliştirme
+## Development
 
-Gereksinimler: Node 22, pnpm 10 (`corepack enable`).
+Requirements: Node 22, pnpm 10 (`corepack enable`).
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:3000
+pnpm dev          # http://localhost:3000 → redirects to /en or /tr
 pnpm typecheck
 pnpm test
 pnpm build
 ```
 
-Ortam değişkenleri için `apps/web/.env.example` dosyasını `apps/web/.env.local` olarak kopyalayın. Gerçek anahtarlar asla commit edilmez.
+Copy `apps/web/.env.example` to `apps/web/.env.local` for environment variables. Never commit real secrets.
 
-## Deploy
+## Internationalization
 
-Vercel projesinde **Root Directory** = `apps/web`. Firebase kuralları `firebase/` klasöründen `firebase deploy --only firestore:rules,database,storage` ile yayınlanır.
+- Supported locales are defined in `packages/shared/src/locales.ts` (`en` default, `tr`).
+- UI strings live in `apps/web/messages/<locale>.json`; never hardcode user-facing text in components.
+- Add new keys to `en.json` first, then to every other locale in the same change — the test suite fails if a locale is missing a key.
+
+## Deployment
+
+Vercel project **Root Directory** = `apps/web`. Firebase rules are deployed from `firebase/` with `firebase deploy --only firestore:rules,database,storage`.

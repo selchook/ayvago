@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "title": "Ayvago",
+    "description": "Retro action, casual and puzzle games in one place."
+  },
+  "home": {
+    "tagline": "Retro action, casual and puzzle games in one place. Coming soon.",
+    "categoriesLabel": "Categories"
+  },
+  "categories": {
+    "retro_action": "Retro Action",
+    "casual": "Casual",
+    "puzzle": "Puzzle",
+    "board": "Board"
+  },
+  "localeSwitcher": {
+    "label": "Language"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "backHome": "Back to home"
+  }
+}

@@ -1,12 +1,15 @@
 import { z } from 'zod';
 import { GAME_CATEGORIES } from './categories';
+import type { Locale } from './locales';
 
 // Schema for ayvago.json, the manifest every game serves from its own origin.
 // The import CLI, the admin panel and (later) developer submissions all validate against it.
 
+// Game-provided text per platform locale. English is required (it is the fallback locale);
+// other supported locales are optional and fall back to English when missing.
 const localizedText = z.strictObject({
-  tr: z.string().trim().min(1),
-  en: z.string().trim().min(1).optional(),
+  en: z.string().trim().min(1),
+  tr: z.string().trim().min(1).optional(),
 });
 
 // Placement ids such as "continue" or "double_reward"; reported in ad analytics.
@@ -92,6 +95,7 @@ export const gameManifestSchema = z
     path: ['players', 'max'],
   });
 
+export type LocalizedText = z.infer<typeof localizedText>;
 export type GameManifest = z.infer<typeof gameManifestSchema>;
 export type GameManifestInput = z.input<typeof gameManifestSchema>;
 
@@ -113,4 +117,9 @@ export function parseGameManifest(input: unknown): ManifestResult {
 // Resolves an asset reference from the manifest against the game's entry URL.
 export function resolveAssetUrl(manifest: Pick<GameManifest, 'entry'>, ref: string): string {
   return new URL(ref, manifest.entry).toString();
+}
+
+// Picks the text for a locale, falling back to English.
+export function pickLocalized(text: LocalizedText, locale: Locale): string {
+  return text[locale] ?? text.en;
 }

@@ -1,13 +1,13 @@
 # ADR 0004 — pnpm + Turborepo monorepo, Next.js (App Router)
 
-- Durum: Kabul edildi (2026-10-16)
+- Status: Accepted (2026-10-16)
 
-## Karar
-- Tek repo: `selchook/ayvago`. pnpm workspaces + Turborepo.
-- Platform uygulaması Next.js 16 (App Router) + TypeScript, Vercel'de (Root Directory = `apps/web`).
-- Paylaşılan kod `packages/*` altında, TypeScript kaynağı olarak tüketilir (`transpilePackages`).
-- CI (GitHub Actions): format kontrolü, typecheck, test, build.
-- Kod yorumları ve commit mesajları İngilizce.
+## Decision
+- One repository: `selchook/ayvago`. pnpm workspaces + Turborepo.
+- Platform app: Next.js 16 (App Router) + TypeScript on Vercel (Root Directory = `apps/web`).
+- Shared code lives under `packages/*` and is consumed as TypeScript source (`transpilePackages`).
+- CI (GitHub Actions): format check, typecheck, tests, build.
+- Everything in the repository is written in English: code, comments, identifiers, commit messages and documentation.
 
-## Not
-Yol haritasının ilk sürümünde Next.js 15 yazıyordu; repo kurulduğunda güncel kararlı sürüm 16 olduğu için 16 ile başlandı.
+## Note
+The first roadmap draft said Next.js 15; 16 was the current stable release when the repository was created, so the project starts on 16.

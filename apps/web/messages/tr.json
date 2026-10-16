@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "title": "Ayvago",
+    "description": "Retro aksiyon, casual ve bulmaca oyunları tek platformda."
+  },
+  "home": {
+    "tagline": "Retro aksiyon, casual ve bulmaca oyunları tek platformda. Çok yakında.",
+    "categoriesLabel": "Kategoriler"
+  },
+  "categories": {
+    "retro_action": "Retro Aksiyon",
+    "casual": "Casual",
+    "puzzle": "Bulmaca",
+    "board": "Masa Oyunları"
+  },
+  "localeSwitcher": {
+    "label": "Dil"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "backHome": "Ana sayfaya dön"
+  }
+}

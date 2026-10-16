@@ -4,12 +4,19 @@ Ayvago (https://ayvago.com) is a web game platform: a catalog of retro action, c
 HTML5 games with accounts, leaderboards, voting, three UI themes (retro / cartoon / minimal),
 rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party developer program.
 
+## Language rules
+- The owner writes instructions in Turkish; reply in Turkish in chat.
+- **Everything committed to the repository is English**: code, comments, identifiers, commit messages,
+  README and all docs under `docs/`.
+- The product UI is localized with next-intl. User-facing text never appears in code: add a key to
+  `apps/web/messages/en.json` first, then to every other locale file (`tr.json`) in the same change.
+  The message test fails CI if a locale is missing a key.
+- Supported locales live in `packages/shared/src/locales.ts`. English is the default and the fallback.
+- Game-provided text (`ayvago.json`) is a `{ en, tr? }` map; English is required.
+
 ## Conventions
-- The owner writes instructions in Turkish. **All code comments, identifiers and commit messages are in English.**
-  Planning docs under `docs/` may be Turkish.
-- Plans: `docs/plan/yol-haritasi.md` (roadmap) and `docs/plan/oyun-import-plani.md` (game import plan).
-  Decisions are recorded as ADRs in `docs/adr/`.
-- Stack: pnpm workspaces + Turborepo, Next.js (App Router) on Vercel, Firebase (Auth, Firestore,
+- Plans: `docs/plan/roadmap.md` and `docs/plan/game-import-plan.md`. Decisions are ADRs in `docs/adr/`.
+- Stack: pnpm workspaces + Turborepo, Next.js 16 (App Router) on Vercel, Firebase (Auth, Firestore,
   Realtime Database, Functions, Storage, App Check, Remote Config) in `europe-west1`,
   Cloudflare Realtime TURN for WebRTC relay.
 - Games run in sandboxed iframes on their own origins and talk to the platform only through the
@@ -24,7 +31,7 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 - Node 22 (`.nvmrc`), pnpm 10 (`packageManager` field).
 
 ## Layout
-- `apps/web` — Next.js platform app
-- `packages/shared` — shared types and zod schemas (`ayvago.json` game manifest)
+- `apps/web` — Next.js platform app; `app/[locale]/` routes, `i18n/` config, `messages/` catalogs
+- `packages/shared` — locales, categories, zod schemas (`ayvago.json` game manifest)
 - `firebase/` — Firebase config and security rules
 - `docs/` — plans, ADRs, setup checklists
