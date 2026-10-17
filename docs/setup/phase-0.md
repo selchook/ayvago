@@ -45,5 +45,5 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 
 ## 7. Open decisions
 - ⏳ Rewarded ads for `remove_ads` owners: optional ads or direct rewards?
-- ⏳ Default locale: `en` (current) or `tr`?
+- ✅ Default locale: `en` (decided)
 - ⏳ Push gamehub-arena to GitHub to reuse UI components — optional

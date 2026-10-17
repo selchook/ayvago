@@ -534,4 +534,4 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 4. The games' production URLs (for the import plan).
 5. Rewarded behavior for `remove_ads` owners: optional ads or direct rewards?
 6. Push gamehub-arena to GitHub (to reuse UI components)? Optional.
-7. Default locale: `en` (current) or `tr`? Affects where `/` redirects visitors whose browser language is neither.
+7. ~~Default locale~~ → **`en`** ✅ (Turkish browsers are still redirected to `/tr`)
