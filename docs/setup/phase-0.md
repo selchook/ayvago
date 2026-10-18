@@ -12,10 +12,11 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ✅ GitHub repository `selchook/ayvago` (private) and initial push
 
 ## 2. Urgent security (do not wait)
-- ⏳ **Revoke and rotate the Anthropic API key** (console.anthropic.com) — `.env` is committed in `game-factory` and `game-factory-new`; in `game-factory` the `VITE_` prefix bundles it into browser code
+- ⏳ **Revoke and rotate the Anthropic API key** (console.anthropic.com) — the value has been cleared from `.env` in `game-factory` and `game-factory-new`, but the old key remains in git history; in `game-factory` the `VITE_` prefix also bundled it into browser code
 - ⏳ **Revoke the Ably key** — plain text in `src/App.jsx` of the public `battleships` repository
 - ⏳ Restrict/rotate the other Ably keys (`backgammon`, `guess-number`, `tito-multiplayer`)
-- 🤖 With approval: PRs removing `.env` from both game-factory repositories (`git rm --cached` + `.gitignore`)
+- ✅ 🤖 PRs that stop tracking `.env` are open and waiting for merge: selchook/game-factory#1, selchook/game-factory-new#1
+- ⏳ Move the Anthropic key server-side in `game-factory` (suggested as a separate task)
 
 ## 3. Firebase
 - ⏳ Create two projects: `ayvago-dev` and `ayvago-prod` (if those IDs are taken, share the actual IDs so `.firebaserc` can be updated)

@@ -3,6 +3,7 @@
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
 > Related: [Game import plan](game-import-plan.md) · [Phase 0 checklist](../setup/phase-0.md) · [ADRs](../adr/)
+> Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
 
@@ -157,19 +158,20 @@ Firestore has no joins and bills per document read, so frequently read data is *
 | `games/{gameId}/versions/{v}` | Version history, `sdkVersion`, `reviewStatus` | Admin / Functions |
 | `games/{gameId}/votes/{uid}` | `value: 1 \| -1` | Owner — rule: `stats/{gameId}.playSeconds >= 60` |
 | `sessions/{sessionId}` | Play session: `uid`, `gameId`, `startedAt`, `endedAt`, `score`, `continues`, `flagged` | **Functions only** |
-| `leaderboards/{gameId}/periods/{periodKey}` | Cached top 100 (`top: [...]`) — one read per page view | Functions |
-| `leaderboards/{gameId}/periods/{periodKey}/entries/{uid}` | User's best score in the period | Functions |
+| `leaderboards/{gameId}/boards/{boardKey}` | `boardKey` = `season` or `all`; cached top 100 (`top: [...]`) — one read per page view | Functions |
+| `leaderboards/{gameId}/boards/{boardKey}/entries/{uid}` | User's best score in the current period | Functions |
+| `leaderboards/{gameId}/seasons/{seasonKey}` | Archived final top 100 of each weekly season | Functions |
 | `entitlements/{uid}` | `removeAds`, `premiumUntil`, `source` | **Functions only** |
 | `purchases/{id}`, `adRewards/{id}` | Payment and rewarded-ad records | Functions |
 | `wallets/{uid}` + `/tx/{id}` | Platform currency (Phase 5) | Functions |
 | `developers/{uid}`, `submissions/{id}`, `reviews/{id}` | Developer program (Phase 6) | Owner + Functions |
 | `reports/{id}` | User reports | Anyone creates, admins read |
 
-`periodKey`: `all`, `w-2026-42` (ISO week), `d-2026-10-16`. Daily periods are deleted after 30 days by a scheduled function (or a TTL policy).
+Season key: `s-2026-W42` (weekly seasons, Monday 09:00 UTC). Old season entries are deleted 8 weeks after the archive is written. Details: [leaderboards spec](../specs/leaderboards.md).
 
 **User rank:** a `where('score', '>', myScore).count()` aggregation on `entries` (billed one read per 1,000 index entries) → "#1,284".
 
-**Vote counters:** a function triggered by `votes` writes updates `likes/dislikes/rating`. Switch to distributed counters if traffic demands.
+**Vote counters:** a function triggered by `votes` writes updates `likes/dislikes`; a nightly job computes `wilson`, `qualityScore` and `trendScore` ([voting spec](../specs/voting.md)). Switch to distributed counters if traffic demands.
 
 **Roles:** Firebase Auth **custom claims** (`admin`, `editor`, `developer`), checked in rules via `request.auth.token.admin == true`.
 
@@ -193,14 +195,15 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 |---|---|---|
 | `startSession` | Callable (App Check enforced) | Creates the session document and an HMAC token |
 | `finishSession` | Callable | Validates the score; updates `stats`, `entries`, `top` |
-| `onVoteWritten` | Firestore trigger | Vote counters + Bayesian rating |
+| `onVoteWritten` | Firestore trigger | Vote counters |
+| `recomputeGameScores` | Scheduled (nightly) | Wilson rating, engagement, `qualityScore`, `trendScore` |
 | `reserveUsername` | Callable | Unique usernames, profanity filter |
 | `getIceServers` | Callable (auth + rate limit) | Short-lived TURN credentials from Cloudflare (§10) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
 | `grantAdReward` | Callable | Grants rewarded-ad rewards (daily cap) |
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
-| `rollupLeaderboards` | Scheduled (nightly) | Closes periods, deletes old ones |
+| `closeLeaderboardSeason` | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, grants season rewards, starts the new season |
 | `cleanupLobbies` | Scheduled (hourly) | Removes stale rooms and signaling data |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
@@ -255,6 +258,7 @@ The foundation (routing, proxy, message catalogs, language switcher, completenes
 - The theme is passed to games: `GHA_START.config.theme` + `GHA_THEME_CHANGE`; following it is optional for games.
 - Pixel and display fonts must include Turkish glyphs (ç, ğ, ı, İ, ö, ş, ü); fonts without them are rejected or paired with a fallback.
 - Default and seasonal themes can be managed through **Remote Config**.
+- Token layers, components and page layouts: [UI and themes spec](../specs/ui-and-themes.md).
 - Every theme meets WCAG AA contrast and respects `prefers-reduced-motion`.
 
 ---
@@ -307,25 +311,29 @@ Client-side games can never be fully cheat-proof; this layer stops casual cheati
 
 - **Guest first:** `signInAnonymously()` on the first visit; the player can play immediately and scores are saved.
 - **Account upgrade:** `linkWithPopup(GoogleAuthProvider / OAuthProvider('apple.com'))` or email link → **the same uid** is kept; scores, favorites and purchases survive. If the account already exists, a merge function runs.
-- **Profile:** username (`reserveUsername`, profanity filter for every supported language), avatar set, theme, language, stats, badges, history.
+- **Profile:** username (auto-generated for guests, `reserveUsername` with a 30-day change cooldown, profanity filter for every supported language), preset avatar set, theme, language, stats, badges, history.
+- **Purchases require a registered account** so they can be restored on any device.
 - **Age gate:** birth year; under 13 → non-personalized ads only, purchases restricted.
 - **Account deletion / data export:** `onUserDeleted` + "Download my data" (KVKK, GDPR, Google Play requirement).
 - Unused anonymous accounts are cleaned up automatically by Firebase (e.g. after 30 days).
 - Legal texts (privacy policy, terms, KVKK notice, cookie consent) exist in every supported locale.
+- Full details: [accounts spec](../specs/accounts.md).
 
 ## 7. Leaderboards
 
-- Per game: **Daily / Weekly / All-time**, country filter; ordering from `scoring.order` (time trials: lower is better).
+- Per game: **weekly season** (Monday 09:00 UTC reset, final standings archived, cosmetic season rewards) and **all-time**; global and country scopes, friends later; ordering from `scoring.order` (time trials: lower is better). A daily board can be enabled per game later.
+- Guests appear on boards with a guest badge and are prompted to register to claim their record.
 - The top 100 is read from a single document (`top[]`); the user's rank via `count()`.
 - After a game: "personal best!", "you're #37 this week", FCM "your record was beaten" (opt-in).
 - Scores achieved with a rewarded "continue" are marked; at most one continue per session.
+- Full details: [leaderboards spec](../specs/leaderboards.md).
 
 ## 8. Voting and Discovery
 
-- **Like / dislike**; rule: only users who played the game for ≥ 60 s (`stats.playSeconds`).
-- Ranking: Bayesian average + plays in the last 7 days (a nightly function computes `trendScore`).
+- **Like / dislike** plus a separate favorite; rule: only users who played the game for ≥ 60 s (`stats.playSeconds`). A 👎 opens an optional reasons sheet (bugs, controls, too hard, …) for internal feedback.
+- Like percentage shown from 20 votes; ranking combines the **Wilson score** of votes with engagement (session length, day-1 return, recent plays, completion); new games get a 14-day boost. Details: [voting spec](../specs/voting.md).
 - Shelves: Editor's Picks, Popular, New, Retro Action / Casual / Puzzle, Continue Playing, Favorites.
-- No comments in the first phases.
+- No public comments in the first phases.
 
 ---
 
@@ -447,8 +455,8 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 
 ### Phase 2 — Competition and community (2–3 weeks)
 - [ ] `startSession` / `finishSession` + App Check
-- [ ] Leaderboards (periods, `top[]` cache, `count()` rank) with locale-aware number formatting
-- [ ] Voting + Bayesian ranking, favorites, Continue Playing shelf
+- [ ] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting
+- [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf
 - [ ] **Import wave 2** (space-defender, gyroball-infinite)
 - [ ] Admin panel v1 (custom claims): game management, flagged scores
 - **Done when:** a fake score sent from the console never reaches a leaderboard.

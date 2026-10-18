@@ -9,6 +9,7 @@ A web game platform that brings retro action, casual and puzzle games together i
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
 - Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)
 - Phase 0 checklist: [`docs/setup/phase-0.md`](docs/setup/phase-0.md)
+- Feature specs: [`docs/specs/`](docs/specs/) (accounts, leaderboards, voting, UI and themes)
 - Architecture decisions: [`docs/adr/`](docs/adr/)
 
 ## Layout
