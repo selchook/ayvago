@@ -1,0 +1,138 @@
+/* Account menu in the top bar. Builds on popover.module.css. */
+
+.placeholder {
+  width: 40px;
+  visibility: hidden;
+}
+
+.panel {
+  width: min(300px, calc(100vw - 32px));
+}
+
+.wideOnly {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .wideOnly {
+    display: inline;
+  }
+}
+
+.name {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: hsl(var(--avatar-hue) 65% 45%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8em;
+  line-height: 1;
+}
+
+.identity .avatar {
+  font-size: 1.2rem;
+}
+
+[data-theme='retro'] .avatar {
+  border-radius: 0;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.identity > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+/* The retro pixel font is wide; keep generated names (up to 20 characters) on one line. */
+[data-theme='retro'] .title {
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.body {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.badge {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.provider {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.googleButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Google's sign-in button guidelines: white surface, dark text, the multicolor logo. */
+.googleButton {
+  background: #fff;
+  color: #1f1f1f;
+  border-color: #747775;
+}
+
+.googleButton:hover {
+  background: #f2f2f2;
+}
+
+.googleButton:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.secondaryButton {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.secondaryButton:hover {
+  border-color: var(--accent);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--danger);
+}

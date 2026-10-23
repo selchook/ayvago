@@ -118,3 +118,15 @@ Level curve: `xpForLevel(n) = 50 · n^1.5` (rounded). Levels unlock cosmetics on
 - Signing in on a second device restores progress and purchases.
 - An under-13 registration cannot open the store or friends.
 - Rules tests prove a user cannot write another user's profile, stats or saves.
+
+## 15. Implementation status (Spark plan)
+
+The first slice runs without Cloud Functions, because the Firebase projects are on the Spark plan:
+
+- **Guest creation:** `signInAnonymously()` runs when a player first presses Play, not on page load, so crawlers and bounced visits create no accounts. The game never waits for it.
+- **Profile:** the client creates `users/{uid}` in a transaction on first sign-in with a generated name (`generateGuestName`, word lists in `packages/shared/src/profile.ts`). Firestore rules allow only `username`, `isGuest`, `locale`, `createdAt`, `updatedAt`; require server timestamps; keep `isGuest` equal to the token's sign-in provider; and keep the username fixed. Reads are owner-only for now.
+- **Upgrade:** `linkWithPopup(Google)` keeps the uid; the client refreshes the ID token and sets `isGuest: false`.
+- **Existing Google account:** on `auth/credential-already-in-use` the player switches to that account. The guest's data is not merged yet (`mergeGuestAccount` needs Functions); at this stage a guest holds only a profile, and local favorites/recent games stay on the device.
+- **Usernames:** not unique and not changeable yet; `usernames/{lowercase}` reservation ships with `reserveUsername`.
+- **Not yet:** Apple and email-link sign-in, avatars, settings page, public profile pages, cleanup of unused guest accounts.
+- **Testing:** rules tests in `firebase/tests` (emulator, run in CI). The web app can run against the emulators with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`; emulator builds expose a test hook for the Google flow because the real popup needs Google's servers.

@@ -309,7 +309,7 @@ Client-side games can never be fully cheat-proof; this layer stops casual cheati
 
 ## 6. User System
 
-- **Guest first:** `signInAnonymously()` on the first visit; the player can play immediately and scores are saved.
+- **Guest first:** `signInAnonymously()` on the first game launch (not on page load, so crawlers and bounced visits create no accounts); the player can play immediately and scores are saved.
 - **Account upgrade:** `linkWithPopup(GoogleAuthProvider / OAuthProvider('apple.com'))` or email link → **the same uid** is kept; scores, favorites and purchases survive. If the account already exists, a merge function runs.
 - **Profile:** username (auto-generated for guests, `reserveUsername` with a 30-day change cooldown, profanity filter for every supported language), preset avatar set, theme, language, stats, badges, history.
 - **Purchases require a registered account** so they can be restored on any device.
@@ -444,7 +444,8 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 
 ### Phase 1 — MVP platform (3–4 weeks)
 - [ ] Firestore model v1 + Security Rules + rules tests (emulator)
-- [ ] Anonymous + Google sign-in, account upgrade, profile, username
+- [x] Guest (anonymous) + Google sign-in, upgrade that keeps the uid, profile document with a generated name — Spark plan, client writes under Firestore rules with emulator tests
+- [ ] Username changes, guest merge into an existing account, unused-guest cleanup (need Cloud Functions → Blaze)
 - [x] Theme system (3 themes, 5 theme/mode combinations, WCAG AA contrast test in CI, no-flash persistence)
 - [x] App shell: top bar, side rail, phone bottom bar, theme and language switchers
 - [x] Catalog, category, new, multiplayer and game pages (static + SEO + JSON-LD `VideoGame`, sitemap, hreflang) in both locales — from a seed catalog until Firestore is connected

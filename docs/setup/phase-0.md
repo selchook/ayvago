@@ -19,14 +19,24 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ⏳ Move the Anthropic key server-side in `game-factory` (suggested as a separate task)
 
 ## 3. Firebase
-- ⏳ Create two projects: `ayvago-dev` and `ayvago-prod` (if those IDs are taken, share the actual IDs so `.firebaserc` can be updated)
-- ⏳ Move both projects to the **Blaze** plan and set **budget alerts** (suggested: $10 / $25 / $50)
+- ✅ Create two projects: `ayvago-dev` and `ayvago-prod` (project id `ayvago-prod` confirmed)
+- ⏳ Move both projects to the **Blaze** plan and set **budget alerts** (suggested: $10 / $25 / $50). Not needed yet: the current account features run on Spark; Blaze is required once Cloud Functions ship (username changes, guest merge, score validation, purchases, TURN)
 - ⏳ Create Firestore in **`europe-west1`** (Native mode) — cannot be changed later
-- ⏳ Create the Realtime Database in `europe-west1`
-- ⏳ Authentication: Anonymous, Google (Apple and email link in Phase 1)
+- ✅ Realtime Database in `europe-west1` (`ayvago-prod`)
+- ⏳ Authentication: Anonymous, Google (Apple and email link later)
 - ⏳ Authentication → Settings → Authorized domains: `ayvago.com`, `www.ayvago.com`
-- ⏳ Register a Web app → put the config values into Vercel environment variables (list in `apps/web/.env.example`)
-- 🤖 Phase 1: rules, emulator tests, Functions
+- ✅ `ayvago-prod` Web app registered and its config entered in Vercel (Production)
+- ⏳ `ayvago-dev` Web app → config into Vercel (Preview + Development)
+- ⏳ **Deploy the Firestore rules** whenever `firebase/firestore.rules` changes (until CI deploys them). From the repository root:
+  ```bash
+  pnpm install
+  cd firebase
+  npx firebase login
+  npx firebase deploy --only firestore:rules --project prod
+  npx firebase deploy --only firestore:rules --project dev
+  ```
+  Without this step the console's default rules deny every write and guest profiles cannot be created.
+- 🤖 Rules and emulator tests (`pnpm --filter @ayvago/firebase test`), client auth
 
 ## 4. Vercel and domain
 - ⏳ New Vercel project from `selchook/ayvago`, **Root Directory = `apps/web`**

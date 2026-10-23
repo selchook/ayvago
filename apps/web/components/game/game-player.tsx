@@ -1,5 +1,6 @@
 'use client';
 
+import type { Locale } from '@ayvago/shared';
 import { gameTokens } from '@ayvago/themes';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +12,7 @@ import {
   type PlatformMessage,
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
+import { ensureGuest } from '@/lib/account/store';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
 import {
@@ -184,6 +186,10 @@ export function GamePlayer(props: GamePlayerProps) {
     setProgress(null);
     setPhase('loading');
     recordPlay(slug);
+    // Every player gets an identity on their first game (a guest unless signed in); never blocks play.
+    ensureGuest(locale as Locale).catch((error) =>
+      console.warn('[account] guest sign-in failed', error),
+    );
   }
 
   function reload() {

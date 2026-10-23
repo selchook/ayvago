@@ -112,5 +112,23 @@
   "notFound": {
     "title": "Sayfa bulunamadı",
     "backHome": "Ana sayfaya dön"
+  },
+  "account": {
+    "menuLabel": "Hesap",
+    "signIn": "Giriş yap",
+    "signedOutTitle": "Ayvago'ya giriş yap",
+    "signedOutBody": "Skorların ve favorilerin her cihazda seninle olsun.",
+    "guestHint": "Oynamak için hesap gerekmez; misafir olarak başlarsın.",
+    "continueWithGoogle": "Google ile devam et",
+    "working": "Giriş yapılıyor…",
+    "guestBadge": "Misafir",
+    "guestBody": "İlerlemen bu tarayıcıya bağlı. Her cihazda korumak için giriş yap.",
+    "saveWithGoogle": "İlerlemeni Google ile kaydet",
+    "signedInWithGoogle": "Google ile giriş yapıldı",
+    "signOut": "Çıkış yap",
+    "errors": {
+      "popupBlocked": "Giriş penceresi engellendi. Bu site için açılır pencerelere izin verip tekrar dene.",
+      "generic": "Giriş yapılamadı. Lütfen tekrar dene."
+    }
   }
 }

@@ -1,9 +1,61 @@
 rules_version = '2';
 
-// Baseline: deny everything. Collections are opened one by one in Phase 1,
-// each with rules unit tests running against the emulator.
+// Deny by default. Collections are opened one by one, each with rules tests
+// (firebase/tests) running against the emulator.
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Admin-set custom claim; banned players can still browse but never write.
+    function notBanned() {
+      return request.auth.token.get('banned', false) != true;
+    }
+
+    // Guests are Firebase anonymous users; linking a provider keeps the uid.
+    function isAnonymous() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    // Same rule as USERNAME_PATTERN in packages/shared/src/profile.ts.
+    function validUsername(name) {
+      return name is string
+        && name.matches('^[A-Za-zÇĞİÖŞÜçğıöşü][A-Za-z0-9_ÇĞİÖŞÜçğıöşü]{2,19}$');
+    }
+
+    function validLocale(locale) {
+      return locale in ['en', 'tr'];
+    }
+
+    // users/{uid}: the player's own profile. Created by the client on first sign-in
+    // (Spark plan: no Cloud Functions yet). The username is fixed at creation until
+    // username changes ship with a reservation Function.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid) && notBanned()
+        && request.resource.data.keys().hasOnly(['username', 'isGuest', 'locale', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['username', 'isGuest', 'locale', 'createdAt', 'updatedAt'])
+        && validUsername(request.resource.data.username)
+        && request.resource.data.isGuest == isAnonymous()
+        && validLocale(request.resource.data.locale)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isOwner(uid) && notBanned()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isGuest', 'locale', 'updatedAt'])
+        && request.resource.data.isGuest == isAnonymous()
+        && validLocale(request.resource.data.locale)
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
