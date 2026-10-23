@@ -43,6 +43,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
                 title={gameTitle(lead, locale)}
                 category={lead.manifest.category}
                 size="hero"
+                image={lead.coverUrl}
               />
               <span className={styles.spotlightBody}>
                 <strong>{gameTitle(lead, locale)}</strong>

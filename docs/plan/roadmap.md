@@ -452,7 +452,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [x] `GamePlayer`: sandboxed iframe, loading screen, fullscreen, theater, pause on hidden tab, mute, theme forwarding, origin + source checks (v1 message names) — verified end to end with `tools/fixture-game`
 - [x] Platform adapter (`packages/platform-adapter`, protocol 2, vendored into games) — sdk-playground still open
 - [ ] sdk-playground (developer test host)
-- [ ] **Import wave 1** (crystal-runner, orb-surge, pixel-cascade, chromashift) — integration PRs open in each game repository; games go live in the catalog after merge and deploy
+- [x] **Import wave 1** (crystal-runner, orb-surge, pixel-cascade, chromashift) — integrated, deployed and live in the catalog with their own covers
 - [ ] Platform PWA (manifest, service worker)
 - **Done when:** a guest picks a theme and a language, plays the 4 games and sees their scores on the profile.
 
@@ -460,7 +460,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] `startSession` / `finishSession` + App Check
 - [ ] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting
 - [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf
-- [ ] **Import wave 2** (space-defender, gyroball-infinite) — integration PRs open in each game repository; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
+- [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
 - [ ] Admin panel v1 (custom claims): game management, flagged scores
 - **Done when:** a fake score sent from the console never reaches a leaderboard.
 

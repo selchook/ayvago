@@ -75,6 +75,7 @@
     "related": "Bunları da sevebilirsin",
     "leaderboard": "Skor tablosu",
     "leaderboardSoon": "Haftalık skor tabloları bu oyun Ayvago'da yayına girince açılacak.",
+    "leaderboardWithAccounts": "Haftalık skor tabloları oyuncu hesaplarıyla birlikte açılacak. O zamana kadar en iyi skorun bu cihazda saklanır.",
     "lastScore": "Skor: {score}",
     "personalBest": "Kişisel rekor!",
     "bestScore": "En iyi skorun: {score}"

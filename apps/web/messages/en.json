@@ -75,6 +75,7 @@
     "related": "You may also like",
     "leaderboard": "Leaderboard",
     "leaderboardSoon": "Weekly leaderboards open when this game launches on Ayvago.",
+    "leaderboardWithAccounts": "Weekly leaderboards open together with player accounts. Until then your best score is saved on this device.",
     "lastScore": "Score: {score}",
     "personalBest": "Personal best!",
     "bestScore": "Your best: {score}"

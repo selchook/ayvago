@@ -23,5 +23,6 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
     comingSoon: game.status === 'coming_soon',
     isNew: now - Date.parse(game.addedAt) < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000,
     multiplayer: game.multiplayer,
+    cover: game.coverUrl,
   }));
 }

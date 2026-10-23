@@ -14,6 +14,7 @@ export type TileData = {
   comingSoon: boolean;
   isNew: boolean;
   multiplayer: boolean;
+  cover: string | null;
 };
 
 export type TileLabels = { comingSoon: string; new: string; multiplayer: string };
@@ -21,7 +22,7 @@ export type TileLabels = { comingSoon: string; new: string; multiplayer: string 
 export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {
   return (
     <Link href={`/games/${tile.slug}`} className={styles.tile}>
-      <CoverArt id={tile.id} title={tile.title} category={tile.category} />
+      <CoverArt id={tile.id} title={tile.title} category={tile.category} image={tile.cover} />
       <span className={styles.badges}>
         {tile.comingSoon ? (
           <span className={styles.badge} data-kind="soon">

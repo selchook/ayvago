@@ -40,19 +40,36 @@ describe('seed catalog', () => {
   });
 
   it('applies local entry overrides only together with dev games', async () => {
-    vi.stubEnv('AYVAGO_DEV_ENTRY_OVERRIDES', 'orb-surge=http://localhost:4202/');
+    vi.stubEnv('AYVAGO_DEV_ENTRY_OVERRIDES', 'tavla=http://localhost:4207/');
     let catalog = await loadCatalog();
     // Tests run with NODE_ENV=test, so overrides apply.
-    expect(catalog.getGameBySlug('orb-surge')).toMatchObject({
+    expect(catalog.getGameBySlug('tavla')).toMatchObject({
       status: 'live',
-      manifest: { entry: 'http://localhost:4202/' },
+      manifest: { entry: 'http://localhost:4207/' },
+      coverUrl: 'http://localhost:4207/ayvago/cover-1920x1080.jpg',
     });
 
     vi.stubEnv('NODE_ENV', 'production');
     catalog = await loadCatalog();
-    expect(catalog.getGameBySlug('orb-surge')?.manifest.entry).toBe(
-      'https://orb-surge.vercel.app/',
-    );
+    expect(catalog.getGameBySlug('tavla')).toMatchObject({
+      status: 'coming_soon',
+      manifest: { entry: 'https://backgammon-tito.vercel.app/' },
+    });
+  });
+
+  it('uses the cover a live game serves from its own origin', async () => {
+    vi.stubEnv('AYVAGO_DEV_GAMES', '1');
+    const { getAllGames } = await loadCatalog();
+    for (const game of getAllGames()) {
+      if (game.slug === 'bridge-fixture' || game.status === 'coming_soon') {
+        expect(game.coverUrl, game.slug).toBeNull();
+      } else {
+        expect(game.coverUrl, game.slug).toBe(
+          new URL('/ayvago/cover-1920x1080.jpg', game.manifest.entry).toString(),
+        );
+      }
+    }
+    expect(getAllGames().filter((game) => game.coverUrl).length).toBeGreaterThanOrEqual(6);
   });
 
   it('never relates a game to itself', async () => {

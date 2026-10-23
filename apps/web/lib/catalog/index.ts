@@ -2,6 +2,7 @@ import {
   categorySlug,
   parseGameManifest,
   pickLocalized,
+  resolveAssetUrl,
   type GameCategory,
   type GameManifest,
   type Locale,
@@ -19,6 +20,8 @@ export type CatalogGame = {
   featured: boolean;
   manifest: GameManifest;
   multiplayer: boolean;
+  // Absolute URL of the game's own cover image; null shows the generated placeholder.
+  coverUrl: string | null;
 };
 
 function toCatalogGame(seed: SeedGame): CatalogGame {
@@ -35,6 +38,11 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     featured: seed.featured ?? false,
     manifest: parsed.manifest,
     multiplayer: parsed.manifest.players.max > 1,
+    // Coming-soon games are not deployed with their assets yet, so their cover URLs would 404.
+    coverUrl:
+      seed.status === 'live' && !seed.generatedCover
+        ? resolveAssetUrl(parsed.manifest, parsed.manifest.assets.cover)
+        : null,
   };
 }
 

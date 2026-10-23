@@ -39,7 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: localizedAlternates(locale, gamePath(game)),
-    openGraph: { title, description, type: 'website' },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      ...(game.coverUrl ? { images: [{ url: game.coverUrl, width: 1920, height: 1080 }] } : {}),
+    },
+    ...(game.coverUrl ? { twitter: { card: 'summary_large_image', images: [game.coverUrl] } } : {}),
   };
 }
 
@@ -53,6 +59,7 @@ function jsonLd(game: CatalogGame, locale: Locale, categoryLabel: string) {
     url: `${SITE_URL}/${locale}${gamePath(game)}`,
     genre: categoryLabel,
     keywords: game.manifest.tags.join(', '),
+    ...(game.coverUrl ? { image: game.coverUrl } : {}),
     gamePlatform: 'Web browser',
     applicationCategory: 'Game',
     operatingSystem: 'Any',
@@ -103,6 +110,7 @@ export default async function GamePage({ params }: Props) {
                 category={manifest.category}
                 size="hero"
                 plain
+                image={game.coverUrl}
               />
             }
           />
@@ -149,7 +157,11 @@ export default async function GamePage({ params }: Props) {
               <TrophyIcon />
               {t('game.leaderboard')}
             </h2>
-            <p>{t('game.leaderboardSoon')}</p>
+            <p>
+              {game.status === 'live'
+                ? t('game.leaderboardWithAccounts')
+                : t('game.leaderboardSoon')}
+            </p>
           </section>
 
           <section className={styles.section} aria-labelledby="related-heading">

@@ -65,6 +65,13 @@
   aspect-ratio: auto;
 }
 
+/* A real cover is usually a screenshot of the game's own menu; dim and soften it so its
+   buttons and text do not compete with the platform's Play button. */
+.overlay img {
+  filter: brightness(0.45) blur(3px);
+  transform: scale(1.04);
+}
+
 .overlayContent {
   grid-area: 1 / 1;
   z-index: 1;

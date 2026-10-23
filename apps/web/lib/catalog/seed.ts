@@ -2,7 +2,8 @@ import type { GameManifestInput } from '@ayvago/shared';
 
 // Seed catalog used until games are imported into Firestore (Phase 1, import wave 1).
 // Entry URLs are the production URLs confirmed by the owner. A game stays "coming_soon" until
-// it passes the integration checklist in docs/plan/game-import-plan.md.
+// it passes the integration checklist in docs/plan/game-import-plan.md; live games ship their
+// own cover and icon (manifest assets, served from the game's origin).
 
 export type CatalogStatus = 'live' | 'coming_soon';
 
@@ -12,6 +13,8 @@ export type SeedGame = {
   status: CatalogStatus;
   addedAt: string;
   featured?: boolean;
+  // Use the generated placeholder cover even when live (for games that publish no assets).
+  generatedCover?: boolean;
   manifest: GameManifestInput;
 };
 
@@ -47,7 +50,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'crystal-runner-3d',
     repo: 'selchook/crystal-runner-3d-three-js-r168',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     featured: true,
     manifest: {
@@ -74,7 +77,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'orb-surge',
     repo: 'selchook/orb-surge',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     featured: true,
     manifest: {
@@ -101,7 +104,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'pixel-cascade',
     repo: 'selchook/pixel-cascade',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     featured: true,
     manifest: {
@@ -128,7 +131,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'chromashift',
     repo: 'selchook/chromashift',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     manifest: {
       id: 'chromashift',
@@ -154,7 +157,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'space-defender',
     repo: 'selchook/space-defender',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     manifest: {
       id: 'spacedefender',
@@ -180,7 +183,7 @@ export const SEED_GAMES: SeedGame[] = [
   {
     slug: 'gyroball-infinite',
     repo: 'selchook/gyroball-infinite',
-    status: 'coming_soon',
+    status: 'live',
     addedAt: '2026-10-20',
     manifest: {
       id: 'gyroballinfinite',
@@ -312,6 +315,7 @@ export const FIXTURE_GAME: SeedGame = {
   repo: 'selchook/ayvago',
   status: 'live',
   addedAt: '2026-10-23',
+  generatedCover: true,
   manifest: {
     id: 'bridgefixture',
     title: { en: 'Bridge Fixture', tr: 'Köprü Test Oyunu' },
