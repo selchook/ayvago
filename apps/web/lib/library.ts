@@ -48,6 +48,8 @@ export function toggleFavorite(slug: string): boolean {
 export function recordBestScore(slug: string, score: number, order: 'asc' | 'desc'): boolean {
   const key = BEST_PREFIX + slug;
   const previous = read<number | null>(key, null);
+  // A first run that scored nothing is not worth celebrating as a personal best.
+  if (previous === null && order === 'desc' && score <= 0) return false;
   const improved = previous === null || (order === 'desc' ? score > previous : score < previous);
   if (improved) write(key, score);
   return improved;

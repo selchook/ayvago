@@ -24,7 +24,7 @@
 | 3 | Pixel Cascade | `pixel-cascade` | Phaser 3 (JS) | Puzzle | CrazyGames SDK → remove | `X-Frame-Options` | **M** | 1 |
 | 4 | ChromaShift | `chromashift` | Phaser 3 (TS) | Casual / Puzzle | localStorage only | `X-Frame-Options` | **M** | 1 |
 | 5 | Space Defender | `space-defender` | TS / Canvas | Retro Action | CrazyGames SDK (inline in index.html) → remove | `X-Frame-Options` | **M** | 2 |
-| 6 | Gyroball Infinite | `gyroball-infinite` | Three.js | Casual | localStorage only | `X-Frame-Options`; gyroscope permission inside an iframe | **M** | 2 |
+| 6 | Gyroball Infinite | `gyroball-infinite` | Three.js | Casual | localStorage only; keyboard and on-screen buttons (no gyroscope input in the code) | `X-Frame-Options` | **M** | 2 |
 | 7 | Number Detective | `guess-number` | React | Puzzle / MP | Ably (2 players) | Ably → netcode | **M** | 3 |
 | 8 | Tavla (Backgammon) | `backgammon` | React | Board / MP | Ably + chat | Ably → netcode; chat moderation | **L** | 3 |
 | 9 | Naval Strike | `battleships` | React | MP | Ably (key in source!) | Ably → netcode | **M** | 3 |
@@ -233,7 +233,7 @@ Values are **first estimates**; each game is calibrated (§6.1).
 | Pixel Cascade | Points | desc | "Extra moves / shuffle", "hint" | Between levels (every 3 levels) |
 | ChromaShift | Points | desc | "Continue", "hint" | Game over |
 | Space Defender | Points | desc | "Extra life", "start with a power-up" | Between waves / game over |
-| Gyroball Infinite | Distance | desc | "Continue" | Game over |
+| Gyroball Infinite | Points (survival time + bonus tiles) | desc | "Continue" | Game over |
 | Number Detective | Wins | desc (accumulate) | "Hint: reveal a digit" (single-player practice mode only) | Between matches |
 | Tavla | Wins / Elo | desc | — (competitive fairness) | Between matches |
 | Naval Strike | Wins | desc | — | Between matches |

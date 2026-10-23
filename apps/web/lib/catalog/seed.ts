@@ -42,7 +42,6 @@ const winsScoring: GameManifestInput['scoring'] = {
 };
 
 const SCORE = { en: 'Score', tr: 'Puan' };
-const DISTANCE = { en: 'Distance', tr: 'Mesafe' };
 
 export const SEED_GAMES: SeedGame[] = [
   {
@@ -161,14 +160,14 @@ export const SEED_GAMES: SeedGame[] = [
       id: 'spacedefender',
       title: { en: 'Space Defender', tr: 'Space Defender' },
       description: {
-        en: 'Pilot a mining drone through asteroid fields, gather resources, upgrade your ship and survive the void.',
-        tr: 'Bir maden dronuyla asteroit alanlarında ilerle, kaynak topla, gemini geliştir ve boşlukta hayatta kal.',
+        en: 'Steer your ship through waves of asteroids. Blast them apart, collect resources and manage your fuel to survive each level.',
+        tr: 'Gemini asteroit dalgaları arasında yönet. Asteroitleri parçala, kaynak topla ve her seviyede hayatta kalmak için yakıtını idare et.',
       },
       category: 'retro_action',
-      tags: ['space', 'shooter', 'upgrades'],
+      tags: ['space', 'shooter', 'asteroids'],
       entry: 'https://space-defender-one.vercel.app/',
       orientation: 'landscape',
-      input: ['touch', 'keyboard'],
+      input: ['keyboard'],
       players: { min: 1, max: 1 },
       scoring: singlePlayerScoring(SCORE, 400),
       ads: { rewarded: ['extra_life'], interstitial: ['game_over'] },
@@ -187,16 +186,16 @@ export const SEED_GAMES: SeedGame[] = [
       id: 'gyroballinfinite',
       title: { en: 'Gyroball Infinite', tr: 'Gyroball Infinite' },
       description: {
-        en: 'Roll a metal ball through endless rotating tubes. Manage your momentum — one wrong move and you fall into the void.',
-        tr: 'Metal bir topu sonsuz dönen tüplerde yuvarla. Hızını iyi yönet; tek bir hata ve boşluğa düşersin.',
+        en: 'Roll and jump across an endless stream of floating platforms. Land on colored twin tiles for bonus points; miss a platform and you fall into the void.',
+        tr: 'Sonsuz bir yüzen platform akışında yuvarlan ve zıpla. Bonus puan için renkli ikiz karolara in; bir platformu kaçırırsan boşluğa düşersin.',
       },
       category: 'casual',
-      tags: ['3d', 'physics', 'endless'],
+      tags: ['3d', 'endless', 'jump'],
       entry: 'https://gyroball-infinite.vercel.app/',
       orientation: 'any',
-      input: ['touch', 'keyboard', 'gyroscope'],
+      input: ['touch', 'keyboard'],
       players: { min: 1, max: 1 },
-      scoring: { ...singlePlayerScoring(DISTANCE, 100), metric: 'distance' },
+      scoring: singlePlayerScoring(SCORE, 20),
       ads: { rewarded: ['continue'], interstitial: ['game_over'] },
       ageRating: '3+',
       sdkVersion: 2,

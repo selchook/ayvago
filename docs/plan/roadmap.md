@@ -460,7 +460,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] `startSession` / `finishSession` + App Check
 - [ ] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting
 - [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf
-- [ ] **Import wave 2** (space-defender, gyroball-infinite)
+- [ ] **Import wave 2** (space-defender, gyroball-infinite) — integration PRs open in each game repository; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
 - [ ] Admin panel v1 (custom claims): game management, flagged scores
 - **Done when:** a fake score sent from the console never reaches a leaderboard.
 
