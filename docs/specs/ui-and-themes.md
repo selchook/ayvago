@@ -71,7 +71,8 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 
 ### Implementation choices
 - **React Server Components** for pages; client components only where interactive.
-- **Radix UI primitives** for Dialog, Tabs, Tooltip, Menu, Switch (accessible behavior, unstyled).
+- **Radix UI primitives** for Dialog, Tabs, Tooltip, Menu, Switch (accessible behavior, unstyled), added when the first dialog/menu is built. The theme and language popovers use native `<details>`/`<summary>` and need no library.
+- *Implementation note:* components live in `apps/web/components` for now and move to `packages/ui` when a second app (sdk-playground) needs them.
 - **CSS Modules + CSS custom properties** for styling; no theme-specific code inside components — components read semantic tokens only.
 - **Storybook** in `packages/ui` with a toolbar to switch theme, mode and locale; visual checks of every component in all theme/mode combinations.
 
@@ -113,7 +114,8 @@ Optional layers that never change layout:
 
 ### 5.5 Persistence without flashing
 - The choice is stored in a cookie (`ayvago-theme`, `ayvago-mode`) and, for signed-in users, in `users/{uid}.theme/mode`.
-- The server reads the cookie and renders the right `data-theme`/`data-mode`, so there is no flash of the wrong theme. When the mode is "system", a tiny inline script in `<head>` applies `prefers-color-scheme` before first paint.
+- Pages stay statically rendered: a tiny inline script in `<head>` (`themeBootstrapScript` in `packages/themes`) reads the cookies and sets `data-theme`/`data-mode` before first paint, so there is no flash of the wrong theme. When the mode is "system", no `data-mode` is set and the CSS follows `prefers-color-scheme`.
+- *Implementation note:* reading the cookie on the server was the original plan, but it would make every page dynamic; the inline script keeps static generation and ISR.
 
 ### 5.6 Games and themes
 - The legacy GHA variables (`--bg`, `--bg-card`, `--accent`, `--text`, `--text-dim`, `--border`, `--radius`, `--success`) are kept as aliases of the semantic tokens.

@@ -31,7 +31,10 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 - Node 22 (`.nvmrc`), pnpm 10 (`packageManager` field).
 
 ## Layout
-- `apps/web` — Next.js platform app; `app/[locale]/` routes, `i18n/` config, `messages/` catalogs
+- `apps/web` — Next.js platform app; `app/[locale]/` routes, `i18n/` config, `messages/` catalogs,
+  `lib/catalog` (seed catalog behind an access layer), `lib/gha` (game bridge protocol)
 - `packages/shared` — locales, categories, zod schemas (`ayvago.json` game manifest)
+- `packages/themes` — theme tokens, generated CSS, contrast tests (components read semantic tokens only)
+- `tools/fixture-game` — local cross-origin test game (`pnpm fixture-game`, `AYVAGO_DEV_GAMES=1`)
 - `firebase/` — Firebase config and security rules
 - `docs/` — plans, ADRs, setup checklists

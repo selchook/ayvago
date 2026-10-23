@@ -18,6 +18,8 @@ A web game platform that brings retro action, casual and puzzle games together i
 apps/web            Next.js platform app (Vercel), localized with next-intl
   messages/         UI translations (en.json is the source of truth, tr.json)
 packages/shared     Shared constants, types and zod schemas (locales, categories, ayvago.json manifest)
+packages/themes     Theme tokens (minimal, retro, cartoon), generated CSS, contrast tests
+tools/fixture-game  Local test game for the iframe bridge
 firebase/           Firebase configuration and security rules
 docs/               Roadmap, ADRs, setup checklists
 ```
@@ -33,6 +35,17 @@ pnpm typecheck
 pnpm test
 pnpm build
 ```
+
+### Testing the game bridge locally
+
+`tools/fixture-game` is a tiny game that speaks the platform protocol from its own origin:
+
+```bash
+pnpm fixture-game                         # http://localhost:4173
+AYVAGO_DEV_GAMES=1 pnpm dev               # lists "Bridge Fixture" in the catalog
+```
+
+Open `/en/games/bridge-fixture`, press Play, and the fixture shows the theme and locale it received; scores, mute and theme changes flow through the same `GHA_*` messages real games use.
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` for environment variables. Never commit real secrets.
 

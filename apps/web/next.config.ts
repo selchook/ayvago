@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript sources; let Next compile them.
-  transpilePackages: ['@ayvago/shared'],
+  transpilePackages: ['@ayvago/shared', '@ayvago/themes'],
   poweredByHeader: false,
 };
 

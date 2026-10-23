@@ -1,11 +1,18 @@
 {
   "metadata": {
     "title": "Ayvago",
-    "description": "Retro aksiyon, casual ve bulmaca oyunları tek platformda."
+    "description": "Retro aksiyon, casual ve bulmaca oyunları tek platformda. Tarayıcında ücretsiz oyna.",
+    "gameDescriptionSuffix": "Ayvago'da tarayıcında ücretsiz oyna."
   },
-  "home": {
-    "tagline": "Retro aksiyon, casual ve bulmaca oyunları tek platformda. Çok yakında.",
-    "categoriesLabel": "Kategoriler"
+  "nav": {
+    "main": "Ana menü",
+    "home": "Ana sayfa",
+    "new": "Yeni",
+    "recent": "Son oynananlar",
+    "favorites": "Favoriler",
+    "multiplayer": "Çok oyunculu",
+    "categories": "Kategoriler",
+    "skipToContent": "İçeriğe geç"
   },
   "categories": {
     "retro_action": "Retro Aksiyon",
@@ -15,6 +22,91 @@
   },
   "localeSwitcher": {
     "label": "Dil"
+  },
+  "theme": {
+    "label": "Görünüm",
+    "themes": "Tema",
+    "minimal": "Minimal",
+    "retro": "Retro",
+    "cartoon": "Cartoon",
+    "mode": "Renk modu",
+    "system": "Sistem",
+    "light": "Açık",
+    "dark": "Koyu",
+    "retroDarkOnly": "Retro tema her zaman koyudur."
+  },
+  "home": {
+    "tagline": "Retro aksiyon, casual ve bulmaca oyunları tek platformda.",
+    "spotlight": "Öne çıkanlar",
+    "newShelf": "Ayvago'da yeni",
+    "multiplayerShelf": "Arkadaşlarınla oyna",
+    "categoryShelf": "{category} oyunları",
+    "seeAll": "Tümünü gör",
+    "categoriesLabel": "Kategoriler"
+  },
+  "shelf": {
+    "previous": "Sola kaydır",
+    "next": "Sağa kaydır"
+  },
+  "list": {
+    "newTitle": "Yeni oyunlar",
+    "newIntro": "Ayvago'ya en son eklenen oyunlar.",
+    "multiplayerTitle": "Çok oyunculu oyunlar",
+    "multiplayerIntro": "Bir arkadaşına meydan oku ya da çevrimiçi oyna.",
+    "categoryIntro": "Ayvago'daki tüm {category} oyunları.",
+    "count": "{count, plural, one {# oyun} other {# oyun}}"
+  },
+  "tile": {
+    "comingSoon": "Yakında",
+    "new": "Yeni",
+    "multiplayer": "Çok oyunculu"
+  },
+  "game": {
+    "play": "Oyna",
+    "comingSoonTitle": "Yakında",
+    "comingSoonBody": "Bu oyun Ayvago için hazırlanıyor. Yakında tekrar uğra.",
+    "loading": "{title} yükleniyor…",
+    "notResponding": "Oyunun açılması normalden uzun sürüyor.",
+    "retry": "Oyunu yeniden yükle",
+    "description": "Oyun hakkında",
+    "controls": "Kontroller",
+    "tags": "Etiketler",
+    "players": "{count, plural, one {Tek oyunculu} other {# oyunculu}}",
+    "related": "Bunları da sevebilirsin",
+    "leaderboard": "Skor tablosu",
+    "leaderboardSoon": "Haftalık skor tabloları bu oyun Ayvago'da yayına girince açılacak.",
+    "lastScore": "Skor: {score}",
+    "personalBest": "Kişisel rekor!",
+    "bestScore": "En iyi skorun: {score}"
+  },
+  "input": {
+    "touch": "Dokunmatik",
+    "mouse": "Fare",
+    "keyboard": "Klavye",
+    "gamepad": "Oyun kolu",
+    "gyroscope": "Eğme (jiroskop)"
+  },
+  "player": {
+    "toolbar": "Oyun kontrolleri",
+    "favorite": "Favorilere ekle",
+    "unfavorite": "Favorilerden çıkar",
+    "theater": "Sinema modu",
+    "exitTheater": "Sinema modundan çık",
+    "fullscreen": "Tam ekran",
+    "exitFullscreen": "Tam ekrandan çık",
+    "mute": "Sesi kapat",
+    "unmute": "Sesi aç",
+    "share": "Paylaş",
+    "linkCopied": "Bağlantı kopyalandı",
+    "frameTitle": "{title} oyunu"
+  },
+  "library": {
+    "recentTitle": "Son oynananlar",
+    "recentEmpty": "Oynadığın oyunlar burada görünecek.",
+    "favoritesTitle": "Favoriler",
+    "favoritesEmpty": "Bir oyunu burada tutmak için kalbe dokun.",
+    "localNote": "Bu cihazda saklanıyor. Her yerde erişmek için giriş yapma özelliği yakında geliyor.",
+    "browse": "Oyunlara göz at"
   },
   "notFound": {
     "title": "Sayfa bulunamadı",

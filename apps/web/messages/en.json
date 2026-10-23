@@ -1,11 +1,18 @@
 {
   "metadata": {
     "title": "Ayvago",
-    "description": "Retro action, casual and puzzle games in one place."
+    "description": "Retro action, casual and puzzle games in one place. Free to play in your browser.",
+    "gameDescriptionSuffix": "Play free in your browser on Ayvago."
   },
-  "home": {
-    "tagline": "Retro action, casual and puzzle games in one place. Coming soon.",
-    "categoriesLabel": "Categories"
+  "nav": {
+    "main": "Main navigation",
+    "home": "Home",
+    "new": "New",
+    "recent": "Recently played",
+    "favorites": "Favorites",
+    "multiplayer": "Multiplayer",
+    "categories": "Categories",
+    "skipToContent": "Skip to content"
   },
   "categories": {
     "retro_action": "Retro Action",
@@ -15,6 +22,91 @@
   },
   "localeSwitcher": {
     "label": "Language"
+  },
+  "theme": {
+    "label": "Appearance",
+    "themes": "Theme",
+    "minimal": "Minimal",
+    "retro": "Retro",
+    "cartoon": "Cartoon",
+    "mode": "Color mode",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "retroDarkOnly": "Retro is always dark."
+  },
+  "home": {
+    "tagline": "Retro action, casual and puzzle games in one place.",
+    "spotlight": "Spotlight",
+    "newShelf": "New on Ayvago",
+    "multiplayerShelf": "Play with friends",
+    "categoryShelf": "{category} games",
+    "seeAll": "See all",
+    "categoriesLabel": "Categories"
+  },
+  "shelf": {
+    "previous": "Scroll left",
+    "next": "Scroll right"
+  },
+  "list": {
+    "newTitle": "New games",
+    "newIntro": "The latest games added to Ayvago.",
+    "multiplayerTitle": "Multiplayer games",
+    "multiplayerIntro": "Challenge a friend or play online.",
+    "categoryIntro": "All {category} games on Ayvago.",
+    "count": "{count, plural, one {# game} other {# games}}"
+  },
+  "tile": {
+    "comingSoon": "Coming soon",
+    "new": "New",
+    "multiplayer": "Multiplayer"
+  },
+  "game": {
+    "play": "Play",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonBody": "This game is being prepared for Ayvago. Check back soon.",
+    "loading": "Loading {title}…",
+    "notResponding": "The game is taking longer than usual.",
+    "retry": "Reload game",
+    "description": "About this game",
+    "controls": "Controls",
+    "tags": "Tags",
+    "players": "{count, plural, one {Single player} other {# players}}",
+    "related": "You may also like",
+    "leaderboard": "Leaderboard",
+    "leaderboardSoon": "Weekly leaderboards open when this game launches on Ayvago.",
+    "lastScore": "Score: {score}",
+    "personalBest": "Personal best!",
+    "bestScore": "Your best: {score}"
+  },
+  "input": {
+    "touch": "Touch",
+    "mouse": "Mouse",
+    "keyboard": "Keyboard",
+    "gamepad": "Gamepad",
+    "gyroscope": "Tilt (gyroscope)"
+  },
+  "player": {
+    "toolbar": "Game controls",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "theater": "Theater mode",
+    "exitTheater": "Exit theater mode",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "frameTitle": "{title} game"
+  },
+  "library": {
+    "recentTitle": "Recently played",
+    "recentEmpty": "Games you play will show up here.",
+    "favoritesTitle": "Favorites",
+    "favoritesEmpty": "Tap the heart on a game to keep it here.",
+    "localNote": "Saved on this device. Sign-in to keep them everywhere is coming soon.",
+    "browse": "Browse games"
   },
   "notFound": {
     "title": "Page not found",

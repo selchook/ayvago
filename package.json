@@ -11,7 +11,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "fixture-game": "node tools/fixture-game/serve.mjs"
   },
   "devDependencies": {
     "prettier": "3.9.10",

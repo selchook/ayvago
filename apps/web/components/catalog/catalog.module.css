@@ -1,0 +1,259 @@
+/* Catalog building blocks: generated covers, tiles, shelves and grids. */
+
+.cover {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 20% 15%, hsl(var(--h1) 90% 70% / 0.55), transparent 55%),
+    linear-gradient(135deg, hsl(var(--h1) 70% 38%), hsl(var(--h2) 75% 28%));
+}
+
+/* Retro covers: hard-edged stripes and a pixel grid instead of soft gradients. */
+[data-theme='retro'] .cover {
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.25) 0 2px, transparent 2px 6px),
+    linear-gradient(180deg, hsl(var(--h1) 80% 30%) 0 50%, hsl(var(--h2) 80% 22%) 50% 100%);
+}
+
+.coverIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.16);
+}
+
+.cover[data-size='hero'] .coverIcon {
+  width: 96px;
+  height: 96px;
+}
+
+[data-theme='retro'] .coverIcon {
+  border-radius: 0;
+}
+
+.coverTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-transform: var(--display-transform);
+  text-align: center;
+  text-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  overflow-wrap: anywhere;
+}
+
+.cover[data-size='hero'] .coverTitle {
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+}
+
+[data-theme='retro'] .coverTitle {
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+[data-theme='retro'] .cover[data-size='hero'] .coverTitle {
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+}
+
+.tile {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--motion-base) var(--easing),
+    box-shadow var(--motion-base) var(--easing),
+    border-color var(--motion-fast) var(--easing);
+}
+
+.tile:hover,
+.tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme='cartoon'] .tile:hover {
+  transform: translateY(-4px) rotate(-1deg);
+}
+
+.badges {
+  position: absolute;
+  inset: 8px 8px auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+}
+
+.badge[data-kind='new'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+[data-theme='retro'] .badge {
+  border-radius: 0;
+}
+
+.tileMeta {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px 12px;
+}
+
+.tileTitle {
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tileCategory {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.shelf {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.shelfHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.seeAll {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.seeAll:hover {
+  text-decoration: underline;
+}
+
+.scroller {
+  position: relative;
+}
+
+.shelfList {
+  list-style: none;
+  margin: 0;
+  padding: 4px 2px 10px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(200px, 24%, 280px);
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.shelfList > li {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.arrow {
+  position: absolute;
+  top: 34%;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.arrow[data-side='start'] {
+  inset-inline-start: -14px;
+}
+
+.arrow[data-side='end'] {
+  inset-inline-end: -14px;
+}
+
+.arrow[hidden] {
+  display: none;
+}
+
+[data-theme='retro'] .arrow {
+  border-radius: 0;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+}
+
+/* Narrow tiles (side columns, phone grids) show the title below the cover only, so the
+   badges never collide with cover text. */
+@container (max-width: 230px) {
+  .coverIcon,
+  .coverTitle {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .shelfList {
+    grid-auto-columns: 72%;
+    gap: 12px;
+  }
+
+  .arrow {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .coverTitle {
+    font-size: 0.9rem;
+  }
+}

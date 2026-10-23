@@ -1,0 +1,123 @@
+/* Page-level layouts: headers, the home spotlight, list pages and empty states. */
+
+.header {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.intro {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+.count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.spotlightMain {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+}
+
+.spotlightBody {
+  display: grid;
+  gap: 6px;
+  padding: 16px 20px 20px;
+}
+
+.spotlightBody p {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+.spotlightSide {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 28px;
+  border: var(--border-width) dashed var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.empty p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.note {
+  margin: 16px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.button:hover {
+  filter: brightness(1.08);
+}
+
+[data-theme='cartoon'] .button {
+  border-color: var(--border);
+}
+
+@media (max-width: 899px) {
+  .spotlight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spotlightSide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

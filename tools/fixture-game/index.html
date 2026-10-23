@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bridge Fixture</title>
+    <style>
+      /* Uses the platform's legacy GHA variables with fallbacks, like the real games do. */
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-content: center;
+        gap: 12px;
+        text-align: center;
+        font-family: system-ui, sans-serif;
+        background: var(--bg, #10131c);
+        color: var(--text, #e8eaf0);
+      }
+      button {
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: var(--radius, 8px);
+        border: 0;
+        background: var(--accent, #f0a830);
+        color: var(--accent-contrast, #10131c);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      #score {
+        font-size: 3rem;
+        font-weight: 800;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+      }
+      #status {
+        color: var(--text-dim, #8892aa);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="score" data-testid="score">0</div>
+    <div class="row">
+      <button id="add" type="button">+10</button>
+      <button id="end" type="button">End game</button>
+      <button id="board" type="button">Leaderboard</button>
+    </div>
+    <p id="status" data-testid="status">waiting for platform</p>
+    <script>
+      // Minimal implementation of the platform protocol (v1 message names) for end-to-end tests.
+      (function () {
+        var embedded = window.parent !== window;
+        var platformOrigin = document.referrer ? new URL(document.referrer).origin : null;
+        var score = 0;
+        var status = document.getElementById('status');
+
+        function send(message) {
+          if (embedded && platformOrigin) window.parent.postMessage(message, platformOrigin);
+        }
+
+        function render() {
+          document.getElementById('score').textContent = String(score);
+        }
+
+        window.addEventListener('message', function (event) {
+          if (event.source !== window.parent || event.origin !== platformOrigin) return;
+          var msg = event.data || {};
+          if (msg.type === 'GHA_START') {
+            var config = msg.config || {};
+            var tokens = config.tokens || {};
+            Object.keys(tokens).forEach(function (name) {
+              document.documentElement.style.setProperty(name, tokens[name]);
+            });
+            status.textContent =
+              'started: ' + config.theme + '/' + config.colorMode + ' ' + config.locale;
+            send({ type: 'GHA_SESSION_START' });
+          } else if (msg.type === 'GHA_THEME_CHANGE') {
+            Object.keys(msg.tokens || {}).forEach(function (name) {
+              document.documentElement.style.setProperty(name, msg.tokens[name]);
+            });
+            status.textContent = 'theme: ' + msg.theme + '/' + msg.colorMode;
+          } else if (msg.type === 'GHA_PAUSE') {
+            status.textContent = 'paused';
+          } else if (msg.type === 'GHA_RESUME') {
+            status.textContent = 'resumed';
+          } else if (msg.type === 'GHA_MUTE') {
+            status.textContent = msg.muted ? 'muted' : 'unmuted';
+          }
+        });
+
+        document.getElementById('add').addEventListener('click', function () {
+          score += 10;
+          render();
+          send({ type: 'GHA_SCORE', score: score });
+        });
+        document.getElementById('end').addEventListener('click', function () {
+          send({ type: 'GHA_END', score: score, won: false });
+          status.textContent = 'ended with ' + score;
+          score = 0;
+          render();
+        });
+        document.getElementById('board').addEventListener('click', function () {
+          send({ type: 'GHA_OPEN_LEADERBOARD' });
+        });
+
+        send({ type: 'GHA_READY' });
+        if (!embedded) status.textContent = 'standalone';
+      })();
+    </script>
+  </body>
+</html>
