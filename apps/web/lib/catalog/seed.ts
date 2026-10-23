@@ -1,9 +1,8 @@
 import type { GameManifestInput } from '@ayvago/shared';
 
 // Seed catalog used until games are imported into Firestore (Phase 1, import wave 1).
-// Entry URLs are best guesses from the repository names and must be confirmed by the owner;
-// every game stays "coming_soon" until it passes the integration checklist in
-// docs/plan/game-import-plan.md.
+// Entry URLs are the production URLs confirmed by the owner. A game stays "coming_soon" until
+// it passes the integration checklist in docs/plan/game-import-plan.md.
 
 export type CatalogStatus = 'live' | 'coming_soon';
 
@@ -141,7 +140,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'puzzle',
       tags: ['color', 'grid', 'chain'],
-      entry: 'https://chromashift.vercel.app/',
+      entry: 'https://chromashift-theta.vercel.app/',
       orientation: 'portrait',
       input: ['touch', 'mouse'],
       players: { min: 1, max: 1 },
@@ -167,7 +166,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'retro_action',
       tags: ['space', 'shooter', 'upgrades'],
-      entry: 'https://space-defender.vercel.app/',
+      entry: 'https://space-defender-one.vercel.app/',
       orientation: 'landscape',
       input: ['touch', 'keyboard'],
       players: { min: 1, max: 1 },
@@ -219,7 +218,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'puzzle',
       tags: ['logic', 'duel', 'numbers'],
-      entry: 'https://guess-number.vercel.app/',
+      entry: 'https://number-cracker.vercel.app/',
       orientation: 'portrait',
       input: ['touch', 'keyboard'],
       players: { min: 2, max: 2 },
@@ -244,7 +243,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'board',
       tags: ['classic', 'dice', 'online'],
-      entry: 'https://backgammon.vercel.app/',
+      entry: 'https://backgammon-tito.vercel.app/',
       orientation: 'landscape',
       input: ['touch', 'mouse'],
       players: { min: 2, max: 2 },
@@ -269,7 +268,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'board',
       tags: ['strategy', 'naval', 'online'],
-      entry: 'https://battleships.vercel.app/',
+      entry: 'https://battleships-tito.vercel.app/',
       orientation: 'any',
       input: ['touch', 'mouse'],
       players: { min: 2, max: 2 },
@@ -294,7 +293,7 @@ export const SEED_GAMES: SeedGame[] = [
       },
       category: 'casual',
       tags: ['artillery', 'tanks', 'duel'],
-      entry: 'https://tito-multiplayer.vercel.app/',
+      entry: 'https://tank-tito.vercel.app/',
       orientation: 'landscape',
       input: ['touch', 'mouse', 'keyboard'],
       players: { min: 2, max: 2 },

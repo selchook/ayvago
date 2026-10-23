@@ -109,6 +109,10 @@ export function GamePlayer(props: GamePlayerProps) {
             setResult({ score: message.score, improved });
           }
           break;
+        case 'adRequest':
+          // Ads are not live yet (adsEnabled is false); answer so the game never waits.
+          post({ type: 'GHA_AD_RESULT', id: message.id, shown: false, rewarded: false });
+          break;
         case 'openLeaderboard':
           document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' });
           break;
@@ -119,7 +123,7 @@ export function GamePlayer(props: GamePlayerProps) {
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [phase, gameOrigin, sendStart, slug, scoreOrder]);
+  }, [phase, gameOrigin, post, sendStart, slug, scoreOrder]);
 
   // Pause the game while the tab is hidden.
   useEffect(() => {

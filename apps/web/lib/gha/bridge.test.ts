@@ -55,6 +55,19 @@ describe('parseGameMessage', () => {
     });
   });
 
+  it('validates ad requests', () => {
+    expect(
+      parseGameMessage({
+        type: 'GHA_AD_REQUEST',
+        id: 3,
+        format: 'rewarded',
+        placement: 'continue',
+      }),
+    ).toEqual({ type: 'adRequest', id: 3, format: 'rewarded', placement: 'continue' });
+    expect(parseGameMessage({ type: 'GHA_AD_REQUEST', id: '3', format: 'rewarded' })).toBeNull();
+    expect(parseGameMessage({ type: 'GHA_AD_REQUEST', id: 3, format: 'popup' })).toBeNull();
+  });
+
   it('ignores unknown and non-object payloads', () => {
     expect(parseGameMessage({ type: 'SOMETHING_ELSE' })).toBeNull();
     expect(parseGameMessage('GHA_READY')).toBeNull();

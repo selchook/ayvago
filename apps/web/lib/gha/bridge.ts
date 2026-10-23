@@ -12,7 +12,8 @@ export type GameMessage =
   | { type: 'score'; score: number }
   | { type: 'end'; score: number | null; won: boolean | null }
   | { type: 'moveOut'; data: unknown }
-  | { type: 'openLeaderboard' };
+  | { type: 'openLeaderboard' }
+  | { type: 'adRequest'; id: number; format: 'rewarded' | 'interstitial'; placement: string };
 
 export type StartConfig = {
   mode: 'solo' | 'multiplayer';
@@ -38,7 +39,8 @@ export type PlatformMessage =
       colorMode: ColorMode;
       tokens: Record<string, string>;
     }
-  | { type: 'GHA_LOCALE_CHANGE'; locale: string };
+  | { type: 'GHA_LOCALE_CHANGE'; locale: string }
+  | { type: 'GHA_AD_RESULT'; id: number; shown: boolean; rewarded: boolean };
 
 // Highest score accepted from a game message; larger values are treated as malformed.
 const MAX_REPORTED_SCORE = 1e12;
@@ -100,8 +102,20 @@ export function parseGameMessage(data: unknown): GameMessage | null {
       return { type: 'moveOut', data: msg.data };
     case 'GHA_OPEN_LEADERBOARD':
       return { type: 'openLeaderboard' };
+    case 'GHA_AD_REQUEST': {
+      const { id, format, placement } = msg;
+      if (typeof id !== 'number' || !Number.isInteger(id)) return null;
+      if (format !== 'rewarded' && format !== 'interstitial') return null;
+      return {
+        type: 'adRequest',
+        id,
+        format,
+        placement: typeof placement === 'string' ? placement : '',
+      };
+    }
     default:
-      // GHA_SESSION_END duplicates GHA_END in the v1 SDK; other types are not part of protocol 2.
+      // GHA_SESSION_END duplicates GHA_END in the v1 SDK; GHA_GAMEPLAY_STOP and GHA_HAPPY_TIME
+      // are accepted by the protocol but not used by the platform yet.
       return null;
   }
 }
