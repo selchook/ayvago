@@ -42,12 +42,35 @@ function includeDevGames(): boolean {
   return process.env.AYVAGO_DEV_GAMES === '1';
 }
 
+/**
+ * Local testing only: AYVAGO_DEV_ENTRY_OVERRIDES="orb-surge=http://localhost:4202/,..." points
+ * games at local builds and marks them live, so integration branches can be played inside the
+ * platform before they are deployed. Ignored in production builds.
+ */
+export function parseEntryOverrides(raw: string | undefined): Map<string, string> {
+  const overrides = new Map<string, string>();
+  if (!raw || (process.env.NODE_ENV === 'production' && process.env.AYVAGO_DEV_GAMES !== '1')) {
+    return overrides;
+  }
+  for (const pair of raw.split(',')) {
+    const [slug, url] = pair.split('=').map((part) => part.trim());
+    if (slug && url) overrides.set(slug, url);
+  }
+  return overrides;
+}
+
+function applyOverride(seed: SeedGame, overrides: Map<string, string>): SeedGame {
+  const entry = overrides.get(seed.slug);
+  return entry ? { ...seed, status: 'live', manifest: { ...seed.manifest, entry } } : seed;
+}
+
 let cache: CatalogGame[] | null = null;
 
 export function getAllGames(): CatalogGame[] {
   if (!cache) {
     const seeds = includeDevGames() ? [FIXTURE_GAME, ...SEED_GAMES] : SEED_GAMES;
-    cache = seeds.map(toCatalogGame);
+    const overrides = parseEntryOverrides(process.env.AYVAGO_DEV_ENTRY_OVERRIDES);
+    cache = seeds.map((seed) => toCatalogGame(applyOverride(seed, overrides)));
   }
   return cache;
 }

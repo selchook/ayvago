@@ -450,8 +450,9 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [x] Catalog, category, new, multiplayer and game pages (static + SEO + JSON-LD `VideoGame`, sitemap, hreflang) in both locales — from a seed catalog until Firestore is connected
 - [x] Recently played / favorites / local best score (stored on the device until accounts land)
 - [x] `GamePlayer`: sandboxed iframe, loading screen, fullscreen, theater, pause on hidden tab, mute, theme forwarding, origin + source checks (v1 message names) — verified end to end with `tools/fixture-game`
-- [ ] SDK v2 core + `platform-adapter` + sdk-playground
-- [ ] **Import wave 1** (crystal-runner, orb-surge, pixel-cascade, chromashift)
+- [x] Platform adapter (`packages/platform-adapter`, protocol 2, vendored into games) — sdk-playground still open
+- [ ] sdk-playground (developer test host)
+- [ ] **Import wave 1** (crystal-runner, orb-surge, pixel-cascade, chromashift) — integration PRs open in each game repository; games go live in the catalog after merge and deploy
 - [ ] Platform PWA (manifest, service worker)
 - **Done when:** a guest picks a theme and a language, plays the 4 games and sees their scores on the profile.
 

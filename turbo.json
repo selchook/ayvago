@@ -4,7 +4,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["AYVAGO_DEV_GAMES"]
+      "env": ["AYVAGO_DEV_GAMES", "AYVAGO_DEV_ENTRY_OVERRIDES"]
     },
     "typecheck": {
       "dependsOn": ["^build"]

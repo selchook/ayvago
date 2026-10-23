@@ -53,7 +53,7 @@ Built in the platform repository and applied the same way to every game.
   "source": "/(.*)",
   "headers": [
     { "key": "Content-Security-Policy",
-      "value": "frame-ancestors 'self' https://ayvago.com https://*.ayvago.com http://localhost:3000" },
+      "value": "frame-ancestors 'self' https://ayvago.com https://www.ayvago.com http://localhost:3000" },
     { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
   ]
 }
@@ -61,7 +61,7 @@ Built in the platform repository and applied the same way to every game.
 
 - The `X-Frame-Options` line is **deleted** (CSP `frame-ancestors` is its modern replacement and supports an allow-list).
 - `Cross-Origin-Opener-Policy: same-origin` has no effect inside an iframe and can stay.
-- A temporary entry for the platform's Vercel preview domains (`https://ayvago-*.vercel.app`).
+- CSP host wildcards only cover the left-most label, so Ayvago's own Vercel preview domains (`ayvago-*.vercel.app`) cannot be allowed without allowing every `*.vercel.app` site. Previews are therefore tested locally (see §7) rather than embedded from preview deployments.
 
 ### 3.2 `@ayvago/platform-adapter` — a single facade
 
@@ -116,7 +116,7 @@ export async function createPlatformAdapter(opts: { gameId: string }): Promise<P
 - `window.CrazyGames` type declarations (`src/types/index.ts`)
 - Check: after import, `grep -ri crazygames src index.html` returns nothing; the harness fails if any request goes to `sdk.crazygames.com`.
 
-**Distribution:** npm package (`@ayvago/platform-adapter`) or, for games that prefer no dependency, a single file from the CDN.
+**Distribution:** the adapter is a single dependency-free file that games **vendor** into `src/ayvago/` (TypeScript source for TS games, the compiled `dist/adapter.js` for JS games) next to a tiny `platform.ts`/`platform.js` that queues calls until the handshake finishes. An npm package or CDN file can replace vendoring once the protocol is stable.
 
 ### 3.3 `ayvago.json` manifest (in each game's `public/` folder)
 

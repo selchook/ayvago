@@ -35,6 +35,8 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
   `lib/catalog` (seed catalog behind an access layer), `lib/gha` (game bridge protocol)
 - `packages/shared` — locales, categories, zod schemas (`ayvago.json` game manifest)
 - `packages/themes` — theme tokens, generated CSS, contrast tests (components read semantic tokens only)
+- `packages/platform-adapter` — single-file adapter games vendor into `src/ayvago/`; change it here, then
+  copy it into each game repository
 - `tools/fixture-game` — local cross-origin test game (`pnpm fixture-game`, `AYVAGO_DEV_GAMES=1`)
 - `firebase/` — Firebase config and security rules
 - `docs/` — plans, ADRs, setup checklists

@@ -19,6 +19,7 @@ apps/web            Next.js platform app (Vercel), localized with next-intl
   messages/         UI translations (en.json is the source of truth, tr.json)
 packages/shared     Shared constants, types and zod schemas (locales, categories, ayvago.json manifest)
 packages/themes     Theme tokens (minimal, retro, cartoon), generated CSS, contrast tests
+packages/platform-adapter  Adapter games vendor to talk to Ayvago (protocol 2)
 tools/fixture-game  Local test game for the iframe bridge
 firebase/           Firebase configuration and security rules
 docs/               Roadmap, ADRs, setup checklists
@@ -46,6 +47,15 @@ AYVAGO_DEV_GAMES=1 pnpm dev               # lists "Bridge Fixture" in the catalo
 ```
 
 Open `/en/games/bridge-fixture`, press Play, and the fixture shows the theme and locale it received; scores, mute and theme changes flow through the same `GHA_*` messages real games use.
+
+To play a game's integration branch inside the platform before it is deployed, serve its build locally and point the catalog at it:
+
+```bash
+# in the game repository
+npm run build && npx vite preview --port 4202
+# in this repository
+AYVAGO_DEV_GAMES=1 AYVAGO_DEV_ENTRY_OVERRIDES="orb-surge=http://localhost:4202/" pnpm dev
+```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` for environment variables. Never commit real secrets.
 

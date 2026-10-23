@@ -62,6 +62,8 @@ export function GamePlayer(props: GamePlayerProps) {
   const [fullscreen, setFullscreen] = useState(false);
   const [result, setResult] = useState<{ score: number; improved: boolean } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // True once the game completed the SDK handshake; exposed for diagnostics and tests.
+  const [connected, setConnected] = useState(false);
   const best = useBestScore(slug);
 
   // Messages always go to the game's registered origin, never '*'.
@@ -98,6 +100,7 @@ export function GamePlayer(props: GamePlayerProps) {
       switch (message.type) {
         case 'ready':
           sendStart();
+          setConnected(true);
           setPhase('playing');
           break;
         case 'loading':
@@ -176,6 +179,7 @@ export function GamePlayer(props: GamePlayerProps) {
 
   function play() {
     startedRef.current = false;
+    setConnected(false);
     setResult(null);
     setProgress(null);
     setPhase('loading');
@@ -184,6 +188,7 @@ export function GamePlayer(props: GamePlayerProps) {
 
   function reload() {
     startedRef.current = false;
+    setConnected(false);
     setProgress(null);
     setPhase('loading');
     setFrameKey((key) => key + 1);
@@ -233,6 +238,8 @@ export function GamePlayer(props: GamePlayerProps) {
         className={styles.stage}
         data-orientation={orientation}
         data-fullscreen={fullscreen}
+        data-phase={phase}
+        data-bridge={connected ? 'connected' : 'none'}
       >
         {showFrame ? (
           <iframe

@@ -39,6 +39,22 @@ describe('seed catalog', () => {
     expect(catalog.getGameBySlug('bridge-fixture')?.status).toBe('live');
   });
 
+  it('applies local entry overrides only together with dev games', async () => {
+    vi.stubEnv('AYVAGO_DEV_ENTRY_OVERRIDES', 'orb-surge=http://localhost:4202/');
+    let catalog = await loadCatalog();
+    // Tests run with NODE_ENV=test, so overrides apply.
+    expect(catalog.getGameBySlug('orb-surge')).toMatchObject({
+      status: 'live',
+      manifest: { entry: 'http://localhost:4202/' },
+    });
+
+    vi.stubEnv('NODE_ENV', 'production');
+    catalog = await loadCatalog();
+    expect(catalog.getGameBySlug('orb-surge')?.manifest.entry).toBe(
+      'https://orb-surge.vercel.app/',
+    );
+  });
+
   it('never relates a game to itself', async () => {
     const { getAllGames, getRelatedGames } = await loadCatalog();
     for (const game of getAllGames()) {
