@@ -21,12 +21,13 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 ## 3. Firebase
 - ✅ Create two projects: `ayvago-dev` and `ayvago-prod` (project id `ayvago-prod` confirmed)
 - ⏳ Move both projects to the **Blaze** plan and set **budget alerts** (suggested: $10 / $25 / $50). Not needed yet: the current account features run on Spark; Blaze is required once Cloud Functions ship (username changes, guest merge, score validation, purchases, TURN)
-- ⏳ Create Firestore in **`europe-west1`** (Native mode) — cannot be changed later
+- ✅ Firestore in **`europe-west1`** (`ayvago-prod`)
 - ✅ Realtime Database in `europe-west1` (`ayvago-prod`)
-- ⏳ Authentication: Anonymous, Google (Apple and email link later)
-- ⏳ Authentication → Settings → Authorized domains: `ayvago.com`, `www.ayvago.com`
-- ✅ `ayvago-prod` Web app registered and its config entered in Vercel (Production)
+- ✅ Authentication: Anonymous and Google enabled (`ayvago-prod`); Apple and email link later
+- ✅ Authorized domains: `ayvago.com`, `www.ayvago.com`
+- ✅ `ayvago-prod` Web app registered and its config entered in Vercel (Production); guest and Google sign-in verified on the live site
 - ⏳ `ayvago-dev` Web app → config into Vercel (Preview + Development)
+- ✅ Firestore rules published to `ayvago-prod` (pasted in the console)
 - ⏳ **Deploy the Firestore rules** whenever `firebase/firestore.rules` changes (until CI deploys them). From the repository root:
   ```bash
   pnpm install
