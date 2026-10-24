@@ -128,7 +128,10 @@
     "signOut": "Çıkış yap",
     "errors": {
       "popupBlocked": "Giriş penceresi engellendi. Bu site için açılır pencerelere izin verip tekrar dene.",
-      "generic": "Giriş yapılamadı. Lütfen tekrar dene."
+      "generic": "Giriş yapılamadı. Lütfen tekrar dene.",
+      "notAvailable": "Google ile giriş bu sitede henüz kullanılamıyor.",
+      "network": "Bağlantı sorunu. İnternet bağlantını kontrol edip tekrar dene.",
+      "code": "Hata kodu: {code}"
     }
   }
 }

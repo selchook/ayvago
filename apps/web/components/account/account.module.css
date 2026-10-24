@@ -133,6 +133,15 @@
 
 .error {
   margin: 0;
+  display: grid;
+  gap: 4px;
   font-size: 0.85rem;
   color: var(--danger);
+}
+
+.errorCode {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }

@@ -128,7 +128,10 @@
     "signOut": "Sign out",
     "errors": {
       "popupBlocked": "The sign-in window was blocked. Allow pop-ups for this site and try again.",
-      "generic": "Sign-in failed. Please try again."
+      "generic": "Sign-in failed. Please try again.",
+      "notAvailable": "Google sign-in is not available on this site yet.",
+      "network": "Connection problem. Check your internet connection and try again.",
+      "code": "Error code: {code}"
     }
   }
 }

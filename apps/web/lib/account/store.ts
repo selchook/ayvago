@@ -17,7 +17,22 @@ export type AccountState =
   | { status: 'signedOut' }
   | { status: 'signedIn'; uid: string; isGuest: boolean; profile: Profile | null };
 
-export type SignInError = 'popupBlocked' | 'generic';
+export type SignInError = {
+  kind: 'popupBlocked' | 'notAvailable' | 'network' | 'generic';
+  // Firebase error code, shown to the player so support requests can name the cause.
+  code: string | undefined;
+};
+
+// Errors that mean the Firebase project is not set up for this site (provider disabled,
+// domain not authorized, API key restricted), not something the player can fix.
+const SETUP_ERRORS = new Set([
+  'auth/operation-not-allowed',
+  'auth/unauthorized-domain',
+  'auth/admin-restricted-operation',
+  'auth/invalid-api-key',
+  'auth/api-key-not-valid',
+  'auth/configuration-not-found',
+]);
 
 const DISABLED: AccountState = { status: 'disabled' };
 const LOADING: AccountState = { status: 'loading' };
@@ -106,7 +121,12 @@ export async function signInWithGoogle(locale: Locale): Promise<SignInError | nu
       return null;
     }
     console.error('[account] Google sign-in failed', error);
-    return code === 'auth/popup-blocked' ? 'popupBlocked' : 'generic';
+    if (code === 'auth/popup-blocked') return { kind: 'popupBlocked', code };
+    if (code === 'auth/network-request-failed') return { kind: 'network', code };
+    if (code && (SETUP_ERRORS.has(code) || code.startsWith('auth/requests-from-referer'))) {
+      return { kind: 'notAvailable', code };
+    }
+    return { kind: 'generic', code };
   }
 }
 

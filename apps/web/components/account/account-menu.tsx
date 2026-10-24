@@ -38,7 +38,10 @@ export function AccountMenu() {
 
   const errorMessage = error ? (
     <p className={styles.error} role="alert">
-      {t(`errors.${error}`)}
+      {t(`errors.${error.kind}`)}
+      {error.code ? (
+        <span className={styles.errorCode}>{t('errors.code', { code: error.code })}</span>
+      ) : null}
     </p>
   ) : null;
 
