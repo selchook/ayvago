@@ -18,6 +18,23 @@ if (process.env.NEXT_PUBLIC_FIREBASE_EMULATORS !== '1') {
       ? `[ayvago] Account features disabled; missing: ${missing.join(', ')}`
       : `[ayvago] Account features enabled (Firebase project ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID})`,
   );
+  // Values copied from the firebaseConfig snippet often keep quotes, commas or spaces.
+  const malformed = Object.keys(process.env).filter(
+    (name) => name.startsWith('NEXT_PUBLIC_FIREBASE_') && /["',\s]/.test(process.env[name] ?? ''),
+  );
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  if (
+    apiKey &&
+    !/^AIza[0-9A-Za-z_-]{35}$/.test(apiKey) &&
+    !malformed.includes('NEXT_PUBLIC_FIREBASE_API_KEY')
+  ) {
+    malformed.push('NEXT_PUBLIC_FIREBASE_API_KEY');
+  }
+  if (malformed.length) {
+    console.warn(
+      `[ayvago] Check these values (no quotes, commas or spaces; the API key is 39 characters starting with AIza): ${malformed.join(', ')}`,
+    );
+  }
 }
 
 const nextConfig: NextConfig = {
