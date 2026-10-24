@@ -5,7 +5,15 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import { generateGuestName } from '@ayvago/shared';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -191,6 +199,61 @@ describe('users/{uid} update', () => {
         updatedAt: serverTimestamp(),
       }),
     );
+  });
+});
+
+describe('users/{uid}/library/state', () => {
+  const library = (overrides: Record<string, unknown> = {}) => ({
+    favorites: ['orb-surge'],
+    recent: [{ slug: 'orb-surge', playedAt: 1700000000000 }],
+    best: { 'orb-surge': { score: 420, order: 'desc' } },
+    updatedAt: serverTimestamp(),
+    ...overrides,
+  });
+  const ref = (db: ReturnType<typeof guest>, uid: string) =>
+    doc(db, 'users', uid, 'library', 'state');
+
+  it('lets the owner write and read their library, guests included', async () => {
+    await assertSucceeds(setDoc(ref(guest('alice'), 'alice'), library()));
+    await assertSucceeds(getDoc(ref(guest('alice'), 'alice')));
+    await assertSucceeds(setDoc(ref(google('bob'), 'bob'), library({ favorites: [] })));
+  });
+
+  it("keeps other players out of someone's library", async () => {
+    await assertFails(setDoc(ref(guest('mallory'), 'alice'), library()));
+    await assertSucceeds(setDoc(ref(guest('alice'), 'alice'), library()));
+    await assertFails(getDoc(ref(guest('mallory'), 'alice')));
+    await assertFails(getDoc(ref(env.unauthenticatedContext().firestore(), 'alice')));
+  });
+
+  it('rejects unknown fields, wrong types and client timestamps', async () => {
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ coins: 1e6 })));
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ favorites: 'orb-surge' })));
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ best: ['x'] })));
+    await assertFails(
+      setDoc(
+        ref(guest('alice'), 'alice'),
+        library({ updatedAt: Timestamp.fromDate(new Date('2020-01-01')) }),
+      ),
+    );
+    const { recent: _recent, ...withoutRecent } = library();
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), withoutRecent));
+  });
+
+  it('enforces the size limits', async () => {
+    const slugs = (n: number) => Array.from({ length: n }, (_, i) => `game-${i}`);
+    await assertSucceeds(setDoc(ref(guest('alice'), 'alice'), library({ favorites: slugs(200) })));
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ favorites: slugs(201) })));
+    const plays = (n: number) => slugs(n).map((slug, i) => ({ slug, playedAt: i }));
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ recent: plays(21) })));
+    const bests = Object.fromEntries(slugs(301).map((slug) => [slug, { score: 1, order: 'desc' }]));
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ best: bests })));
+  });
+
+  it('cannot be deleted or written by banned players', async () => {
+    await assertSucceeds(setDoc(ref(guest('alice'), 'alice'), library()));
+    await assertFails(deleteDoc(ref(guest('alice'), 'alice')));
+    await assertFails(setDoc(ref(google('bob', { banned: true }), 'bob'), library()));
   });
 });
 

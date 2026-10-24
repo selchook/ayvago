@@ -35,7 +35,7 @@ export default async function FavoritesPage({ params }: Props) {
         emptyText={t('favoritesEmpty')}
         browseLabel={t('browse')}
       />
-      <p className={styles.note}>{t('localNote')}</p>
+      <p className={styles.note}>{t('syncNote')}</p>
     </>
   );
 }

@@ -8,6 +8,7 @@ import type { AuthCredential, User } from 'firebase/auth';
 import { useSyncExternalStore } from 'react';
 import { firebaseEnabled, loadAuth, loadFirestore } from '@/lib/firebase/client';
 import { USE_EMULATORS } from '@/lib/firebase/config';
+import { attachLibrary, detachLibrary, flushLibrary } from './library-sync';
 
 export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'>;
 
@@ -56,11 +57,13 @@ function start() {
       const { onAuthStateChanged } = await import('firebase/auth');
       onAuthStateChanged(auth, (user) => {
         if (!user) {
+          detachLibrary();
           setState({ status: 'signedOut' });
           return;
         }
         setState({ status: 'signedIn', uid: user.uid, isGuest: user.isAnonymous, profile: null });
         syncProfile(user).catch((error) => console.error('[account] profile sync failed', error));
+        attachLibrary(user.uid).catch((error) => console.error('[library] sync failed', error));
       });
     })
     .catch((error) => {
@@ -181,6 +184,7 @@ if (USE_EMULATORS && typeof window !== 'undefined') {
 export async function signOut(): Promise<void> {
   const auth = await loadAuth();
   const { signOut: firebaseSignOut } = await import('firebase/auth');
+  await flushLibrary().catch((error) => console.error('[library] final sync failed', error));
   await firebaseSignOut(auth);
 }
 

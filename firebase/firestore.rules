@@ -54,6 +54,24 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
+
+      // The player's library (favorites, recently played, best scores) as one document, so
+      // loading it costs a single read. Limits match apps/web/lib/library-state.ts. Best scores
+      // here are player-reported; leaderboards will use server-validated sessions.
+      match /library/state {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && notBanned()
+          && request.resource.data.keys().hasOnly(['favorites', 'recent', 'best', 'updatedAt'])
+          && request.resource.data.keys().hasAll(['favorites', 'recent', 'best', 'updatedAt'])
+          && request.resource.data.favorites is list
+          && request.resource.data.favorites.size() <= 200
+          && request.resource.data.recent is list
+          && request.resource.data.recent.size() <= 20
+          && request.resource.data.best is map
+          && request.resource.data.best.size() <= 300
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
     }
 
     match /{document=**} {

@@ -35,7 +35,7 @@ export default async function RecentPage({ params }: Props) {
         emptyText={t('recentEmpty')}
         browseLabel={t('browse')}
       />
-      <p className={styles.note}>{t('localNote')}</p>
+      <p className={styles.note}>{t('syncNote')}</p>
     </>
   );
 }

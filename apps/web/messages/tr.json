@@ -75,7 +75,7 @@
     "related": "Bunları da sevebilirsin",
     "leaderboard": "Skor tablosu",
     "leaderboardSoon": "Haftalık skor tabloları bu oyun Ayvago'da yayına girince açılacak.",
-    "leaderboardWithAccounts": "Haftalık skor tabloları oyuncu hesaplarıyla birlikte açılacak. O zamana kadar en iyi skorun bu cihazda saklanır.",
+    "leaderboardWithAccounts": "Haftalık skor tabloları yakında açılıyor. Kişisel en iyi skorun hesabına kaydediliyor.",
     "lastScore": "Skor: {score}",
     "personalBest": "Kişisel rekor!",
     "bestScore": "En iyi skorun: {score}"
@@ -106,8 +106,8 @@
     "recentEmpty": "Oynadığın oyunlar burada görünecek.",
     "favoritesTitle": "Favoriler",
     "favoritesEmpty": "Bir oyunu burada tutmak için kalbe dokun.",
-    "localNote": "Bu cihazda saklanıyor. Her yerde erişmek için giriş yapma özelliği yakında geliyor.",
-    "browse": "Oyunlara göz at"
+    "browse": "Oyunlara göz at",
+    "syncNote": "Hesabınla eşitlenir. Misafirsen, her cihazda görmek için Google ile giriş yap."
   },
   "notFound": {
     "title": "Sayfa bulunamadı",

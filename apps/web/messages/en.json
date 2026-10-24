@@ -75,7 +75,7 @@
     "related": "You may also like",
     "leaderboard": "Leaderboard",
     "leaderboardSoon": "Weekly leaderboards open when this game launches on Ayvago.",
-    "leaderboardWithAccounts": "Weekly leaderboards open together with player accounts. Until then your best score is saved on this device.",
+    "leaderboardWithAccounts": "Weekly leaderboards are coming soon. Your personal best is saved to your account.",
     "lastScore": "Score: {score}",
     "personalBest": "Personal best!",
     "bestScore": "Your best: {score}"
@@ -106,8 +106,8 @@
     "recentEmpty": "Games you play will show up here.",
     "favoritesTitle": "Favorites",
     "favoritesEmpty": "Tap the heart on a game to keep it here.",
-    "localNote": "Saved on this device. Sign-in to keep them everywhere is coming soon.",
-    "browse": "Browse games"
+    "browse": "Browse games",
+    "syncNote": "Synced with your account. Guests: sign in with Google to see them on every device."
   },
   "notFound": {
     "title": "Page not found",

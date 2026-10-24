@@ -449,7 +449,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [x] Theme system (3 themes, 5 theme/mode combinations, WCAG AA contrast test in CI, no-flash persistence)
 - [x] App shell: top bar, side rail, phone bottom bar, theme and language switchers
 - [x] Catalog, category, new, multiplayer and game pages (static + SEO + JSON-LD `VideoGame`, sitemap, hreflang) in both locales — from a seed catalog until Firestore is connected
-- [x] Recently played / favorites / local best score (stored on the device until accounts land)
+- [x] Recently played / favorites / personal best scores, synced to the account (`users/{uid}/library/state`) and cached in the browser
 - [x] `GamePlayer`: sandboxed iframe, loading screen, fullscreen, theater, pause on hidden tab, mute, theme forwarding, origin + source checks (v1 message names) — verified end to end with `tools/fixture-game`
 - [x] Platform adapter (`packages/platform-adapter`, protocol 2, vendored into games) — sdk-playground still open
 - [ ] sdk-playground (developer test host)
