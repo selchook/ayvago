@@ -28,15 +28,12 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ✅ `ayvago-prod` Web app registered and its config entered in Vercel (Production); guest and Google sign-in verified on the live site
 - ⏳ `ayvago-dev` Web app → config into Vercel (Preview + Development)
 - ✅ Firestore rules published to `ayvago-prod` (pasted in the console)
-- ⏳ **Deploy the Firestore rules** whenever `firebase/firestore.rules` changes (until CI deploys them). From the repository root:
-  ```bash
-  pnpm install
-  cd firebase
-  npx firebase login
-  npx firebase deploy --only firestore:rules --project prod
-  npx firebase deploy --only firestore:rules --project dev
-  ```
-  Without this step the console's default rules deny every write and guest profiles cannot be created.
+- 🤖 Firestore rules deploy automatically: `.github/workflows/deploy-firebase-rules.yml` tests them against the emulator and publishes them to `ayvago-prod` whenever `firebase/firestore.rules` changes on `main` (or when run manually from the Actions tab).
+- ⏳ One-time setup for the automatic deploy (owner):
+  1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin** and **Service Usage Consumer**.
+  2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
+  3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
+- Fallback without CI: paste `firebase/firestore.rules` into Firebase console → Firestore → Rules → Publish, or run `npx firebase deploy --only firestore:rules --project prod` from `firebase/` after `npx firebase login`.
 - 🤖 Rules and emulator tests (`pnpm --filter @ayvago/firebase test`), client auth
 
 ## 4. Vercel and domain
