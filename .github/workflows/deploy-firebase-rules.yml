@@ -55,10 +55,15 @@ jobs:
           trap 'rm -f "$key_file"' EXIT
           printf '%s' "$SERVICE_ACCOUNT" > "$key_file"
           export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
-          set -o pipefail
-          if ! pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules --project prod --non-interactive 2>&1 | tee "$RUNNER_TEMP/deploy.log"; then
-            # Surface the cause as annotations, visible on the run summary without opening the log.
-            grep -hiE "error|denied|permission|forbidden|403" "$RUNNER_TEMP/deploy.log" firebase/firebase-debug.log 2>/dev/null \
-              | grep -viE "authorization|token|private_key" | head -8 | while IFS= read -r line; do echo "::error::${line:0:400}"; done
+          log="$RUNNER_TEMP/deploy.log"
+          # --debug output goes to a file only; on failure the cause (the CLI's own message is just
+          # "Failed to authenticate") is surfaced as annotations, with credential lines removed.
+          if pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules --project prod --non-interactive --debug > "$log" 2>&1; then
+            grep -E "Deploy complete|released rules" "$log" | sed 's/\x1b\[[0-9;]*m//g' || true
+          else
+            sed 's/\x1b\[[0-9;]*m//g' "$log" \
+              | grep -E "Error|error:|denied|PERMISSION|invalid_grant|Unexpected|HTTP [45][0-9][0-9]" \
+              | grep -vE "^[[:space:]]+at |[Bb]earer|access_token|refresh_token|private_key" \
+              | head -8 | while IFS= read -r line; do echo "::error::${line:0:400}"; done
             exit 1
           fi
