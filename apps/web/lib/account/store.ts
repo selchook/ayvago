@@ -3,20 +3,42 @@
 // Account state for the whole app: one Firebase auth listener, shared through a tiny external
 // store so every component sees the same user. Guests are Firebase anonymous users created on
 // the first game launch; signing in with Google links to the same uid (docs/specs/accounts.md).
-import { generateGuestName, type Locale, type UserProfile } from '@ayvago/shared';
+import {
+  generateGuestName,
+  isSupportedLocale,
+  type Locale,
+  type UserProfile,
+} from '@ayvago/shared';
+import { isModePreference, isThemeId, type ModePreference, type ThemeId } from '@ayvago/themes';
 import type { AuthCredential, User } from 'firebase/auth';
 import { useSyncExternalStore } from 'react';
 import { firebaseEnabled, loadAuth, loadFirestore } from '@/lib/firebase/client';
 import { USE_EMULATORS } from '@/lib/firebase/config';
-import { attachLibrary, detachLibrary, flushLibrary } from './library-sync';
+import { applyTheme, readThemeState, THEME_CHANGE_EVENT } from '@/lib/theme-client';
+import { attachLibrary, cancelLibrarySync, detachLibrary, flushLibrary } from './library-sync';
 
-export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'>;
+export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
+  avatarId: string | null;
+  theme: ThemeId | null;
+  mode: ModePreference | null;
+  // Milliseconds since epoch; null until the server timestamp of a new profile is known.
+  createdAt: number | null;
+};
+
+/** Fields the player can change from the settings page. */
+export type ProfileChanges = Partial<Pick<Profile, 'avatarId' | 'theme' | 'mode' | 'locale'>>;
 
 export type AccountState =
   | { status: 'disabled' }
   | { status: 'loading' }
   | { status: 'signedOut' }
-  | { status: 'signedIn'; uid: string; isGuest: boolean; profile: Profile | null };
+  | {
+      status: 'signedIn';
+      uid: string;
+      isGuest: boolean;
+      email: string | null;
+      profile: Profile | null;
+    };
 
 export type SignInError = {
   kind: 'popupBlocked' | 'notAvailable' | 'network' | 'generic';
@@ -61,7 +83,13 @@ function start() {
           setState({ status: 'signedOut' });
           return;
         }
-        setState({ status: 'signedIn', uid: user.uid, isGuest: user.isAnonymous, profile: null });
+        setState({
+          status: 'signedIn',
+          uid: user.uid,
+          isGuest: user.isAnonymous,
+          email: user.email,
+          profile: null,
+        });
         syncProfile(user).catch((error) => console.error('[account] profile sync failed', error));
         attachLibrary(user.uid).catch((error) => console.error('[library] sync failed', error));
       });
@@ -197,24 +225,188 @@ async function syncProfile(user: User): Promise<void> {
   const db = await loadFirestore();
   const { doc, runTransaction, serverTimestamp } = await import('firebase/firestore');
   const ref = doc(db, 'users', user.uid);
-  const profile = await runTransaction(db, async (tx) => {
+  const profile = await runTransaction(db, async (tx): Promise<Profile> => {
     const snapshot = await tx.get(ref);
     if (!snapshot.exists()) {
-      const created: Profile = {
+      const created = {
         username: generateGuestName(preferredLocale),
         isGuest: user.isAnonymous,
         locale: preferredLocale,
       };
       tx.set(ref, { ...created, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-      return created;
+      return { ...created, avatarId: null, theme: null, mode: null, createdAt: Date.now() };
     }
-    const existing = snapshot.data() as Profile;
-    if (existing.isGuest !== user.isAnonymous) {
+    const data = snapshot.data();
+    if (data.isGuest !== user.isAnonymous) {
       tx.update(ref, { isGuest: user.isAnonymous, updatedAt: serverTimestamp() });
     }
-    return { username: existing.username, locale: existing.locale, isGuest: user.isAnonymous };
+    return {
+      username: String(data.username),
+      isGuest: user.isAnonymous,
+      locale: isSupportedLocale(data.locale) ? data.locale : preferredLocale,
+      avatarId: typeof data.avatarId === 'string' ? data.avatarId : null,
+      theme: isThemeId(data.theme) ? data.theme : null,
+      mode: isModePreference(data.mode) ? data.mode : null,
+      createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : null,
+    };
   });
   if (state.status === 'signedIn' && state.uid === user.uid) {
-    setState({ status: 'signedIn', uid: user.uid, isGuest: user.isAnonymous, profile });
+    setState({ ...state, isGuest: user.isAnonymous, email: user.email, profile });
   }
+}
+
+/** Saves settings-page changes to users/{uid}; the UI updates immediately. */
+export async function updateProfile(changes: ProfileChanges): Promise<void> {
+  if (state.status !== 'signedIn' || !state.profile) return;
+  const { uid } = state;
+  setState({ ...state, profile: { ...state.profile, ...changes } });
+  const db = await loadFirestore();
+  const { doc, serverTimestamp, updateDoc } = await import('firebase/firestore');
+  await updateDoc(doc(db, 'users', uid), { ...changes, updatedAt: serverTimestamp() });
+}
+
+// Preferences (theme, mode, language) follow the account. The first time a browser meets an
+// account, the account's saved preferences are applied there; after that the browser's choices
+// (top bar switchers, settings page) are saved to the account.
+const PREFS_OWNER_KEY = 'ayvago:prefs-owner';
+
+function prefsOwner(): string | null {
+  try {
+    return window.localStorage.getItem(PREFS_OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setPrefsOwner(uid: string | null) {
+  try {
+    if (uid) window.localStorage.setItem(PREFS_OWNER_KEY, uid);
+    else window.localStorage.removeItem(PREFS_OWNER_KEY);
+  } catch {
+    // Without storage, saved preferences are re-applied on every load, which is harmless.
+  }
+}
+
+/**
+ * Called on every page with the page's locale once the profile is loaded. `navigate` switches
+ * the page to another locale (needs the router, so the caller provides it).
+ */
+export function reconcilePreferences(locale: Locale, navigate: (locale: Locale) => void): void {
+  if (state.status !== 'signedIn' || !state.profile) return;
+  const { uid, profile } = state;
+  if (prefsOwner() !== uid) {
+    setPrefsOwner(uid);
+    const current = readThemeState();
+    if (profile.theme) {
+      const mode = profile.mode ?? 'system';
+      if (profile.theme !== current.theme || mode !== current.preference) {
+        applyTheme(profile.theme, mode);
+      }
+    } else {
+      saveInBackground({ theme: current.theme, mode: current.preference });
+    }
+    if (profile.locale !== locale) navigate(profile.locale);
+    return;
+  }
+  if (profile.locale !== locale) saveInBackground({ locale });
+}
+
+function saveInBackground(changes: ProfileChanges) {
+  updateProfile(changes).catch((error) => console.error('[account] saving settings failed', error));
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener(THEME_CHANGE_EVENT, () => {
+    if (state.status !== 'signedIn' || !state.profile || prefsOwner() !== state.uid) return;
+    const { theme, preference } = readThemeState();
+    if (theme !== state.profile.theme || preference !== state.profile.mode) {
+      saveInBackground({ theme, mode: preference });
+    }
+  });
+}
+
+function toJson(value: unknown): unknown {
+  if (value && typeof value === 'object') {
+    if ('toDate' in value && typeof value.toDate === 'function') {
+      return (value.toDate() as Date).toISOString();
+    }
+    if (Array.isArray(value)) return value.map(toJson);
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, toJson(v)]));
+  }
+  return value;
+}
+
+/** Everything Ayvago stores about the signed-in player, as JSON ("Download my data"). */
+export async function exportAccountData(): Promise<string> {
+  const auth = await loadAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not signed in');
+  const db = await loadFirestore();
+  const { doc, getDoc } = await import('firebase/firestore');
+  const [profile, library] = await Promise.all([
+    getDoc(doc(db, 'users', user.uid)),
+    getDoc(doc(db, 'users', user.uid, 'library', 'state')),
+  ]);
+  const data = {
+    exportedAt: new Date().toISOString(),
+    account: {
+      uid: user.uid,
+      signInMethods: user.isAnonymous ? ['anonymous'] : user.providerData.map((p) => p.providerId),
+      email: user.email,
+      createdAt: user.metadata.creationTime ?? null,
+      lastSignInAt: user.metadata.lastSignInTime ?? null,
+    },
+    profile: profile.exists() ? toJson(profile.data()) : null,
+    library: library.exists() ? toJson(library.data()) : null,
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+// Firebase only deletes accounts that signed in recently (about five minutes).
+const RECENT_SIGN_IN_MS = 4 * 60 * 1000;
+
+/**
+ * Deletes the player's data and their sign-in account. Registered players confirm with Google
+ * first when their sign-in is not recent, so nothing is deleted if they cancel that popup.
+ */
+export async function deleteAccount(): Promise<'deleted' | 'cancelled'> {
+  const auth = await loadAuth();
+  const user = auth.currentUser;
+  if (!user) return 'cancelled';
+  const {
+    GoogleAuthProvider,
+    deleteUser,
+    reauthenticateWithPopup,
+    signOut: firebaseSignOut,
+  } = await import('firebase/auth');
+  const lastSignIn = Date.parse(user.metadata.lastSignInTime ?? '') || 0;
+  if (!user.isAnonymous && Date.now() - lastSignIn > RECENT_SIGN_IN_MS) {
+    try {
+      await reauthenticateWithPopup(user, new GoogleAuthProvider());
+    } catch (error) {
+      const code = errorCode(error);
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        return 'cancelled';
+      }
+      throw error;
+    }
+  }
+
+  cancelLibrarySync();
+  const db = await loadFirestore();
+  const { deleteDoc, doc } = await import('firebase/firestore');
+  await deleteDoc(doc(db, 'users', user.uid, 'library', 'state'));
+  await deleteDoc(doc(db, 'users', user.uid));
+  setPrefsOwner(null);
+  try {
+    await deleteUser(user);
+  } catch (error) {
+    // A guest cannot re-authenticate; their data is already gone, so drop the empty login.
+    if (errorCode(error) === 'auth/requires-recent-login' && user.isAnonymous) {
+      await firebaseSignOut(auth);
+      return 'deleted';
+    }
+    throw error;
+  }
+  return 'deleted';
 }

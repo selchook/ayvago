@@ -41,6 +41,23 @@ function setCookie(name: string, value: string): void {
   document.cookie = `${name}=${value}; Path=/; Max-Age=${PREFERENCE_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
+function readCookie(name: string): string | undefined {
+  return document.cookie.match(new RegExp(`(?:^|; )${name}=([a-z]+)`))?.[1];
+}
+
+/**
+ * Re-applies the saved theme to <html>. The [locale] layout renders <html>, so switching language
+ * re-renders it with the server defaults and wipes what the bootstrap script set.
+ */
+export function restoreThemeFromCookies(): void {
+  const root = document.documentElement;
+  const theme = readCookie(THEME_COOKIE);
+  const mode = readCookie(MODE_COOKIE);
+  root.setAttribute('data-theme', isThemeId(theme) ? theme : DEFAULT_THEME);
+  if (mode === 'light' || mode === 'dark') root.setAttribute('data-mode', mode);
+  else root.removeAttribute('data-mode');
+}
+
 export function applyTheme(theme: ThemeId, preference: ModePreference): ThemeState {
   const root = document.documentElement;
   root.setAttribute('data-theme', theme);

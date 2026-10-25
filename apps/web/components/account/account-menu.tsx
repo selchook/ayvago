@@ -1,9 +1,16 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Locale } from '@ayvago/shared';
-import { signInWithGoogle, signOut, useAccount, type SignInError } from '@/lib/account/store';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import {
+  reconcilePreferences,
+  signInWithGoogle,
+  signOut,
+  useAccount,
+  type SignInError,
+} from '@/lib/account/store';
 import { GoogleLogo, UserIcon } from '../icons';
 import popover from '../popover.module.css';
 import { Avatar } from './avatar';
@@ -15,6 +22,16 @@ export function AccountMenu() {
   const account = useAccount();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<SignInError | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Lives in the top bar, so it runs on every page: applies or saves account preferences.
+  const signedInUid = account.status === 'signedIn' ? account.uid : null;
+  const profileLoaded = account.status === 'signedIn' && account.profile !== null;
+  useEffect(() => {
+    if (!signedInUid || !profileLoaded) return;
+    reconcilePreferences(locale, (next) => router.replace(pathname, { locale: next }));
+  }, [signedInUid, profileLoaded, locale, pathname, router]);
 
   if (account.status === 'disabled') return null;
   // Same footprint as the real trigger, so the top bar does not shift once auth has loaded.
@@ -65,6 +82,7 @@ export function AccountMenu() {
   }
 
   const name = account.profile?.username ?? null;
+  const avatarId = account.profile?.avatarId ?? null;
   return (
     // Stays open across a guest upgrade so the player sees the result.
     <details key="signedIn" className={popover.popover}>
@@ -73,12 +91,12 @@ export function AccountMenu() {
         aria-label={t('menuLabel')}
         data-account={account.isGuest ? 'guest' : 'registered'}
       >
-        <Avatar uid={account.uid} name={name} size={26} />
+        <Avatar uid={account.uid} name={name} avatarId={avatarId} size={26} />
         <span className={`${popover.triggerText} ${styles.wideOnly} ${styles.name}`}>{name}</span>
       </summary>
       <div className={`${popover.panel} ${styles.panel}`}>
         <div className={styles.identity}>
-          <Avatar uid={account.uid} name={name} size={44} />
+          <Avatar uid={account.uid} name={name} avatarId={avatarId} size={44} />
           <div>
             <strong className={styles.title} data-testid="account-name">
               {name}
@@ -90,6 +108,13 @@ export function AccountMenu() {
             )}
           </div>
         </div>
+        <Link
+          href="/profile"
+          className={styles.secondaryButton}
+          onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')}
+        >
+          {t('profileLink')}
+        </Link>
         {account.isGuest ? (
           <>
             <p className={styles.body}>{t('guestBody')}</p>

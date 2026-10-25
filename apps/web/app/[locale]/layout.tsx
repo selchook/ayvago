@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AppShell } from '@/components/shell/app-shell';
+import { ThemeRestorer } from '@/components/theme-restorer';
 import { routing } from '@/i18n/routing';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 // Self-hosted fonts (Latin + Latin Extended for Turkish); each face downloads only when used.
@@ -58,6 +59,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
       <body>
+        <ThemeRestorer />
         <NextIntlClientProvider>
           <AppShell>{children}</AppShell>
         </NextIntlClientProvider>

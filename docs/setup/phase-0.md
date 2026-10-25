@@ -37,7 +37,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - 🤖 Rules and emulator tests (`pnpm --filter @ayvago/firebase test`), client auth
 
 ## 4. Vercel and domain
-- ⏳ New Vercel project from `selchook/ayvago`, **Root Directory = `apps/web`**
+- ✅ Vercel project `ayvago-web` from `selchook/ayvago`, **Root Directory = `apps/web`** (previews: `ayvago-web-*.vercel.app`; add a preview domain to Firebase Authorized domains to test sign-in there)
 - ⏳ Point `ayvago.com` DNS to Vercel (apex + `www` → apex redirect)
 - ⏳ Email DNS records: SPF, DKIM, DMARC (Firebase Auth emails and the support address)
 - ⏳ List the games' production URLs (for the import plan)

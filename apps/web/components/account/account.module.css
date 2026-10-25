@@ -38,6 +38,11 @@
   line-height: 1;
 }
 
+/* The avatar's text color is the disc color (used by glyph cut-outs); letters stay white. */
+.initial {
+  color: #fff;
+}
+
 .identity .avatar {
   font-size: 1.2rem;
 }
@@ -125,6 +130,7 @@
 .secondaryButton {
   background: var(--surface);
   color: var(--text);
+  text-decoration: none;
 }
 
 .secondaryButton:hover {

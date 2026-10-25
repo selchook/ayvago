@@ -445,6 +445,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 ### Phase 1 — MVP platform (3–4 weeks)
 - [ ] Firestore model v1 + Security Rules + rules tests (emulator)
 - [x] Guest (anonymous) + Google sign-in, upgrade that keeps the uid, profile document with a generated name — Spark plan, client writes under Firestore rules with emulator tests
+- [x] Profile and settings page (`/profile`): preset avatars, theme/mode/language saved to the account and applied on new devices, personal bests, data download, account deletion
 - [ ] Username changes, guest merge into an existing account, unused-guest cleanup (need Cloud Functions → Blaze)
 - [x] Theme system (3 themes, 5 theme/mode combinations, WCAG AA contrast test in CI, no-flash persistence)
 - [x] App shell: top bar, side rail, phone bottom bar, theme and language switchers

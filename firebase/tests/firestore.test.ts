@@ -180,6 +180,36 @@ describe('users/{uid} update', () => {
     );
   });
 
+  it('lets the owner save avatar, theme and mode preferences', async () => {
+    await seed('alice');
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        avatarId: 'rocket-violet',
+        theme: 'retro',
+        mode: 'dark',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('rejects unknown preference values', async () => {
+    await seed('alice');
+    for (const change of [
+      { avatarId: 'https://evil.example/a.png' },
+      { avatarId: 'Rocket-Violet' },
+      { avatarId: 42 },
+      { theme: 'neon' },
+      { mode: 'auto' },
+    ]) {
+      await assertFails(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), {
+          ...change,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    }
+  });
+
   it('does not allow changing the username yet', async () => {
     await seed('alice');
     await assertFails(
@@ -199,6 +229,15 @@ describe('users/{uid} update', () => {
         updatedAt: serverTimestamp(),
       }),
     );
+  });
+});
+
+describe('users/{uid} delete', () => {
+  it('lets players delete their own profile and nobody else', async () => {
+    await seed('alice');
+    await assertFails(deleteDoc(doc(guest('mallory'), 'users', 'alice')));
+    await assertFails(deleteDoc(doc(env.unauthenticatedContext().firestore(), 'users', 'alice')));
+    await assertSucceeds(deleteDoc(doc(guest('alice'), 'users', 'alice')));
   });
 });
 
@@ -250,9 +289,10 @@ describe('users/{uid}/library/state', () => {
     await assertFails(setDoc(ref(guest('alice'), 'alice'), library({ best: bests })));
   });
 
-  it('cannot be deleted or written by banned players', async () => {
+  it('can be deleted by its owner only, and not written by banned players', async () => {
     await assertSucceeds(setDoc(ref(guest('alice'), 'alice'), library()));
-    await assertFails(deleteDoc(ref(guest('alice'), 'alice')));
+    await assertFails(deleteDoc(ref(guest('mallory'), 'alice')));
+    await assertSucceeds(deleteDoc(ref(guest('alice'), 'alice')));
     await assertFails(setDoc(ref(google('bob', { banned: true }), 'bob'), library()));
   });
 });

@@ -96,6 +96,15 @@ export async function attachLibrary(uid: string): Promise<void> {
   if (!snapshot.exists() || !sameLibrary(next, remote)) await write(uid, next);
 }
 
+/** Stops syncing without touching the browser copy (used right before deleting the account). */
+export function cancelLibrarySync(): void {
+  attachedUid = null;
+  attachLibraryWriter(null);
+  if (timer) clearTimeout(timer);
+  timer = null;
+  pending = null;
+}
+
 /** Called when nobody is signed in any more. */
 export function detachLibrary(): void {
   attachedUid = null;

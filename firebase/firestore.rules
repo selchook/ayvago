@@ -32,9 +32,18 @@ service cloud.firestore {
       return locale in ['en', 'tr'];
     }
 
+    // Optional preference fields: absent, or one of the allowed values. Avatar ids are
+    // "<glyph>-<color>" from apps/web/lib/account/avatars.ts.
+    function validPreferences(data) {
+      return (!('avatarId' in data) || (data.avatarId is string && data.avatarId.matches('^[a-z]{2,12}-[a-z]{2,12}$')))
+        && (!('theme' in data) || data.theme in ['retro', 'cartoon', 'minimal'])
+        && (!('mode' in data) || data.mode in ['system', 'light', 'dark']);
+    }
+
     // users/{uid}: the player's own profile. Created by the client on first sign-in
     // (Spark plan: no Cloud Functions yet). The username is fixed at creation until
-    // username changes ship with a reservation Function.
+    // username changes ship with a reservation Function. Players may delete their own data
+    // (account deletion from the settings page).
     match /users/{uid} {
       allow read: if isOwner(uid);
 
@@ -48,12 +57,14 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow update: if isOwner(uid) && notBanned()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isGuest', 'locale', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['isGuest', 'locale', 'avatarId', 'theme', 'mode', 'updatedAt'])
         && request.resource.data.isGuest == isAnonymous()
         && validLocale(request.resource.data.locale)
+        && validPreferences(request.resource.data)
         && request.resource.data.updatedAt == request.time;
 
-      allow delete: if false;
+      allow delete: if isOwner(uid);
 
       // The player's library (favorites, recently played, best scores) as one document, so
       // loading it costs a single read. Limits match apps/web/lib/library-state.ts. Best scores
@@ -70,7 +81,7 @@ service cloud.firestore {
           && request.resource.data.best is map
           && request.resource.data.best.size() <= 300
           && request.resource.data.updatedAt == request.time;
-        allow delete: if false;
+        allow delete: if isOwner(uid);
       }
     }
 

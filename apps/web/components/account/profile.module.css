@@ -1,0 +1,282 @@
+/* Profile and settings page. */
+
+.layout {
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+}
+
+.card {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface);
+}
+
+.card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+[data-theme='retro'] .card h2 {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.card p {
+  margin: 0;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.notice {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.identity {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 18px;
+}
+
+.name {
+  overflow-wrap: anywhere;
+}
+
+[data-theme='retro'] .identity .name {
+  font-size: 0.8rem;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 6px !important;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 6px 0 0;
+}
+
+.stats div {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: var(--border-width) solid var(--border);
+}
+
+.stats dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stats dd {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.bests {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.bests li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: var(--border-width) solid var(--border);
+}
+
+.bests li:first-child {
+  border-top: 0;
+}
+
+.bests a {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.setting {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: var(--border-width) solid var(--border);
+}
+
+.themeBox {
+  display: grid;
+  gap: 14px;
+  max-width: 360px;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+[data-theme='retro'] .choice,
+[data-theme='retro'] .disc,
+[data-theme='retro'] .swatch {
+  border-radius: 0;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+}
+
+.choice:has(input:focus-visible) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.disc {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.segmented {
+  display: inline-grid;
+  grid-auto-flow: column;
+  justify-content: start;
+  /* Fieldsets ignore inline display for their width; size to the options instead. */
+  width: fit-content;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segmented label {
+  position: relative;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.segmented label + label {
+  border-inline-start: var(--border-width) solid var(--border);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:checked) {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 700;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.danger {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: var(--border-width) solid var(--border);
+}
+
+.danger h3 {
+  color: var(--danger);
+}
+
+.dangerButton {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dangerButton:hover {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.dangerButton:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+  .identity {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+}

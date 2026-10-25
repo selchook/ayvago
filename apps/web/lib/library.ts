@@ -193,3 +193,8 @@ export function useBestScore(slug: string): number | null {
   const raw = useSyncExternalStore(subscribe, rawSnapshot(BEST_KEY), () => '');
   return parse<LibraryState['best']>(raw, {})[slug]?.score ?? null;
 }
+
+export function useBestScores(): LibraryState['best'] {
+  const raw = useSyncExternalStore(subscribe, rawSnapshot(BEST_KEY), () => '');
+  return parse<LibraryState['best']>(raw, {});
+}
