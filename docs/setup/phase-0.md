@@ -33,8 +33,9 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin**, **Cloud Datastore Index Admin** (the CLI reads the database metadata before deploying; no data access) and **Service Usage Consumer**. Roles can be added later under **IAM & Admin → IAM** (pencil icon next to the account).
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
+- ✅ First functions deploy succeeded (`reserveUsername`, `mergeGuestAccount`, `cleanupGuests`).
 - 🤖 Cloud Functions deploy automatically: `.github/workflows/deploy-functions.yml` runs the rules and functions emulator tests and deploys `firebase/functions` to `ayvago-prod` when the functions or `packages/shared/src` change on `main` (or manually).
-- ⏳ Roles for the deploy account and the build account, granted from Cloud Shell (idempotent; the last command lists the deploy account's roles). Note: an account that can deploy functions can effectively reach all project data through the code it deploys, so treat this key like an owner credential and rotate it if it might have leaked:
+- ✅ Roles for the deploy account and the build account, granted from Cloud Shell (idempotent; the last command lists the deploy account's roles). Note: an account that can deploy functions can effectively reach all project data through the code it deploys, so treat this key like an owner credential and rotate it if it might have leaked:
   ```bash
   SA=serviceAccount:github-rules-deployer@ayvago-prod.iam.gserviceaccount.com
   for role in firebaserules.admin datastore.indexAdmin serviceusage.serviceUsageAdmin firebase.viewer \
@@ -48,7 +49,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   gcloud projects get-iam-policy ayvago-prod --flatten="bindings[].members" \
     --filter="bindings.members:github-rules-deployer" --format="value(bindings.role)"
   ```
-- ⏳ Enable the APIs once as the project owner (the deploy account could not enable them). Google Cloud console → **Activate Cloud Shell** (top right), then:
+- ✅ Enable the APIs once as the project owner (the deploy account could not enable them). Google Cloud console → **Activate Cloud Shell** (top right), then:
   ```bash
   gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com \
     artifactregistry.googleapis.com run.googleapis.com eventarc.googleapis.com \
