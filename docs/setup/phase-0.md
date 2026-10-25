@@ -30,7 +30,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ✅ Firestore rules published to `ayvago-prod` (pasted in the console)
 - 🤖 Firestore rules deploy automatically: `.github/workflows/deploy-firebase-rules.yml` tests them against the emulator and publishes them to `ayvago-prod` whenever `firebase/firestore.rules` changes on `main` (or when run manually from the Actions tab).
 - ⏳ One-time setup for the automatic deploy (owner):
-  1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin** and **Service Usage Consumer**.
+  1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin**, **Cloud Datastore Index Admin** (the CLI reads the database metadata before deploying; no data access) and **Service Usage Consumer**. Roles can be added later under **IAM & Admin → IAM** (pencil icon next to the account).
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
 - Fallback without CI: paste `firebase/firestore.rules` into Firebase console → Firestore → Rules → Publish, or run `npx firebase deploy --only firestore:rules --project prod` from `firebase/` after `npx firebase login`.

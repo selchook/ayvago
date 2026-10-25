@@ -3,7 +3,8 @@ name: Deploy Firestore rules
 # Publishes firebase/firestore.rules to ayvago-prod after the rules tests pass against the
 # emulator. Runs when the rules change on main, or manually from the Actions tab.
 # Needs the repository secret FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD: the JSON key of a service
-# account with the "Firebase Rules Admin" and "Service Usage Consumer" roles (docs/setup/phase-0.md).
+# account with the "Firebase Rules Admin", "Cloud Datastore Index Admin" (the CLI reads the database
+# metadata first) and "Service Usage Consumer" roles (docs/setup/phase-0.md).
 
 on:
   push:
