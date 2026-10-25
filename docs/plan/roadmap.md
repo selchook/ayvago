@@ -431,19 +431,19 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 ## 12. Phases and Timeline
 
 ### Phase 0 — Preparation (1 week)
-- [ ] Rotate the Anthropic key, remove `.env` files from the repositories; revoke/restrict Ably keys
+- [ ] Security cleanup — Anthropic key revoked ✅; `.env` removal PRs open in `game-factory` and `game-factory-new`; Ably keys still to revoke/restrict
 - [x] Platform name **Ayvago**, domain **ayvago.com** purchased
 - [ ] Connect `ayvago.com` DNS to Vercel (apex + `www` redirect), add it to Firebase Auth authorized domains
 - [ ] Email: SPF/DKIM/DMARC for `ayvago.com` (Firebase Auth email links and the support address)
 - [ ] `ads.txt` on `ayvago.com` for AdSense verification (before Phase 3)
-- [ ] List the games' production Vercel URLs
+- [x] List the games' production Vercel URLs
 - [x] `selchook/ayvago` monorepo scaffold, CI, ADRs 0001–0005, Firebase deny-all rules, i18n foundation (en/tr) — details: [phase 0 checklist](../setup/phase-0.md)
-- [ ] Firebase projects `ayvago-dev` / `ayvago-prod` — **Blaze plan + budget alerts**, region `europe-west1`
+- [ ] Firebase projects `ayvago-dev` / `ayvago-prod` — `ayvago-prod` set up on Spark (Firestore + RTDB in `europe-west1`, Auth, web config in Vercel, rules deployed from GitHub Actions); `ayvago-dev` web config and the **Blaze plan + budget alerts** still open
 - [ ] Cloudflare account, Realtime TURN key
 - [ ] **AdSense + H5 Games Ads application**, Paddle/Lemon Squeezy seller application
 
 ### Phase 1 — MVP platform (3–4 weeks)
-- [ ] Firestore model v1 + Security Rules + rules tests (emulator)
+- [ ] Firestore model v1 + Security Rules + rules tests (emulator) — `users/{uid}` and `users/{uid}/library/state` done with 26 emulator tests, deployed automatically; catalog (`games`) still served from the seed
 - [x] Guest (anonymous) + Google sign-in, upgrade that keeps the uid, profile document with a generated name — Spark plan, client writes under Firestore rules with emulator tests
 - [x] Profile and settings page (`/profile`): preset avatars, theme/mode/language saved to the account and applied on new devices, personal bests, data download, account deletion
 - [ ] Username changes, guest merge into an existing account, unused-guest cleanup (need Cloud Functions → Blaze)
