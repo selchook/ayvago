@@ -34,7 +34,15 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
 - 🤖 Cloud Functions deploy automatically: `.github/workflows/deploy-functions.yml` runs the rules and functions emulator tests and deploys `firebase/functions` to `ayvago-prod` when the functions or `packages/shared/src` change on `main` (or manually).
-- ⏳ One-time roles for the functions deploy (owner), on the same `github-rules-deployer` account under **IAM & Admin → IAM** (pencil icon): **Cloud Functions Admin**, **Cloud Run Admin**, **Service Account User**, **Cloud Scheduler Admin**, **Artifact Registry Administrator**, and **Service Usage Admin** (the first deploy enables the Cloud Functions, Cloud Build, Artifact Registry, Cloud Run, Eventarc, Pub/Sub and Cloud Scheduler APIs).
+- ✅ Roles for the functions deploy on `github-rules-deployer`: **Cloud Functions Admin**, **Cloud Run Admin**, **Service Account User**, **Cloud Scheduler Admin**, **Artifact Registry Administrator**, **Service Usage Admin**.
+- ⏳ Enable the APIs once as the project owner (the deploy account could not enable them). Google Cloud console → **Activate Cloud Shell** (top right), then:
+  ```bash
+  gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com \
+    artifactregistry.googleapis.com run.googleapis.com eventarc.googleapis.com \
+    pubsub.googleapis.com cloudscheduler.googleapis.com compute.googleapis.com \
+    --project ayvago-prod
+  ```
+  (`compute.googleapis.com` creates the default compute service account that 2nd-gen functions run and build as.)
 - Fallback without CI: paste `firebase/firestore.rules` into Firebase console → Firestore → Rules → Publish, or run `npx firebase deploy --only firestore:rules --project prod` from `firebase/` after `npx firebase login`.
 - 🤖 Rules and emulator tests (`pnpm --filter @ayvago/firebase test`), client auth
 
