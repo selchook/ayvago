@@ -55,4 +55,10 @@ jobs:
           trap 'rm -f "$key_file"' EXIT
           printf '%s' "$SERVICE_ACCOUNT" > "$key_file"
           export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
-          pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules --project prod --non-interactive
+          set -o pipefail
+          if ! pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules --project prod --non-interactive 2>&1 | tee "$RUNNER_TEMP/deploy.log"; then
+            # Surface the cause as annotations, visible on the run summary without opening the log.
+            grep -hiE "error|denied|permission|forbidden|403" "$RUNNER_TEMP/deploy.log" firebase/firebase-debug.log 2>/dev/null \
+              | grep -viE "authorization|token|private_key" | head -8 | while IFS= read -r line; do echo "::error::${line:0:400}"; done
+            exit 1
+          fi
