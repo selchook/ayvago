@@ -56,6 +56,8 @@ jobs:
           trap 'rm -f "$key_file"' EXIT
           printf '%s' "$SERVICE_ACCOUNT" > "$key_file"
           export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
+          # The account's email is not secret; showing it makes IAM problems easy to diagnose.
+          echo "::notice::Deploying as $(jq -r '.client_email // "unknown"' "$key_file") (key project: $(jq -r '.project_id // "unknown"' "$key_file"))"
           log="$RUNNER_TEMP/deploy.log"
           # --debug output goes to a file only; on failure the cause (the CLI's own message is just
           # "Failed to authenticate") is surfaced as annotations, with credential lines removed.
@@ -65,6 +67,6 @@ jobs:
             sed 's/\x1b\[[0-9;]*m//g' "$log" \
               | grep -E "Error|error:|denied|PERMISSION|invalid_grant|Unexpected|HTTP [45][0-9][0-9]" \
               | grep -vE "^[[:space:]]+at |[Bb]earer|access_token|refresh_token|private_key" \
-              | head -8 | while IFS= read -r line; do echo "::error::${line:0:400}"; done
+              | head -8 | while IFS= read -r line; do echo "::error::${line:0:900}"; done
             exit 1
           fi
