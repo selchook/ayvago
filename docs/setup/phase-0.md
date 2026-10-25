@@ -34,7 +34,20 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
 - 🤖 Cloud Functions deploy automatically: `.github/workflows/deploy-functions.yml` runs the rules and functions emulator tests and deploys `firebase/functions` to `ayvago-prod` when the functions or `packages/shared/src` change on `main` (or manually).
-- ✅ Roles for the functions deploy on `github-rules-deployer`: **Cloud Functions Admin**, **Cloud Run Admin**, **Service Account User**, **Cloud Scheduler Admin**, **Artifact Registry Administrator**, **Service Usage Admin**.
+- ⏳ Roles for the deploy account and the build account, granted from Cloud Shell (idempotent; the last command lists the deploy account's roles):
+  ```bash
+  SA=serviceAccount:github-rules-deployer@ayvago-prod.iam.gserviceaccount.com
+  for role in firebaserules.admin datastore.indexAdmin serviceusage.serviceUsageAdmin \
+      cloudfunctions.admin run.admin iam.serviceAccountUser cloudscheduler.admin artifactregistry.admin; do
+    gcloud projects add-iam-policy-binding ayvago-prod --member="$SA" --role="roles/$role" --condition=None --quiet > /dev/null
+  done
+  # 2nd-gen functions build as the default compute service account.
+  gcloud projects add-iam-policy-binding ayvago-prod \
+    --member=serviceAccount:566724065070-compute@developer.gserviceaccount.com \
+    --role=roles/cloudbuild.builds.builder --condition=None --quiet > /dev/null
+  gcloud projects get-iam-policy ayvago-prod --flatten="bindings[].members" \
+    --filter="bindings.members:github-rules-deployer" --format="value(bindings.role)"
+  ```
 - ⏳ Enable the APIs once as the project owner (the deploy account could not enable them). Google Cloud console → **Activate Cloud Shell** (top right), then:
   ```bash
   gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com \
