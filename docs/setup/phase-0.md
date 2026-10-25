@@ -34,10 +34,10 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
 - 🤖 Cloud Functions deploy automatically: `.github/workflows/deploy-functions.yml` runs the rules and functions emulator tests and deploys `firebase/functions` to `ayvago-prod` when the functions or `packages/shared/src` change on `main` (or manually).
-- ⏳ Roles for the deploy account and the build account, granted from Cloud Shell (idempotent; the last command lists the deploy account's roles):
+- ⏳ Roles for the deploy account and the build account, granted from Cloud Shell (idempotent; the last command lists the deploy account's roles). Note: an account that can deploy functions can effectively reach all project data through the code it deploys, so treat this key like an owner credential and rotate it if it might have leaked:
   ```bash
   SA=serviceAccount:github-rules-deployer@ayvago-prod.iam.gserviceaccount.com
-  for role in firebaserules.admin datastore.indexAdmin serviceusage.serviceUsageAdmin \
+  for role in firebaserules.admin datastore.indexAdmin serviceusage.serviceUsageAdmin firebase.viewer \
       cloudfunctions.admin run.admin iam.serviceAccountUser cloudscheduler.admin artifactregistry.admin; do
     gcloud projects add-iam-policy-binding ayvago-prod --member="$SA" --role="roles/$role" --condition=None --quiet > /dev/null
   done
