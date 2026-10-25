@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { SUPPORTED_LOCALES } from './locales';
-import { allGuestWordPairs, generateGuestName, isValidUsername } from './profile';
+import {
+  allGuestWordPairs,
+  generateGuestName,
+  isValidUsername,
+  usernameKey,
+  usernameProblem,
+} from './profile';
 
 describe('usernames', () => {
   it('accepts letters, Turkish letters, digits and underscores', () => {
@@ -45,5 +51,36 @@ describe('guest names', () => {
     for (let i = 0; i < 200; i++) {
       expect(generateGuestName('tr')).toMatch(/\d{4}$/);
     }
+  });
+});
+
+describe('username keys and filters', () => {
+  it('folds case and Turkish letters', () => {
+    expect(usernameKey('Ayşe')).toBe(usernameKey('AYSE'));
+    expect(usernameKey('IŞIK_Çağrı')).toBe('isik_cagri');
+    expect(usernameKey('Öğrenci')).toBe('ogrenci');
+    expect(usernameKey('İstanbul')).toBe('istanbul');
+  });
+
+  it('accepts ordinary names, including ones that contain short blocked words', () => {
+    for (const name of ['PixelFox', 'Ayşe_99', 'Gothic', 'Dickens', 'Mosik', 'Picasso', 'Sikke']) {
+      expect(usernameProblem(name), name).toBeNull();
+    }
+  });
+
+  it('rejects reserved and offensive names', () => {
+    expect(usernameProblem('Admin')).toBe('reserved');
+    expect(usernameProblem('ayvago_official')).toBe('reserved');
+    expect(usernameProblem('Destek2')).toBe('reserved');
+    expect(usernameProblem('Misafir')).toBe('reserved');
+    expect(usernameProblem('xFuckx')).toBe('offensive');
+    expect(usernameProblem('Orospu1')).toBe('offensive');
+    expect(usernameProblem('amk')).toBe('offensive');
+    expect(usernameProblem('Pic_1')).toBe('offensive');
+  });
+
+  it('reports invalid shapes first', () => {
+    expect(usernameProblem('ab')).toBe('invalid');
+    expect(usernameProblem('1abc')).toBe('invalid');
   });
 });

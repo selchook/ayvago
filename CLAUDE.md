@@ -38,5 +38,6 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 - `packages/platform-adapter` — single-file adapter games vendor into `src/ayvago/`; change it here, then
   copy it into each game repository
 - `tools/fixture-game` — local cross-origin test game (`pnpm fixture-game`, `AYVAGO_DEV_GAMES=1`)
-- `firebase/` — Firebase config and security rules
+- `firebase/` — Firebase config, security rules, emulator tests (`firebase/tests`) and Cloud Functions
+  (`firebase/functions`, europe-west1, bundled with esbuild); rules and functions deploy from GitHub Actions
 - `docs/` — plans, ADRs, setup checklists

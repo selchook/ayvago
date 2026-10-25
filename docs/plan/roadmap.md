@@ -438,7 +438,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] `ads.txt` on `ayvago.com` for AdSense verification (before Phase 3)
 - [x] List the games' production Vercel URLs
 - [x] `selchook/ayvago` monorepo scaffold, CI, ADRs 0001–0005, Firebase deny-all rules, i18n foundation (en/tr) — details: [phase 0 checklist](../setup/phase-0.md)
-- [ ] Firebase projects `ayvago-dev` / `ayvago-prod` — `ayvago-prod` set up on Spark (Firestore + RTDB in `europe-west1`, Auth, web config in Vercel, rules deployed from GitHub Actions); `ayvago-dev` web config and the **Blaze plan + budget alerts** still open
+- [ ] Firebase projects `ayvago-dev` / `ayvago-prod` — `ayvago-prod` set up on the Blaze plan (Firestore + RTDB in `europe-west1`, Auth, web config in Vercel, rules and functions deployed from GitHub Actions); `ayvago-dev` web config and budget alerts still open
 - [ ] Cloudflare account, Realtime TURN key
 - [ ] **AdSense + H5 Games Ads application**, Paddle/Lemon Squeezy seller application
 
@@ -446,7 +446,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] Firestore model v1 + Security Rules + rules tests (emulator) — `users/{uid}` and `users/{uid}/library/state` done with 26 emulator tests, deployed automatically; catalog (`games`) still served from the seed
 - [x] Guest (anonymous) + Google sign-in, upgrade that keeps the uid, profile document with a generated name — Spark plan, client writes under Firestore rules with emulator tests
 - [x] Profile and settings page (`/profile`): preset avatars, theme/mode/language saved to the account and applied on new devices, personal bests, data download, account deletion
-- [ ] Username changes, guest merge into an existing account, unused-guest cleanup (need Cloud Functions → Blaze)
+- [x] Username changes (`reserveUsername`: unique with Turkish letters folded, 30-day cooldown, reserved and offensive names blocked), guest merge into an existing account (`mergeGuestAccount`), nightly cleanup of guests unused for 30 days (`cleanupGuests`) — Cloud Functions in `europe-west1`, emulator-tested, deployed from GitHub Actions
 - [x] Theme system (3 themes, 5 theme/mode combinations, WCAG AA contrast test in CI, no-flash persistence)
 - [x] App shell: top bar, side rail, phone bottom bar, theme and language switchers
 - [x] Catalog, category, new, multiplayer and game pages (static + SEO + JSON-LD `VideoGame`, sitemap, hreflang) in both locales — from a seed catalog until Firestore is connected

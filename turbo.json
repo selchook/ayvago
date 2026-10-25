@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "lib/**"],
       "env": ["AYVAGO_DEV_GAMES", "AYVAGO_DEV_ENTRY_OVERRIDES", "NEXT_PUBLIC_FIREBASE_*"]
     },
     "typecheck": {

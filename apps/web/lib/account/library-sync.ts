@@ -14,7 +14,7 @@ import {
   sameLibrary,
   sanitizeLibrary,
   type LibraryState,
-} from '@/lib/library-state';
+} from '@ayvago/shared';
 import { attachLibraryWriter, readLibrary, replaceLibrary } from '@/lib/library';
 import { loadFirestore } from '@/lib/firebase/client';
 

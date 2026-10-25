@@ -18,5 +18,6 @@ firestore-debug.log
 database-debug.log
 ui-debug.log
 firebase/emulator-data/
+firebase/functions/lib/
 
 .DS_Store

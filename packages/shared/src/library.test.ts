@@ -5,7 +5,7 @@ import {
   mergeLibraries,
   sanitizeLibrary,
   type LibraryState,
-} from './library-state';
+} from './library';
 
 const lib = (state: Partial<LibraryState>): LibraryState => ({
   favorites: [],

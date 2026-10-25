@@ -6,13 +6,14 @@
 import {
   generateGuestName,
   isSupportedLocale,
+  usernameKey,
   type Locale,
   type UserProfile,
 } from '@ayvago/shared';
 import { isModePreference, isThemeId, type ModePreference, type ThemeId } from '@ayvago/themes';
 import type { AuthCredential, User } from 'firebase/auth';
 import { useSyncExternalStore } from 'react';
-import { firebaseEnabled, loadAuth, loadFirestore } from '@/lib/firebase/client';
+import { firebaseEnabled, loadAuth, loadFirestore, loadFunctions } from '@/lib/firebase/client';
 import { USE_EMULATORS } from '@/lib/firebase/config';
 import { applyTheme, readThemeState, THEME_CHANGE_EVENT } from '@/lib/theme-client';
 import { attachLibrary, cancelLibrarySync, detachLibrary, flushLibrary } from './library-sync';
@@ -23,6 +24,8 @@ export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
   mode: ModePreference | null;
   // Milliseconds since epoch; null until the server timestamp of a new profile is known.
   createdAt: number | null;
+  // When the player last chose a username (ms), for the cooldown hint; null if never.
+  usernameChangedAt: number | null;
 };
 
 /** Fields the player can change from the settings page. */
@@ -185,7 +188,73 @@ async function googleSignIn({ link, signIn, credentialFrom }: GoogleFlow): Promi
   } catch (error) {
     const credential = credentialFrom(error);
     if (errorCode(error) !== 'auth/credential-already-in-use' || !credential) throw error;
+    // Proof that this browser owned the guest, taken before switching accounts.
+    const guestIdToken = await current.getIdToken();
     await signInWithCredential(auth, credential);
+    mergeGuest(guestIdToken).catch((cause) => console.error('[account] guest merge failed', cause));
+  }
+}
+
+// Moves the guest's server-side library into the account and deletes the guest account. The
+// browser copy is merged by the library sync anyway, so a failure here loses nothing visible.
+async function mergeGuest(guestIdToken: string) {
+  const functions = await loadFunctions();
+  const { httpsCallable } = await import('firebase/functions');
+  await httpsCallable(functions, 'mergeGuestAccount')({ guestIdToken });
+}
+
+export type UsernameResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        'invalid' | 'reserved' | 'offensive' | 'taken' | 'cooldown' | 'registered-only' | 'generic';
+      // For "cooldown": when the next change is allowed (ms).
+      availableAt?: number;
+    };
+
+const USERNAME_REASONS = new Set([
+  'invalid',
+  'reserved',
+  'offensive',
+  'taken',
+  'cooldown',
+  'registered-only',
+]);
+
+/** Registered players choose a unique username (Cloud Function reserveUsername). */
+export async function changeUsername(username: string): Promise<UsernameResult> {
+  const functions = await loadFunctions();
+  const { httpsCallable } = await import('firebase/functions');
+  try {
+    const result = await httpsCallable<{ username: string }, { username: string }>(
+      functions,
+      'reserveUsername',
+    )({ username });
+    if (state.status === 'signedIn' && state.profile) {
+      const sameName = usernameKey(state.profile.username) === usernameKey(result.data.username);
+      setState({
+        ...state,
+        profile: {
+          ...state.profile,
+          username: result.data.username,
+          usernameChangedAt: sameName ? state.profile.usernameChangedAt : Date.now(),
+        },
+      });
+    }
+    return { ok: true };
+  } catch (error) {
+    const details = (error as { details?: { reason?: string; availableAt?: number } }).details;
+    const reason = details?.reason;
+    if (reason && USERNAME_REASONS.has(reason)) {
+      return {
+        ok: false,
+        reason: reason as Exclude<UsernameResult, { ok: true }>['reason'],
+        availableAt: details?.availableAt,
+      };
+    }
+    console.error('[account] username change failed', error);
+    return { ok: false, reason: 'generic' };
   }
 }
 
@@ -234,7 +303,14 @@ async function syncProfile(user: User): Promise<void> {
         locale: preferredLocale,
       };
       tx.set(ref, { ...created, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-      return { ...created, avatarId: null, theme: null, mode: null, createdAt: Date.now() };
+      return {
+        ...created,
+        avatarId: null,
+        theme: null,
+        mode: null,
+        createdAt: Date.now(),
+        usernameChangedAt: null,
+      };
     }
     const data = snapshot.data();
     if (data.isGuest !== user.isAnonymous) {
@@ -248,6 +324,10 @@ async function syncProfile(user: User): Promise<void> {
       theme: isThemeId(data.theme) ? data.theme : null,
       mode: isModePreference(data.mode) ? data.mode : null,
       createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : null,
+      usernameChangedAt:
+        typeof data.usernameChangedAt?.toMillis === 'function'
+          ? data.usernameChangedAt.toMillis()
+          : null,
     };
   });
   if (state.status === 'signedIn' && state.uid === user.uid) {

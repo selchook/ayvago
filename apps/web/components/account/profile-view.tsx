@@ -1,6 +1,11 @@
 'use client';
 
-import { LOCALE_NATIVE_NAMES, type Locale } from '@ayvago/shared';
+import {
+  LOCALE_NATIVE_NAMES,
+  USERNAME_COOLDOWN_DAYS,
+  usernameProblem,
+  type Locale,
+} from '@ayvago/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
@@ -14,6 +19,7 @@ import {
   type AvatarPreset,
 } from '@/lib/account/avatars';
 import {
+  changeUsername,
   deleteAccount,
   exportAccountData,
   signInWithGoogle,
@@ -21,6 +27,7 @@ import {
   updateProfile,
   useAccount,
   type SignInError,
+  type UsernameResult,
 } from '@/lib/account/store';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { useBestScores, useFavorites, useRecent } from '@/lib/library';
@@ -215,13 +222,7 @@ function SignedIn({
           </div>
         </div>
         <LanguagePicker />
-        <div className={styles.setting}>
-          <h3>{t('username')}</h3>
-          <p>
-            <strong>{profile.username}</strong>
-          </p>
-          <p className={styles.muted}>{t('usernameSoon')}</p>
-        </div>
+        <UsernameEditor profile={profile} isGuest={account.isGuest} />
         <p className={styles.muted}>{t('settingsSync')}</p>
       </section>
 
@@ -316,6 +317,94 @@ function AvatarPicker({ current }: { current: AvatarPreset | null }) {
         </p>
       ) : null}
     </div>
+  );
+}
+
+function UsernameEditor({
+  profile,
+  isGuest,
+}: {
+  profile: NonNullable<SignedInAccount['profile']>;
+  isGuest: boolean;
+}) {
+  const t = useTranslations('profile');
+  const locale = useLocale();
+  const [value, setValue] = useState(profile.username);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<UsernameResult | null>(null);
+  const formatDate = (ms: number) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(ms);
+  const nextChange = profile.usernameChangedAt
+    ? profile.usernameChangedAt + USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000
+    : null;
+
+  if (isGuest) {
+    return (
+      <div className={styles.setting}>
+        <h3>{t('username')}</h3>
+        <p>
+          <strong>{profile.username}</strong>
+        </p>
+        <p className={styles.muted}>{t('usernameGuest')}</p>
+      </div>
+    );
+  }
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    const name = value.trim();
+    // Same checks as the server, so most mistakes are explained without a round trip.
+    const problem = usernameProblem(name);
+    if (problem) {
+      setResult({ ok: false, reason: problem });
+      return;
+    }
+    setBusy(true);
+    setResult(await changeUsername(name));
+    setBusy(false);
+  }
+
+  return (
+    <form className={styles.setting} onSubmit={save}>
+      <h3>
+        <label htmlFor="username-input">{t('username')}</label>
+      </h3>
+      <div className={styles.inline}>
+        <input
+          id="username-input"
+          className={styles.input}
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            setResult(null);
+          }}
+          maxLength={20}
+          autoComplete="off"
+          spellCheck={false}
+          aria-describedby="username-help"
+        />
+        <button type="submit" className={menuStyles.secondaryButton} disabled={busy}>
+          {busy ? t('saving') : t('save')}
+        </button>
+      </div>
+      <p id="username-help" className={styles.muted}>
+        {t('usernameRules', { days: USERNAME_COOLDOWN_DAYS })}
+        {nextChange && nextChange > Date.now()
+          ? ` ${t('usernameNextChange', { date: formatDate(nextChange) })}`
+          : null}
+      </p>
+      {result?.ok ? (
+        <p className={styles.success} role="status">
+          {t('usernameSaved')}
+        </p>
+      ) : result ? (
+        <p className={menuStyles.error} role="alert">
+          {result.reason === 'cooldown' && result.availableAt
+            ? t('usernameErrors.cooldown', { date: formatDate(result.availableAt) })
+            : t(`usernameErrors.${result.reason === 'cooldown' ? 'generic' : result.reason}`)}
+        </p>
+      ) : null}
+    </form>
   );
 }
 

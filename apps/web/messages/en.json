@@ -178,7 +178,6 @@
     "appearance": "Appearance",
     "language": "Language",
     "username": "Username",
-    "usernameSoon": "Choosing your own username is coming soon.",
     "settingsSync": "Your avatar, theme and language are saved to your account and follow you to every device.",
     "saveFailed": "Could not save. Please try again.",
     "accountTitle": "Account",
@@ -193,6 +192,21 @@
     "deleteConfirm": "Yes, delete permanently",
     "deleting": "Deleting…",
     "cancel": "Cancel",
-    "deleteFailed": "The account could not be deleted. Please try again."
+    "deleteFailed": "The account could not be deleted. Please try again.",
+    "usernameGuest": "Sign in with Google to choose your own username.",
+    "usernameRules": "3–20 characters: letters, digits and _, starting with a letter. You can choose a new name once every {days} days.",
+    "usernameNextChange": "Next change possible on {date}.",
+    "usernameSaved": "Username saved.",
+    "save": "Save",
+    "saving": "Saving…",
+    "usernameErrors": {
+      "invalid": "Use 3–20 letters, digits or _, starting with a letter.",
+      "reserved": "This name is reserved. Please choose another one.",
+      "offensive": "This name is not allowed. Please choose another one.",
+      "taken": "This name is already taken. Please choose another one.",
+      "cooldown": "You can choose a new name on {date}.",
+      "registered-only": "Sign in with Google to choose your own username.",
+      "generic": "The username could not be saved. Please try again."
+    }
   }
 }

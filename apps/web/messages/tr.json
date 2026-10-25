@@ -178,7 +178,6 @@
     "appearance": "Görünüm",
     "language": "Dil",
     "username": "Kullanıcı adı",
-    "usernameSoon": "Kendi kullanıcı adını seçme özelliği yakında geliyor.",
     "settingsSync": "Avatarın, teman ve dilin hesabına kaydedilir ve her cihazda seninle olur.",
     "saveFailed": "Kaydedilemedi. Lütfen tekrar dene.",
     "accountTitle": "Hesap",
@@ -193,6 +192,21 @@
     "deleteConfirm": "Evet, kalıcı olarak sil",
     "deleting": "Siliniyor…",
     "cancel": "Vazgeç",
-    "deleteFailed": "Hesap silinemedi. Lütfen tekrar dene."
+    "deleteFailed": "Hesap silinemedi. Lütfen tekrar dene.",
+    "usernameGuest": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
+    "usernameRules": "3–20 karakter: harf, rakam ve _ kullanabilirsin; bir harfle başlamalı. Yeni bir ad {days} günde bir seçilebilir.",
+    "usernameNextChange": "Bir sonraki değişiklik: {date}.",
+    "usernameSaved": "Kullanıcı adı kaydedildi.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "usernameErrors": {
+      "invalid": "3–20 harf, rakam veya _ kullan; bir harfle başlamalı.",
+      "reserved": "Bu ad ayrılmış. Lütfen başka bir ad seç.",
+      "offensive": "Bu ada izin verilmiyor. Lütfen başka bir ad seç.",
+      "taken": "Bu ad zaten alınmış. Lütfen başka bir ad seç.",
+      "cooldown": "Yeni bir adı {date} tarihinde seçebilirsin.",
+      "registered-only": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
+      "generic": "Kullanıcı adı kaydedilemedi. Lütfen tekrar dene."
+    }
   }
 }

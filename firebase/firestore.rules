@@ -67,7 +67,7 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
 
       // The player's library (favorites, recently played, best scores) as one document, so
-      // loading it costs a single read. Limits match apps/web/lib/library-state.ts. Best scores
+      // loading it costs a single read. Limits match packages/shared/src/library.ts. Best scores
       // here are player-reported; leaderboards will use server-validated sessions.
       match /library/state {
         allow read: if isOwner(uid);

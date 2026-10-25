@@ -1,7 +1,7 @@
 // The player's library: favorites, recently played games and personal best scores.
-// Pure data helpers shared by the browser cache (lib/library.ts) and the Firestore sync
-// (lib/account/library-sync.ts). Best scores are player-reported; leaderboards will rely on
-// server-validated sessions instead.
+// Pure data helpers shared by the browser cache (apps/web/lib/library.ts), its Firestore sync
+// (apps/web/lib/account/library-sync.ts) and the guest-merge Cloud Function. Best scores are
+// player-reported; leaderboards will rely on server-validated sessions instead.
 
 export type RecentEntry = { slug: string; playedAt: number };
 export type ScoreOrder = 'asc' | 'desc';

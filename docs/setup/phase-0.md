@@ -20,7 +20,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 
 ## 3. Firebase
 - ✅ Create two projects: `ayvago-dev` and `ayvago-prod` (project id `ayvago-prod` confirmed)
-- ⏳ Move both projects to the **Blaze** plan and set **budget alerts** (suggested: $10 / $25 / $50). Not needed yet: the current account features run on Spark; Blaze is required once Cloud Functions ship (username changes, guest merge, score validation, purchases, TURN)
+- ✅ `ayvago-prod` on the **Blaze** plan · ⏳ **budget alerts** (Google Cloud → Billing → Budgets & alerts; suggested $10 / $25 / $50)
 - ✅ Firestore in **`europe-west1`** (`ayvago-prod`)
 - ✅ Realtime Database in `europe-west1` (`ayvago-prod`)
 - ✅ Authentication: Anonymous and Google enabled (`ayvago-prod`); Apple and email link later
@@ -33,6 +33,8 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
   1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin**, **Cloud Datastore Index Admin** (the CLI reads the database metadata before deploying; no data access) and **Service Usage Consumer**. Roles can be added later under **IAM & Admin → IAM** (pencil icon next to the account).
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).
   3. GitHub `selchook/ayvago` → **Settings → Secrets and variables → Actions → New repository secret**: name `FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD`, value: the whole JSON file. Then delete the downloaded file. Never paste the key into chat or commit it.
+- 🤖 Cloud Functions deploy automatically: `.github/workflows/deploy-functions.yml` runs the rules and functions emulator tests and deploys `firebase/functions` to `ayvago-prod` when the functions or `packages/shared/src` change on `main` (or manually).
+- ⏳ One-time roles for the functions deploy (owner), on the same `github-rules-deployer` account under **IAM & Admin → IAM** (pencil icon): **Cloud Functions Admin**, **Cloud Run Admin**, **Service Account User**, **Cloud Scheduler Admin**, **Artifact Registry Administrator**, and **Service Usage Admin** (the first deploy enables the Cloud Functions, Cloud Build, Artifact Registry, Cloud Run, Eventarc, Pub/Sub and Cloud Scheduler APIs).
 - Fallback without CI: paste `firebase/firestore.rules` into Firebase console → Firestore → Rules → Publish, or run `npx firebase deploy --only firestore:rules --project prod` from `firebase/` after `npx firebase login`.
 - 🤖 Rules and emulator tests (`pnpm --filter @ayvago/firebase test`), client auth
 

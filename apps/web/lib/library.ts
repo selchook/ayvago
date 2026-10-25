@@ -9,7 +9,7 @@ import {
   type LibraryState,
   type RecentEntry,
   type ScoreOrder,
-} from './library-state';
+} from '@ayvago/shared';
 
 // The player's library in this browser (recently played, favorites, best scores). It is the
 // instant cache the UI reads; when an account is signed in, lib/account/library-sync.ts mirrors

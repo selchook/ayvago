@@ -115,3 +115,95 @@ export function allGuestWordPairs(locale: Locale): [string, string][] {
     nouns.map((noun): [string, string] => [adjective, noun]),
   );
 }
+
+/** Days a registered player must wait between username changes. */
+export const USERNAME_COOLDOWN_DAYS = 30;
+
+/**
+ * Uniqueness key: lowercase with Turkish letters folded to ASCII, so "Ayşe", "AYSE" and "ayse"
+ * are the same name and one player cannot impersonate another with a look-alike.
+ */
+export function usernameKey(name: string): string {
+  return name
+    .replace(/[İIı]/g, 'i')
+    .toLowerCase()
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u');
+}
+
+// Names that belong to the platform or its staff.
+const RESERVED = new Set([
+  'admin',
+  'administrator',
+  'ayvago',
+  'support',
+  'destek',
+  'moderator',
+  'mod',
+  'staff',
+  'official',
+  'resmi',
+  'system',
+  'sistem',
+  'root',
+  'help',
+  'yardim',
+  'editor',
+  'team',
+  'ekip',
+  'null',
+  'undefined',
+  'guest',
+  'misafir',
+  'anonymous',
+  'anonim',
+]);
+// Offensive words (English and Turkish). Long, unambiguous ones are blocked anywhere in the name;
+// short ones only as the whole name, so ordinary names that contain them are not rejected.
+const BLOCKED_ANYWHERE = [
+  'fuck',
+  'cunt',
+  'nigger',
+  'nigga',
+  'faggot',
+  'whore',
+  'hitler',
+  'rapist',
+  'orospu',
+  'yarrak',
+  'amina',
+  'amcik',
+  'sikis',
+  'pezevenk',
+  'kahpe',
+  'gavat',
+];
+const BLOCKED_EXACT = new Set([
+  'sik',
+  'amk',
+  'pic',
+  'got',
+  'dick',
+  'shit',
+  'slut',
+  'bitch',
+  'ibne',
+  'nazi',
+]);
+
+export type UsernameProblem = 'invalid' | 'reserved' | 'offensive';
+
+/** Why a name cannot be chosen, or null when it can (availability is checked by the server). */
+export function usernameProblem(name: string): UsernameProblem | null {
+  if (!isValidUsername(name)) return 'invalid';
+  const key = usernameKey(name);
+  const bare = key.replace(/[_\d]+/g, '');
+  if (RESERVED.has(key) || RESERVED.has(bare) || bare.startsWith('ayvago')) return 'reserved';
+  if (BLOCKED_EXACT.has(bare) || BLOCKED_ANYWHERE.some((word) => key.includes(word))) {
+    return 'offensive';
+  }
+  return null;
+}
