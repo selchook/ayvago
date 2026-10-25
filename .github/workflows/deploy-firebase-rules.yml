@@ -40,8 +40,10 @@ jobs:
           path: ~/.cache/firebase/emulators
           key: firebase-emulators-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
+      # The emulator test suite also covers the Cloud Functions, which must be built first.
+      - run: pnpm --filter @ayvago/functions build
 
-      - name: Test the rules against the emulator
+      - name: Test the rules (and functions) against the emulators
         run: pnpm --filter @ayvago/firebase test
 
       - name: Deploy to ayvago-prod
