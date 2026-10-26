@@ -170,7 +170,7 @@ export const SEED_GAMES: SeedGame[] = [
       tags: ['space', 'shooter', 'asteroids'],
       entry: 'https://space-defender-one.vercel.app/',
       orientation: 'landscape',
-      input: ['keyboard'],
+      input: ['touch', 'keyboard'],
       players: { min: 1, max: 1 },
       scoring: singlePlayerScoring(SCORE, 400),
       ads: { rewarded: ['extra_life'], interstitial: ['game_over'] },
