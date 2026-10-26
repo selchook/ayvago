@@ -343,3 +343,42 @@ describe('leaderboards', () => {
     await assertFails(getDoc(doc(db, 'scoreFlags/abc')));
   });
 });
+
+describe('votes and rankings', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'games/orbsurge'), { likes: 3, dislikes: 1 });
+      await setDoc(doc(db, 'games/orbsurge/votes/u1'), { value: 1 });
+      await setDoc(doc(db, 'games/orbsurge/daily/2026-10-26'), { started: 3 });
+      await setDoc(doc(db, 'games/orbsurge/feedback/2026-10-26'), { count: 1 });
+      await setDoc(doc(db, 'rankings/catalog'), { games: {} });
+      await setDoc(doc(db, 'users/u1/stats/orbsurge'), { playSeconds: 90 });
+    });
+  });
+
+  it('shows counters and rankings to everyone', async () => {
+    const visitor = env.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(visitor, 'games/orbsurge')));
+    await assertSucceeds(getDoc(doc(visitor, 'rankings/catalog')));
+  });
+
+  it('lets players read only their own vote and stats', async () => {
+    const db = google('u1');
+    await assertSucceeds(getDoc(doc(db, 'games/orbsurge/votes/u1')));
+    await assertSucceeds(getDoc(doc(db, 'users/u1/stats/orbsurge')));
+    const other = google('u2');
+    await assertFails(getDoc(doc(other, 'games/orbsurge/votes/u1')));
+    await assertFails(getDoc(doc(other, 'users/u1/stats/orbsurge')));
+  });
+
+  it('keeps votes, stats and counters server-written and feedback private', async () => {
+    const db = google('u1');
+    await assertFails(setDoc(doc(db, 'games/orbsurge/votes/u1'), { value: -1 }));
+    await assertFails(setDoc(doc(db, 'games/orbsurge'), { likes: 999 }));
+    await assertFails(setDoc(doc(db, 'users/u1/stats/orbsurge'), { playSeconds: 9999 }));
+    await assertFails(getDoc(doc(db, 'games/orbsurge/daily/2026-10-26')));
+    await assertFails(getDoc(doc(db, 'games/orbsurge/feedback/2026-10-26')));
+    await assertFails(setDoc(doc(db, 'rankings/catalog'), { games: {} }));
+  });
+});

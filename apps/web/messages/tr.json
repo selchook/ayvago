@@ -43,7 +43,9 @@
     "multiplayerShelf": "Arkadaşlarınla oyna",
     "categoryShelf": "{category} oyunları",
     "seeAll": "Tümünü gör",
-    "categoriesLabel": "Kategoriler"
+    "categoriesLabel": "Kategoriler",
+    "continueShelf": "Oynamaya devam et",
+    "popularShelf": "Bu hafta popüler"
   },
   "shelf": {
     "previous": "Sola kaydır",
@@ -60,7 +62,8 @@
   "tile": {
     "comingSoon": "Yakında",
     "new": "Yeni",
-    "multiplayer": "Çok oyunculu"
+    "multiplayer": "Çok oyunculu",
+    "likes": "%{percent}"
   },
   "game": {
     "play": "Oyna",
@@ -104,6 +107,35 @@
     "backToGame": "{title} oyna",
     "lastSeason": "Geçen haftanın en iyileri",
     "comingSoon": "Bu liderlik tablosu oyun Ayvago'da yayına girince açılır."
+  },
+  "vote": {
+    "like": "Bu oyunu beğendim",
+    "dislike": "Bu oyunu beğenmedim",
+    "percent": "%{percent}",
+    "votes": "{count, plural, one {# oy} other {# oy}}",
+    "prompt": "Beğendin mi? Oyunu puanla",
+    "thanks": "Puanladığın için teşekkürler!",
+    "playFirst": "Puanlamak için önce oyunu oyna.",
+    "feedbackTitle": "Neyi daha iyi yapabiliriz?",
+    "reasons": {
+      "bugs": "Hata veya çökme",
+      "controls": "Kontroller",
+      "too_hard": "Çok zor",
+      "boring": "Sıkıcı",
+      "performance": "Yavaş veya takılıyor",
+      "too_many_ads": "Çok fazla reklam",
+      "other": "Başka bir şey"
+    },
+    "commentLabel": "Eklemek istediğin bir şey var mı? (isteğe bağlı, sadece Ayvago ekibi görür)",
+    "send": "Gönder",
+    "skip": "Geç",
+    "feedbackThanks": "Teşekkürler, geri bildirimin oyunun gelişmesine yardımcı oluyor.",
+    "errors": {
+      "not-eligible": "Puanlamadan önce bu oyunu en az bir dakika oyna.",
+      "rate-limited": "Oylarını çok hızlı değiştiriyorsun. Daha sonra tekrar dene.",
+      "offensive": "Lütfen yorumu nazik tut.",
+      "generic": "Oy kaydedilemedi, tekrar dene."
+    }
   },
   "input": {
     "touch": "Dokunmatik",
@@ -212,7 +244,7 @@
     "exportButton": "Verilerimi indir",
     "exportFailed": "İndirme başarısız oldu. Lütfen tekrar dene.",
     "deleteTitle": "Hesabı sil",
-    "deleteBody": "Profilini, favorilerini, son oynadığın oyunları, en iyi skorlarını ve giriş hesabını kalıcı olarak siler. Bu işlem geri alınamaz.",
+    "deleteBody": "Profilini, favorilerini, son oynadığın oyunları, en iyi skorlarını, liderlik tablosundaki yerlerini, oylarını ve giriş hesabını kalıcı olarak siler. Bu işlem geri alınamaz.",
     "deleteButton": "Hesabımı sil",
     "deleteConfirm": "Evet, kalıcı olarak sil",
     "deleting": "Siliniyor…",

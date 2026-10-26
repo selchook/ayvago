@@ -69,6 +69,11 @@ service cloud.firestore {
       // The player's library (favorites, recently played, best scores) as one document, so
       // loading it costs a single read. Limits match packages/shared/src/library.ts. Best scores
       // here are player-reported; leaderboards will use server-validated sessions.
+      // Play statistics per game, written by the score-session functions only.
+      match /stats/{gameId} {
+        allow read: if isOwner(uid);
+      }
+
       match /library/state {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid) && notBanned()
@@ -98,7 +103,21 @@ service cloud.firestore {
       allow read: if true;
     }
 
-    // sessions/ and scoreFlags/ are Functions-only: they fall through to the rule below.
+    // Vote counters and ranking scores are public; votes are written through castVote only, and
+    // a player may read their own vote. Daily play counts and feedback stay private (admins).
+    // Spec: docs/specs/voting.md §5.
+    match /games/{gameId} {
+      allow read: if true;
+      match /votes/{uid} {
+        allow read: if isOwner(uid);
+      }
+    }
+    match /rankings/catalog {
+      allow read: if true;
+    }
+
+    // sessions/, scoreFlags/, voteRate/, games/*/daily and games/*/feedback are Functions-only:
+    // they fall through to the rule below.
 
     match /{document=**} {
       allow read, write: if false;

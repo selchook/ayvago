@@ -9,10 +9,12 @@ import {
 } from '../../../packages/shared/src/library';
 import { auth, db } from './admin';
 import { moveScores, syncPlayerRows } from './leaderboards';
+import { removeVotes } from './votes';
 
 /** Firestore documents that belong to a player; deleted together with the account. */
 export async function deletePlayerData(uid: string) {
   await syncPlayerRows(uid, null);
+  await removeVotes(uid);
   const key = (await db().doc(`users/${uid}`).get()).get('usernameKey') as string | undefined;
   const batch = db().batch();
   batch.delete(db().doc(`users/${uid}/library/state`));
@@ -70,6 +72,7 @@ export async function mergeGuestAccount(request: CallableRequest<unknown>) {
     tx.set(libraryRef, { ...merged, updatedAt: FieldValue.serverTimestamp() });
   });
   await moveScores(guestUid, caller.uid);
+  await removeVotes(guestUid, caller.uid);
   await deletePlayerData(guestUid);
   await auth().deleteUser(guestUid);
   logger.info('Merged guest into account', { guestUid, uid: caller.uid });

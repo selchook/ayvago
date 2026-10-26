@@ -2,14 +2,25 @@ import { Timestamp } from 'firebase/firestore';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { previousSeasonKey, seasonKey } from '@ayvago/shared';
 import { closeSeasons } from '../functions/src/leaderboards';
-import { judgeRun, SESSIONS_PER_HOUR, type FinishResult } from '../functions/src/sessions';
+import { judgeRun, SESSIONS_PER_HOUR } from '../functions/src/sessions';
 import type { LeaderboardGame } from '../functions/src/games';
-import { guest, outcome, read, registered, useEmulators, write } from './helpers';
+import {
+  age,
+  FIXTURE,
+  guest,
+  outcome,
+  play,
+  read,
+  registered,
+  start,
+  useEmulators,
+  write,
+} from './helpers';
 
 useEmulators();
 
 // The local fixture game (scoring: min 5 s, max 1000 points per second) is live in the emulator.
-const GAME = 'bridgefixture';
+const GAME = FIXTURE;
 const SEASON = `leaderboards/${GAME}/boards/season`;
 const ALL = `leaderboards/${GAME}/boards/all`;
 
@@ -17,32 +28,6 @@ beforeAll(() => {
   // Lets closeSeasons(), called in this process, see the emulator-only fixture game too.
   process.env.FUNCTIONS_EMULATOR = 'true';
 });
-
-type Player = Pick<Awaited<ReturnType<typeof guest>>, 'uid' | 'call'>;
-type Session = { sessionId: string; token: string };
-
-const start = (player: Player, gameId = GAME) => player.call<Session>('startSession', { gameId });
-
-/** Pretends the session started `ms` ago, so runs need not last for real. */
-async function age(session: Session, ms: number) {
-  await write(
-    `sessions/${session.sessionId}`,
-    { startedAt: Timestamp.fromMillis(Date.now() - ms) },
-    true,
-  );
-}
-
-/** Starts a run, lets it last `seconds` and finishes it with `score`. */
-async function play(player: Player, score: number, seconds = 60) {
-  const session = await start(player);
-  await age(session, seconds * 1000);
-  return player.call<FinishResult>('finishSession', {
-    ...session,
-    score,
-    durationMs: seconds * 1000,
-    continues: 0,
-  });
-}
 
 type Row = { uid: string; username: string; score: number };
 const top = async (path: string) => ((await read(path))?.top ?? []) as Row[];
@@ -215,10 +200,9 @@ describe('player rows', () => {
   it('are removed when the player leaves', async () => {
     const ayla = await registered('ayla@example.com');
     await play(ayla, 400);
-    await expect(ayla.call('syncLeaderboardProfile', { remove: true })).resolves.toEqual({
-      boards: 2,
-    });
+    await expect(ayla.call('deleteMyData', {})).resolves.toEqual({ deleted: true });
     expect(await top(ALL)).toEqual([]);
+    expect(await read(`users/${ayla.uid}`)).toBeUndefined();
     expect(await read(`${ALL}/entries/${ayla.uid}`)).toBeUndefined();
   });
 

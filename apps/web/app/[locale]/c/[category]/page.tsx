@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ListPage } from '@/components/catalog/list-page';
 import { categoryPath, getGamesByCategory } from '@/lib/catalog';
+import { getRankings, rankGames } from '@/lib/catalog/rankings';
 import { localizedAlternates } from '@/lib/seo';
 
 type Props = { params: Promise<{ locale: Locale; category: string }> };
@@ -30,13 +31,13 @@ export default async function CategoryPage({ params }: Props) {
   setRequestLocale(locale);
   const category = categoryFromSlug(slug);
   if (!category) notFound();
-  const t = await getTranslations();
+  const [t, rankings] = await Promise.all([getTranslations(), getRankings()]);
   const label = t(`categories.${category}`);
   return (
     <ListPage
       title={label}
       intro={t('list.categoryIntro', { category: label })}
-      games={getGamesByCategory(category)}
+      games={rankGames(getGamesByCategory(category), rankings, 'qualityScore')}
       locale={locale}
     />
   );

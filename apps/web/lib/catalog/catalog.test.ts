@@ -79,3 +79,34 @@ describe('seed catalog', () => {
     }
   });
 });
+
+describe('rankings', () => {
+  it('orders live games by score and keeps coming-soon games last', async () => {
+    const { getAllGames } = await loadCatalog();
+    const { rankGames, parseRankings, gameLikePercent } = await import('./rankings');
+    const games = getAllGames();
+    const rankings = parseRankings({
+      games: {
+        mapValue: {
+          fields: {
+            chromashift: {
+              mapValue: {
+                fields: {
+                  likes: { integerValue: '19' },
+                  dislikes: { integerValue: '1' },
+                  qualityScore: { doubleValue: 0.9 },
+                  trendScore: { doubleValue: 0.1 },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    const ranked = rankGames(games, rankings, 'qualityScore');
+    expect(ranked[0]!.slug).toBe('chromashift');
+    expect(ranked.at(-1)!.status).toBe('coming_soon');
+    expect(gameLikePercent(ranked[0]!, rankings)).toBe(95);
+    expect(rankGames(games, null, 'qualityScore')).toEqual(games);
+  });
+});

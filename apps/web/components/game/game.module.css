@@ -337,3 +337,125 @@
   align-items: center;
   gap: 10px;
 }
+
+/* Votes under the game. */
+.votes {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.votes[data-highlight] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  animation: pulse 1.2s var(--easing) 3;
+}
+
+@keyframes pulse {
+  50% {
+    outline-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .votes[data-highlight] {
+    animation: none;
+  }
+}
+
+.likePercent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.feedback {
+  flex-basis: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+}
+
+.reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0.88rem;
+}
+
+.reasons label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.comment {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.comment textarea {
+  resize: vertical;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.feedbackError {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.feedbackActions {
+  display: flex;
+  gap: 8px;
+}
+
+.primarySmall,
+.plainSmall {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primarySmall {
+  border: var(--border-width) solid transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.plainSmall {
+  border: var(--border-width) solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.votePrompt {
+  padding-inline: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.feedbackTitle {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+  padding: 0;
+  font-weight: 700;
+}

@@ -207,3 +207,9 @@ export function usernameProblem(name: string): UsernameProblem | null {
   }
   return null;
 }
+
+/** True when free text (e.g. a feedback comment) contains one of the blocked words anywhere. */
+export function containsOffensiveWord(text: string): boolean {
+  const folded = usernameKey(text);
+  return BLOCKED_ANYWHERE.some((word) => folded.includes(word));
+}

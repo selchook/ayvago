@@ -2,6 +2,7 @@ import { GAME_CATEGORIES, type Locale } from '@ayvago/shared';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CoverArt } from '@/components/catalog/cover-art';
 import { GameTile } from '@/components/catalog/game-tile';
+import { ContinueShelf } from '@/components/catalog/continue-shelf';
 import { Shelf } from '@/components/catalog/shelf';
 import styles from '@/components/page.module.css';
 import { Link } from '@/i18n/navigation';
@@ -12,9 +13,11 @@ import {
   gameTitle,
   getFeaturedGames,
   getGamesByCategory,
+  getAllGames,
   getMultiplayerGames,
   getNewestGames,
 } from '@/lib/catalog';
+import { getRankings, rankGames } from '@/lib/catalog/rankings';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -23,14 +26,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
   const t = await getTranslations();
 
   const [lead, ...others] = getFeaturedGames();
-  const [sideTiles, labels] = await Promise.all([
+  const [sideTiles, allTiles, labels, rankings] = await Promise.all([
     toTiles(others.slice(0, 2), locale),
+    toTiles(getAllGames(), locale),
     getTileLabels(),
+    getRankings(),
   ]);
+  // "Popular this week" needs play data; it stays hidden until the ranking job has scores.
+  const popular = rankGames(getAllGames(), rankings, 'trendScore').filter(
+    (game) => (rankings?.games[game.manifest.id]?.trendScore ?? 0) > 0,
+  );
 
   return (
     <>
       <h1 className="visually-hidden">{t('home.tagline')}</h1>
+      <ContinueShelf
+        title={t('home.continueShelf')}
+        seeAllLabel={t('home.seeAll')}
+        tiles={allTiles}
+        labels={labels}
+      />
       {lead ? (
         <section aria-labelledby="spotlight-heading">
           <h2 id="spotlight-heading" className={styles.eyebrow}>
@@ -61,6 +76,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
         </section>
       ) : null}
 
+      <Shelf id="popular" title={t('home.popularShelf')} games={popular} locale={locale} />
+
       <Shelf
         id="new"
         title={t('home.newShelf')}
@@ -74,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
           key={category}
           id={category}
           title={t('home.categoryShelf', { category: t(`categories.${category}`) })}
-          games={getGamesByCategory(category)}
+          games={rankGames(getGamesByCategory(category), rankings, 'qualityScore')}
           locale={locale}
           seeAllHref={categoryPath(category)}
         />

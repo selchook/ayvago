@@ -6,10 +6,12 @@ import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db } from './admin';
 import { fail } from './errors';
-import { deleteInactiveGuests, mergeGuestAccount as mergeGuest } from './guests';
+import { deleteInactiveGuests, deletePlayerData, mergeGuestAccount as mergeGuest } from './guests';
 import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
+import { recomputeGameScores } from './rankings';
 import { finishSession as finish, startSession as start } from './sessions';
 import { reserveUsername as reserve } from './usernames';
+import { castVote as vote } from './votes';
 
 setGlobalOptions({ region: 'europe-west1', maxInstances: 10 });
 
@@ -27,16 +29,31 @@ export const startSession = onCall(start);
 
 export const finishSession = onCall(finish);
 
-/**
- * syncLeaderboardProfile({ remove? }): copies the caller's current name and avatar into their
- * leaderboard rows (after an avatar change), or removes the rows (before account deletion).
- */
+export const castVote = onCall(vote);
+
+/** syncLeaderboardProfile(): copies the caller's current name and avatar into their board rows. */
 export const syncLeaderboardProfile = onCall(async (request) => {
   if (!request.auth) throw fail('unauthenticated', 'signed-out');
   const uid = request.auth.uid;
-  const remove = (request.data as { remove?: unknown } | null)?.remove === true;
-  const card = remove ? null : playerCard((await db().doc(`users/${uid}`).get()).data());
+  const card = playerCard((await db().doc(`users/${uid}`).get()).data());
   return { boards: await syncPlayerRows(uid, card) };
+});
+
+/**
+ * deleteMyData(): Delete account, server part. Removes everything the server wrote about the
+ * caller (leaderboard rows and entries, votes, play stats) and their profile, library and
+ * username. The client then deletes the Firebase Auth user.
+ */
+export const deleteMyData = onCall(async (request) => {
+  if (!request.auth) throw fail('unauthenticated', 'signed-out');
+  await deletePlayerData(request.auth.uid);
+  return { deleted: true };
+});
+
+/** Catalog ranking scores (docs/specs/voting.md §4), hourly so new games find their place fast. */
+export const recomputeRankings = onSchedule({ schedule: 'every 60 minutes' }, async () => {
+  const games = await recomputeGameScores();
+  logger.info('Game scores recomputed', { games });
 });
 
 export const cleanupGuests = onSchedule(

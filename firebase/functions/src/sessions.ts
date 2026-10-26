@@ -4,21 +4,15 @@ import { logger } from 'firebase-functions';
 import type { CallableRequest } from 'firebase-functions/v2/https';
 import { isBetterScore } from '../../../packages/shared/src/leaderboard';
 import { db } from './admin';
+import { signedInPlayer } from './caller';
 import { fail } from './errors';
 import { leaderboardGame, type LeaderboardGame } from './games';
 import { applyScore, boardRef, playerCard, rankOf } from './leaderboards';
+import { countFinish, countStart } from './stats';
 
 // Score sessions (docs/specs/leaderboards.md §7). A run starts with startSession when the game
 // reports GHA_SESSION_START and ends with finishSession on GHA_END. sessions/{id} is written by
 // these functions only; the client holds the session id and a random token.
-
-/**
- * App Check is verified by the callable runtime whenever the client sends a token; this switch
- * decides whether calls without a valid token are refused. Keep it false until the web app ships
- * the App Check provider and the console shows nearly all sessions verified
- * (docs/setup/phase-2.md), then flip it in a commit.
- */
-export const APP_CHECK_ENFORCED = false;
 
 /** Sessions a player may start per game per hour. */
 export const SESSIONS_PER_HOUR = 60;
@@ -32,14 +26,6 @@ const OUTLIER_FACTOR = 3;
 const OUTLIER_MIN_PLAYERS = 10;
 
 const hash = (token: string) => createHash('sha256').update(token).digest();
-
-function signedInPlayer(request: CallableRequest<unknown>) {
-  const caller = request.auth;
-  if (!caller) throw fail('unauthenticated', 'signed-out');
-  if (caller.token.banned === true) throw fail('permission-denied', 'banned');
-  if (APP_CHECK_ENFORCED && !request.app) throw fail('failed-precondition', 'app-check');
-  return caller;
-}
 
 /** startSession({ gameId }) → { sessionId, token } */
 export async function startSession(request: CallableRequest<unknown>) {
@@ -70,6 +56,7 @@ export async function startSession(request: CallableRequest<unknown>) {
     // Share of sessions that carry a verified App Check token, watched before enforcing.
     appCheck: request.app !== undefined,
   });
+  await countStart(gameId, now);
   return { sessionId: ref.id, token };
 }
 
@@ -179,6 +166,8 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     await close({ status: 'rejected', reason: 'expired' });
     return { status: 'rejected', reason: 'expired' };
   }
+  // Every finished run counts as play time, whatever happens to its score.
+  await countFinish(caller.uid, game.gameId, serverMs, now);
 
   const allTime = await boardRef(game.gameId, 'all').get();
   const top = (allTime.get('top') as { score: number }[] | undefined) ?? [];

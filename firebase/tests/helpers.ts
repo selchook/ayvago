@@ -119,3 +119,33 @@ export const outcome = (promise: Promise<unknown>) =>
     () => 'ok',
     (error: { details?: { reason?: string } }) => error.details?.reason ?? 'unknown',
   );
+
+/** The local fixture game (scoring: min 5 s, max 1000 points per second), live in the emulator. */
+export const FIXTURE = 'bridgefixture';
+
+export type Player = { uid: string; call: ReturnType<typeof client>['call'] };
+export type Session = { sessionId: string; token: string };
+
+export const start = (player: Player, gameId = FIXTURE) =>
+  player.call<Session>('startSession', { gameId });
+
+/** Pretends the session started `ms` ago, so runs need not last for real. */
+export async function age(session: Session, ms: number) {
+  await write(
+    `sessions/${session.sessionId}`,
+    { startedAt: Timestamp.fromMillis(Date.now() - ms) },
+    true,
+  );
+}
+
+/** Starts a run, lets it last `seconds` and finishes it with `score`. */
+export async function play(player: Player, score: number, seconds = 60) {
+  const session = await start(player);
+  await age(session, seconds * 1000);
+  return player.call<Record<string, unknown>>('finishSession', {
+    ...session,
+    score,
+    durationMs: seconds * 1000,
+    continues: 0,
+  });
+}

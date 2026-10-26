@@ -53,6 +53,20 @@ export const HeartIcon = ({ filled, ...p }: IconProps & { filled?: boolean }) =>
   </Icon>
 );
 
+export const ThumbUpIcon = ({ filled, ...p }: IconProps & { filled?: boolean }) => (
+  <Icon {...p}>
+    <path d="M7 10v10H4V10h3Z" fill={filled ? 'currentColor' : 'none'} />
+    <path
+      d="M7 10l4-7a2 2 0 0 1 3 2l-1 4h5.5a2 2 0 0 1 2 2.4l-1.4 7A2 2 0 0 1 17.1 20H7"
+      fill={filled ? 'currentColor' : 'none'}
+    />
+  </Icon>
+);
+
+export const ThumbDownIcon = ({ filled, ...p }: IconProps & { filled?: boolean }) => (
+  <ThumbUpIcon filled={filled} {...p} style={{ transform: 'rotate(180deg)', ...p.style }} />
+);
+
 export const UsersIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="9" cy="8" r="3.5" />

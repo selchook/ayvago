@@ -345,17 +345,16 @@ export async function updateProfile(changes: ProfileChanges): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { ...changes, updatedAt: serverTimestamp() });
   // Leaderboard rows show the avatar; the server copies the new one into them.
   if (changes.avatarId !== undefined) {
-    syncLeaderboardProfile(false).catch((error) =>
+    callFunction('syncLeaderboardProfile').catch((error) =>
       console.warn('[account] leaderboard rows not updated', error),
     );
   }
 }
 
-/** Refreshes the player's leaderboard rows from their profile, or removes them. */
-async function syncLeaderboardProfile(remove: boolean): Promise<void> {
+async function callFunction(name: string, data: unknown = {}): Promise<void> {
   const functions = await loadFunctions();
   const { httpsCallable } = await import('firebase/functions');
-  await httpsCallable(functions, 'syncLeaderboardProfile')({ remove });
+  await httpsCallable(functions, name)(data);
 }
 
 // Preferences (theme, mode, language) follow the account. The first time a browser meets an
@@ -485,13 +484,10 @@ export async function deleteAccount(): Promise<'deleted' | 'cancelled'> {
     }
   }
 
-  // Leaderboard rows are written by the server, so the server removes them, while still signed in.
-  await syncLeaderboardProfile(true);
+  // The server deletes everything it holds about the player (profile, library, username,
+  // leaderboard rows, votes, play stats) while they are still signed in.
   cancelLibrarySync();
-  const db = await loadFirestore();
-  const { deleteDoc, doc } = await import('firebase/firestore');
-  await deleteDoc(doc(db, 'users', user.uid, 'library', 'state'));
-  await deleteDoc(doc(db, 'users', user.uid));
+  await callFunction('deleteMyData');
   setPrefsOwner(null);
   try {
     await deleteUser(user);

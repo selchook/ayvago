@@ -1,3 +1,4 @@
+import { rankGames } from './rankings';
 import {
   FIXTURE_GAME,
   SEED_GAMES,
@@ -7,6 +8,7 @@ import {
   resolveAssetUrl,
   type GameCategory,
   type GameManifest,
+  type CatalogRankings,
   type CatalogStatus,
   type Locale,
   type SeedGame,
@@ -106,9 +108,18 @@ export function getMultiplayerGames(): CatalogGame[] {
   return getAllGames().filter((game) => game.multiplayer);
 }
 
-// Related games: same category first, then the rest, excluding the game itself.
-export function getRelatedGames(game: CatalogGame, limit = 6): CatalogGame[] {
-  const others = getAllGames().filter((g) => g.slug !== game.slug);
+// Related games: same category first, then the rest, excluding the game itself; best rated
+// first within each group when rankings are available.
+export function getRelatedGames(
+  game: CatalogGame,
+  rankings: CatalogRankings | null = null,
+  limit = 6,
+): CatalogGame[] {
+  const others = rankGames(
+    getAllGames().filter((g) => g.slug !== game.slug),
+    rankings,
+    'qualityScore',
+  );
   const same = others.filter((g) => g.manifest.category === game.manifest.category);
   const rest = others.filter((g) => g.manifest.category !== game.manifest.category);
   return [...same, ...rest].slice(0, limit);

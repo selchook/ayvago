@@ -43,7 +43,9 @@
     "multiplayerShelf": "Play with friends",
     "categoryShelf": "{category} games",
     "seeAll": "See all",
-    "categoriesLabel": "Categories"
+    "categoriesLabel": "Categories",
+    "continueShelf": "Continue playing",
+    "popularShelf": "Popular this week"
   },
   "shelf": {
     "previous": "Scroll left",
@@ -60,7 +62,8 @@
   "tile": {
     "comingSoon": "Coming soon",
     "new": "New",
-    "multiplayer": "Multiplayer"
+    "multiplayer": "Multiplayer",
+    "likes": "{percent}%"
   },
   "game": {
     "play": "Play",
@@ -104,6 +107,35 @@
     "backToGame": "Play {title}",
     "lastSeason": "Last week’s top players",
     "comingSoon": "This leaderboard opens when the game launches on Ayvago."
+  },
+  "vote": {
+    "like": "I like this game",
+    "dislike": "I don’t like this game",
+    "percent": "{percent}%",
+    "votes": "{count, plural, one {# vote} other {# votes}}",
+    "prompt": "Enjoying it? Rate this game",
+    "thanks": "Thanks for rating!",
+    "playFirst": "Play the game first to rate it.",
+    "feedbackTitle": "What could be better?",
+    "reasons": {
+      "bugs": "Bugs or crashes",
+      "controls": "Controls",
+      "too_hard": "Too hard",
+      "boring": "Boring",
+      "performance": "Slow or laggy",
+      "too_many_ads": "Too many ads",
+      "other": "Something else"
+    },
+    "commentLabel": "Anything else? (optional, only the Ayvago team sees it)",
+    "send": "Send",
+    "skip": "Skip",
+    "feedbackThanks": "Thanks, your feedback helps improve the game.",
+    "errors": {
+      "not-eligible": "Play for at least a minute before rating this game.",
+      "rate-limited": "You are changing votes too fast. Try again later.",
+      "offensive": "Please keep the comment friendly.",
+      "generic": "Your vote could not be saved. Try again."
+    }
   },
   "input": {
     "touch": "Touch",
@@ -212,7 +244,7 @@
     "exportButton": "Download my data",
     "exportFailed": "The download failed. Please try again.",
     "deleteTitle": "Delete account",
-    "deleteBody": "Permanently deletes your profile, favorites, recently played games and best scores, and your sign-in. This cannot be undone.",
+    "deleteBody": "Permanently deletes your profile, favorites, recently played games, best scores, leaderboard places and votes, and your sign-in. This cannot be undone.",
     "deleteButton": "Delete my account",
     "deleteConfirm": "Yes, delete permanently",
     "deleting": "Deleting…",

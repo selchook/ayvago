@@ -26,6 +26,7 @@ import {
   VolumeIcon,
 } from '../icons';
 import { FavoriteButton } from './favorite-button';
+import { VoteButtons } from './vote-buttons';
 import styles from './game.module.css';
 
 type Phase = 'cover' | 'loading' | 'playing';
@@ -62,6 +63,7 @@ export function GamePlayer(props: GamePlayerProps) {
   const identityRef = useRef<Promise<unknown>>(Promise.resolve());
   // The run in progress, registered with the server for the leaderboards.
   const runRef = useRef<Run | null>(null);
+  const runStartedRef = useRef(0);
 
   const [phase, setPhase] = useState<Phase>('cover');
   const [frameKey, setFrameKey] = useState(0);
@@ -72,6 +74,8 @@ export function GamePlayer(props: GamePlayerProps) {
   const [fullscreen, setFullscreen] = useState(false);
   const [result, setResult] = useState<{ score: number; improved: boolean } | null>(null);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
+  // The post-run "rate this game" nudge (docs/specs/voting.md §2), shown at most once per game.
+  const [votePrompt, setVotePrompt] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // True once the game completed the SDK handshake; exposed for diagnostics and tests.
   const [connected, setConnected] = useState(false);
@@ -119,6 +123,7 @@ export function GamePlayer(props: GamePlayerProps) {
           break;
         case 'sessionStart':
           runRef.current = beginRun(gameId, identityRef.current);
+          runStartedRef.current = Date.now();
           setRunResult(null);
           break;
         case 'end': {
@@ -129,6 +134,7 @@ export function GamePlayer(props: GamePlayerProps) {
             setResult({ score: message.score, improved });
             run?.finish(message.score).then(setRunResult);
           }
+          if (shouldPromptVote(slug, Date.now() - runStartedRef.current)) setVotePrompt(true);
           break;
         }
         case 'adRequest':
@@ -189,6 +195,12 @@ export function GamePlayer(props: GamePlayerProps) {
     document.addEventListener('fullscreenchange', onFullscreen);
     return () => document.removeEventListener('fullscreenchange', onFullscreen);
   }, []);
+
+  useEffect(() => {
+    if (!votePrompt) return;
+    const timer = window.setTimeout(() => setVotePrompt(false), 10_000);
+    return () => window.clearTimeout(timer);
+  }, [votePrompt]);
 
   useEffect(() => {
     if (!toast) return;
@@ -330,6 +342,9 @@ export function GamePlayer(props: GamePlayerProps) {
           {runResult ? <RunNote result={runResult} /> : null}
           {toast ? <span className={styles.toast}>{toast}</span> : null}
         </div>
+        {comingSoon ? null : (
+          <VoteButtons gameId={gameId} highlight={votePrompt} onMessage={setToast} />
+        )}
         <FavoriteButton slug={slug} />
         <button
           type="button"
@@ -379,6 +394,26 @@ export function GamePlayer(props: GamePlayerProps) {
       </div>
     </div>
   );
+}
+
+// Ask for a vote after the third finished run of a game or after a run longer than 5 minutes,
+// once per game and browser.
+const PROMPT_AFTER_RUNS = 3;
+const PROMPT_AFTER_MS = 5 * 60 * 1000;
+
+function shouldPromptVote(slug: string, runMs: number): boolean {
+  try {
+    const promptedKey = `ayvago:vote-prompted:${slug}`;
+    if (window.localStorage.getItem(promptedKey)) return false;
+    const runsKey = `ayvago:runs:${slug}`;
+    const runs = Number(window.localStorage.getItem(runsKey) ?? 0) + 1;
+    window.localStorage.setItem(runsKey, String(runs));
+    if (runs < PROMPT_AFTER_RUNS && runMs < PROMPT_AFTER_MS) return false;
+    window.localStorage.setItem(promptedKey, '1');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** What happened to the last run on the leaderboard, next to the score. */

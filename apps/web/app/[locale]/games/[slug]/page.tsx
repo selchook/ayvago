@@ -20,6 +20,7 @@ import {
   getRelatedGames,
   type CatalogGame,
 } from '@/lib/catalog';
+import { getRankings } from '@/lib/catalog/rankings';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 
@@ -80,8 +81,9 @@ export default async function GamePage({ params }: Props) {
   const { manifest } = game;
   const title = gameTitle(game, locale);
   const categoryLabel = t(`categories.${manifest.category}`);
+  const rankings = await getRankings();
   const [related, labels] = await Promise.all([
-    toTiles(getRelatedGames(game), locale),
+    toTiles(getRelatedGames(game, rankings), locale),
     getTileLabels(),
   ]);
 

@@ -1,5 +1,6 @@
 import type { GameCategory } from '@ayvago/shared';
 import { Link } from '@/i18n/navigation';
+import { ThumbUpIcon } from '../icons';
 import { CoverArt } from './cover-art';
 import styles from './catalog.module.css';
 
@@ -15,9 +16,12 @@ export type TileData = {
   isNew: boolean;
   multiplayer: boolean;
   cover: string | null;
+  /** Shown from 20 votes (docs/specs/voting.md §2). */
+  likePercent: number | null;
 };
 
-export type TileLabels = { comingSoon: string; new: string; multiplayer: string };
+/** `likes` is an ICU message with a {percent} placeholder, already formatted by the caller. */
+export type TileLabels = { comingSoon: string; new: string; multiplayer: string; likes: string };
 
 export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {
   return (
@@ -41,7 +45,15 @@ export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels 
       </span>
       <span className={styles.tileMeta}>
         <span className={styles.tileTitle}>{tile.title}</span>
-        <span className={styles.tileCategory}>{tile.categoryLabel}</span>
+        <span className={styles.tileCategory}>
+          {tile.categoryLabel}
+          {tile.likePercent !== null ? (
+            <span className={styles.tileLikes}>
+              <ThumbUpIcon size={13} />
+              {labels.likes.replace('{percent}', String(tile.likePercent))}
+            </span>
+          ) : null}
+        </span>
       </span>
     </Link>
   );
