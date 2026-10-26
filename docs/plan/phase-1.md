@@ -1,7 +1,7 @@
 # Phase 1 — MVP platform
 
 - Status: Done, except three items moved on (see "Still open") — 2026-10-23 → 2026-10-25, written up retroactively on 2026-10-26
-- Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Owner steps: [Phase 0 setup](../setup/phase-0.md) (Firebase, Vercel, deploy roles) · Specs: [Accounts](../specs/accounts.md), [UI and themes](../specs/ui-and-themes.md) · Next: [Phase 2](phase-2.md)
+- Previous: [Phase 0](phase-0.md) · Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Owner steps: [Phase 1 setup](../setup/phase-1.md) (commands in [Phase 0 setup](../setup/phase-0.md)) · Specs: [Accounts](../specs/accounts.md), [UI and themes](../specs/ui-and-themes.md) · Next: [Phase 2](phase-2.md)
 
 **Done when:** a guest picks a theme and a language, plays the 4 games and sees their scores on the
 profile. ✅ Verified end to end against the emulators; guest and Google sign-in confirmed by the

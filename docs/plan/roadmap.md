@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0 checklist](../setup/phase-0.md) · [Phase 1](phase-1.md) · [Phase 2](phase-2.md) · [ADRs](../adr/)
+> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -469,7 +469,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] `startSession` / `finishSession` + App Check — sessions, validation, flags, App Check client and an admin-panel enforcement switch guarded by the verified share ([ADR 0006](../adr/0006-score-sessions.md)); turning it on waits for the owner's reCAPTCHA Enterprise key
 - [x] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting — game page panel and `/games/{slug}/leaderboard`; country scope and season rewards deferred (see the plan)
 - [x] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — `castVote`, hourly `recomputeRankings`, Popular and Continue Playing shelves; day-1 return and burst detection deferred (see the plan)
-- [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
+- [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender touch controls added (selchook/space-defender#2, waiting for merge)
 - [x] Admin panel v1 (custom claims): game management, flagged scores — `/admin` with flag review (approve / reject / ban), players, feedback and a games overview; editing games waits for the Firestore catalog
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 

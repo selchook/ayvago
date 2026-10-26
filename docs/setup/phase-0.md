@@ -64,7 +64,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ✅ Vercel project `ayvago-web` from `selchook/ayvago`, **Root Directory = `apps/web`** (previews: `ayvago-web-*.vercel.app`; add a preview domain to Firebase Authorized domains to test sign-in there)
 - ⏳ Point `ayvago.com` DNS to Vercel (apex + `www` → apex redirect)
 - ⏳ Email DNS records: SPF, DKIM, DMARC (Firebase Auth emails and the support address)
-- ⏳ List the games' production URLs (for the import plan)
+- ✅ List the games' production URLs (for the import plan)
 
 ## 5. Cloudflare
 - ⏳ Cloudflare account → **Realtime → TURN** → create a TURN key

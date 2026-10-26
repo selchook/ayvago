@@ -62,3 +62,9 @@ Do **not** press "Enforce" in the Firebase console:
 4. ⏳ Open `https://ayvago.com/en/admin` and press **Refresh access** (or sign out and in). The
    account menu now shows **Admin panel**.
 5. To remove the role, run the same workflow with `revoke`.
+
+## 5. Space Defender touch controls (slice 2.5)
+- ⏳ Review and merge selchook/space-defender#2 (Vercel preview built successfully). Merging
+  redeploys the live game.
+- ⏳ Try it on your phone: open Space Defender on ayvago.com, press Play, and use the buttons
+  in the bottom corners.

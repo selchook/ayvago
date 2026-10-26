@@ -18,8 +18,10 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 - Plans: `docs/plan/roadmap.md` and `docs/plan/game-import-plan.md`. Decisions are ADRs in `docs/adr/`.
 - **Phase documentation is part of every slice** (owner request). In the same change that ships a slice:
   - Update `docs/plan/phase-N.md`. It holds the slice table, what shipped, deviations from the spec,
-    tests and what is still open. Create it when a phase starts.
+    tests and what is still open.
   - Update `docs/setup/phase-N.md` for every step the owner must take (⏳).
+  - Every phase has **both** files, created when the phase starts. The setup file says so when the
+    owner has nothing to do.
   - Tick the roadmap checklist (§12) and the functions table (§2.4).
   - Update the "Implementation status" section of the affected spec.
   - Update the phase table in `README.md`.
