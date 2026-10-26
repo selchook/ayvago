@@ -190,7 +190,8 @@
       "network": "Connection problem. Check your internet connection and try again.",
       "code": "Error code: {code}"
     },
-    "profileLink": "Profile and settings"
+    "profileLink": "Profile and settings",
+    "adminLink": "Admin panel"
   },
   "profile": {
     "title": "Profile and settings",
@@ -264,6 +265,70 @@
       "cooldown": "You can choose a new name on {date}.",
       "registered-only": "Sign in with Google to choose your own username.",
       "generic": "The username could not be saved. Please try again."
+    }
+  },
+  "admin": {
+    "title": "Admin panel",
+    "loading": "Loading…",
+    "notAdmin": "This page is for Ayvago admins. If you were just given the admin role, refresh your access.",
+    "refreshAccess": "Refresh access",
+    "loadFailed": "Could not load this list. Check the Firestore indexes and try again.",
+    "actionFailed": "The action failed. Try again.",
+    "guest": "guest",
+    "tabs": {
+      "flags": "Flagged scores",
+      "games": "Games",
+      "feedback": "Feedback",
+      "players": "Players"
+    },
+    "flags": {
+      "title": "Flagged scores ({count})",
+      "intro": "Scores held back by the automatic checks. Approve to put a score on the boards, reject to drop it, or ban the player.",
+      "empty": "Nothing to review.",
+      "durations": "Run length: {server} s by the server clock, {client} s reported by the browser",
+      "continued": "used a continue",
+      "approve": "Approve",
+      "reject": "Reject",
+      "ban": "Ban player",
+      "confirmBan": "Confirm ban",
+      "reasons": {
+        "too-fast": "Too many points per second",
+        "max-score": "Over the maximum score",
+        "duration-mismatch": "Run length does not match",
+        "outlier": "Far above the record"
+      },
+      "done": {
+        "approve": "Approved the score of {name}.",
+        "reject": "Rejected the score of {name}.",
+        "ban": "Banned {name}; their scores and votes were removed."
+      }
+    },
+    "games": {
+      "title": "Games",
+      "intro": "Votes are live; plays and scores are updated hourly by the ranking job.",
+      "game": "Game",
+      "plays7d": "Plays (7 days)",
+      "votes": "Votes",
+      "quality": "Quality",
+      "trend": "Trend"
+    },
+    "feedback": {
+      "title": "Negative feedback (last 14 days)",
+      "count": "{count, plural, one {# feedback form} other {# feedback forms}}",
+      "comments": "Latest comments",
+      "noComments": "No comments yet."
+    },
+    "players": {
+      "title": "Players",
+      "search": "Username or uid",
+      "find": "Find",
+      "none": "No player found.",
+      "ban": "Ban",
+      "unban": "Lift ban",
+      "bannedBadge": "banned",
+      "banned": "Banned {name}; their scores and votes were removed.",
+      "unbanned": "Lifted the ban on {name}.",
+      "joined": "joined {date}"
     }
   }
 }

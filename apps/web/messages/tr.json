@@ -190,7 +190,8 @@
       "network": "Bağlantı sorunu. İnternet bağlantını kontrol edip tekrar dene.",
       "code": "Hata kodu: {code}"
     },
-    "profileLink": "Profil ve ayarlar"
+    "profileLink": "Profil ve ayarlar",
+    "adminLink": "Yönetim paneli"
   },
   "profile": {
     "title": "Profil ve ayarlar",
@@ -264,6 +265,70 @@
       "cooldown": "Yeni bir adı {date} tarihinde seçebilirsin.",
       "registered-only": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
       "generic": "Kullanıcı adı kaydedilemedi. Lütfen tekrar dene."
+    }
+  },
+  "admin": {
+    "title": "Yönetim paneli",
+    "loading": "Yükleniyor…",
+    "notAdmin": "Bu sayfa Ayvago yöneticileri içindir. Yönetici yetkisi yeni verildiyse erişimini yenile.",
+    "refreshAccess": "Erişimi yenile",
+    "loadFailed": "Bu liste yüklenemedi. Firestore indekslerini kontrol edip tekrar dene.",
+    "actionFailed": "İşlem başarısız oldu. Tekrar dene.",
+    "guest": "misafir",
+    "tabs": {
+      "flags": "İşaretli skorlar",
+      "games": "Oyunlar",
+      "feedback": "Geri bildirim",
+      "players": "Oyuncular"
+    },
+    "flags": {
+      "title": "İşaretli skorlar ({count})",
+      "intro": "Otomatik kontrollerin beklettiği skorlar. Onaylarsan skor tablolara girer, reddedersen silinir; istersen oyuncuyu engelleyebilirsin.",
+      "empty": "İncelenecek bir şey yok.",
+      "durations": "Oyun süresi: sunucu saatine göre {server} sn, tarayıcının bildirdiği {client} sn",
+      "continued": "devam hakkı kullandı",
+      "approve": "Onayla",
+      "reject": "Reddet",
+      "ban": "Oyuncuyu engelle",
+      "confirmBan": "Engellemeyi onayla",
+      "reasons": {
+        "too-fast": "Saniyede çok fazla puan",
+        "max-score": "En yüksek skorun üzerinde",
+        "duration-mismatch": "Oyun süresi tutmuyor",
+        "outlier": "Rekorun çok üzerinde"
+      },
+      "done": {
+        "approve": "{name} adlı oyuncunun skoru onaylandı.",
+        "reject": "{name} adlı oyuncunun skoru reddedildi.",
+        "ban": "{name} engellendi; skorları ve oyları kaldırıldı."
+      }
+    },
+    "games": {
+      "title": "Oyunlar",
+      "intro": "Oylar anlık; oynanma ve puanlar sıralama işi tarafından saatte bir güncellenir.",
+      "game": "Oyun",
+      "plays7d": "Oynanma (7 gün)",
+      "votes": "Oylar",
+      "quality": "Kalite",
+      "trend": "Trend"
+    },
+    "feedback": {
+      "title": "Olumsuz geri bildirim (son 14 gün)",
+      "count": "{count, plural, one {# geri bildirim formu} other {# geri bildirim formu}}",
+      "comments": "Son yorumlar",
+      "noComments": "Henüz yorum yok."
+    },
+    "players": {
+      "title": "Oyuncular",
+      "search": "Kullanıcı adı veya uid",
+      "find": "Bul",
+      "none": "Oyuncu bulunamadı.",
+      "ban": "Engelle",
+      "unban": "Engeli kaldır",
+      "bannedBadge": "engelli",
+      "banned": "{name} engellendi; skorları ve oyları kaldırıldı.",
+      "unbanned": "{name} için engel kaldırıldı.",
+      "joined": "katılma: {date}"
     }
   }
 }

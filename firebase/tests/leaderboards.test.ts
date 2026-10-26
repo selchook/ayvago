@@ -126,22 +126,22 @@ describe('finishSession', () => {
     expect(await read(ALL)).toBeUndefined();
   });
 
-  it('holds impossible scores for review during calibration instead of showing them', async () => {
+  it('holds suspicious scores for review instead of showing them', async () => {
     const player = await guest();
-    // 2,000 points per second is over the fixture's limit of 1,000.
+    // The client claims a far longer run than the server saw (does not depend on calibration).
     const session = await start(player);
     await age(session, 10_000);
     const result = await player.call('finishSession', {
       ...session,
-      score: 20_000,
-      durationMs: 10_000,
+      score: 5_000,
+      durationMs: 200_000,
     });
     expect(result).toEqual({ status: 'flagged' });
     expect(await read(`scoreFlags/${session.sessionId}`)).toMatchObject({
       uid: player.uid,
       gameId: GAME,
-      score: 20_000,
-      reasons: ['too-fast'],
+      score: 5_000,
+      reasons: ['duration-mismatch'],
       status: 'pending',
     });
     expect(await read(ALL)).toBeUndefined();
@@ -222,7 +222,7 @@ describe('player rows', () => {
   });
 });
 
-describe('judgeRun after calibration', () => {
+describe('judgeRun', () => {
   const game: LeaderboardGame = {
     gameId: 'g',
     slug: 'g',
@@ -250,7 +250,16 @@ describe('judgeRun after calibration', () => {
       ...overrides,
     });
 
-  it('rejects scores over the limits', () => {
+  it('only flags limit violations while the game calibrates', () => {
+    const calibrating = { ...game, calibrationEndsAt: 10 };
+    expect(judge({ game: calibrating, score: 7000 })).toEqual({
+      reject: null,
+      flags: ['too-fast'],
+    });
+    expect(judge({ game: calibrating, score: 7000, now: 11 }).reject).toBe('too-fast');
+  });
+
+  it('rejects scores over the limits after calibration', () => {
     expect(judge({ score: 200_000, serverMs: 3_600_000, clientMs: 3_600_000 }).reject).toBe(
       'max-score',
     );

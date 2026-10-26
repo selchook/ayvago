@@ -12,6 +12,12 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    // Admin panel users carry the `admin` custom claim (granted by the "Grant admin role"
+    // workflow). Admins only get extra reads; their changes go through Cloud Functions.
+    function isAdmin() {
+      return signedIn() && request.auth.token.get('admin', false) == true;
+    }
+
     // Admin-set custom claim; banned players can still browse but never write.
     function notBanned() {
       return request.auth.token.get('banned', false) != true;
@@ -45,7 +51,7 @@ service cloud.firestore {
     // username changes ship with a reservation Function. Players may delete their own data
     // (account deletion from the settings page).
     match /users/{uid} {
-      allow read: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
 
       allow create: if isOwner(uid) && notBanned()
         && request.resource.data.keys().hasOnly(['username', 'isGuest', 'locale', 'createdAt', 'updatedAt'])
@@ -66,14 +72,14 @@ service cloud.firestore {
 
       allow delete: if isOwner(uid);
 
-      // The player's library (favorites, recently played, best scores) as one document, so
-      // loading it costs a single read. Limits match packages/shared/src/library.ts. Best scores
-      // here are player-reported; leaderboards will use server-validated sessions.
       // Play statistics per game, written by the score-session functions only.
       match /stats/{gameId} {
-        allow read: if isOwner(uid);
+        allow read: if isOwner(uid) || isAdmin();
       }
 
+      // The player's library (favorites, recently played, best scores) as one document, so
+      // loading it costs a single read. Limits match packages/shared/src/library.ts. Best scores
+      // here are player-reported; leaderboards use server-validated sessions.
       match /library/state {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid) && notBanned()
@@ -104,20 +110,36 @@ service cloud.firestore {
     }
 
     // Vote counters and ranking scores are public; votes are written through castVote only, and
-    // a player may read their own vote. Daily play counts and feedback stay private (admins).
+    // a player may read their own vote. Daily play counts and feedback are for admins.
     // Spec: docs/specs/voting.md §5.
     match /games/{gameId} {
       allow read: if true;
       match /votes/{uid} {
-        allow read: if isOwner(uid);
+        allow read: if isOwner(uid) || isAdmin();
+      }
+      match /feedback/{day} {
+        allow read: if isAdmin();
+      }
+      match /daily/{day} {
+        allow read: if isAdmin();
       }
     }
     match /rankings/catalog {
       allow read: if true;
     }
 
-    // sessions/, scoreFlags/, voteRate/, games/*/daily and games/*/feedback are Functions-only:
-    // they fall through to the rule below.
+    // Review queues for the admin panel; written by Cloud Functions only.
+    match /scoreFlags/{sessionId} {
+      allow read: if isAdmin();
+    }
+    match /sessions/{sessionId} {
+      allow read: if isAdmin();
+    }
+    match /usernames/{key} {
+      allow read: if isAdmin();
+    }
+
+    // voteRate/ is Functions-only: it falls through to the rule below.
 
     match /{document=**} {
       allow read, write: if false;

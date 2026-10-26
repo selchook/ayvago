@@ -8,6 +8,7 @@ import { db } from './admin';
 import { fail } from './errors';
 import { deleteInactiveGuests, deletePlayerData, mergeGuestAccount as mergeGuest } from './guests';
 import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
+import { reviewScoreFlag as review, setPlayerBan as ban } from './moderation';
 import { recomputeGameScores } from './rankings';
 import { finishSession as finish, startSession as start } from './sessions';
 import { reserveUsername as reserve } from './usernames';
@@ -30,6 +31,10 @@ export const startSession = onCall(start);
 export const finishSession = onCall(finish);
 
 export const castVote = onCall(vote);
+
+// Admin panel (requires the `admin` custom claim).
+export const reviewScoreFlag = onCall(review);
+export const setPlayerBan = onCall(ban);
 
 /** syncLeaderboardProfile(): copies the caller's current name and avatar into their board rows. */
 export const syncLeaderboardProfile = onCall(async (request) => {

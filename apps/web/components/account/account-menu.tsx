@@ -115,6 +115,15 @@ export function AccountMenu() {
         >
           {t('profileLink')}
         </Link>
+        {account.isAdmin ? (
+          <Link
+            href="/admin"
+            className={styles.secondaryButton}
+            onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')}
+          >
+            {t('adminLink')}
+          </Link>
+        ) : null}
         {account.isGuest ? (
           <>
             <p className={styles.body}>{t('guestBody')}</p>

@@ -41,6 +41,8 @@ export type AccountState =
       isGuest: boolean;
       email: string | null;
       profile: Profile | null;
+      /** The `admin` custom claim (admin panel). */
+      isAdmin: boolean;
     };
 
 export type SignInError = {
@@ -92,7 +94,9 @@ function start() {
           isGuest: user.isAnonymous,
           email: user.email,
           profile: null,
+          isAdmin: false,
         });
+        readClaims(user).catch(() => undefined);
         syncProfile(user).catch((error) => console.error('[account] profile sync failed', error));
         attachLibrary(user.uid).catch((error) => console.error('[library] sync failed', error));
       });
@@ -101,6 +105,21 @@ function start() {
       console.error('[account] Firebase failed to load', error);
       setState(DISABLED);
     });
+}
+
+async function readClaims(user: User, forceRefresh = false) {
+  const { claims } = await user.getIdTokenResult(forceRefresh);
+  if (state.status === 'signedIn' && state.uid === user.uid) {
+    setState({ ...state, isAdmin: claims.admin === true });
+  }
+}
+
+/** Re-reads the custom claims from a fresh token, e.g. right after the admin role was granted. */
+export async function refreshClaims(): Promise<void> {
+  if (!firebaseEnabled()) return;
+  const auth = await loadAuth();
+  await auth.authStateReady();
+  if (auth.currentUser) await readClaims(auth.currentUser, true);
 }
 
 function subscribe(listener: () => void) {

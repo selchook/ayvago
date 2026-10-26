@@ -382,3 +382,49 @@ describe('votes and rankings', () => {
     await assertFails(setDoc(doc(db, 'rankings/catalog'), { games: {} }));
   });
 });
+
+describe('admin reads', () => {
+  const admin = () => google('boss', { admin: true });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'scoreFlags/s1'), { uid: 'u1', status: 'pending' });
+      await setDoc(doc(db, 'sessions/s1'), { uid: 'u1' });
+      await setDoc(doc(db, 'games/orbsurge/feedback/2026-10-26'), { count: 1 });
+      await setDoc(doc(db, 'games/orbsurge/daily/2026-10-26'), { started: 1 });
+      await setDoc(doc(db, 'games/orbsurge/votes/u1'), { value: -1, comment: 'meh' });
+      await setDoc(doc(db, 'users/u1'), { username: 'PixelFox4821' });
+      await setDoc(doc(db, 'users/u1/stats/orbsurge'), { playSeconds: 90 });
+      await setDoc(doc(db, 'usernames/pixelfox'), { uid: 'u1' });
+      await setDoc(doc(db, 'voteRate/u1'), { changes: 1 });
+    });
+  });
+
+  it('lets admins read the review queues and player profiles', async () => {
+    const db = admin();
+    for (const path of [
+      'scoreFlags/s1',
+      'sessions/s1',
+      'games/orbsurge/feedback/2026-10-26',
+      'games/orbsurge/daily/2026-10-26',
+      'games/orbsurge/votes/u1',
+      'users/u1',
+      'users/u1/stats/orbsurge',
+      'usernames/pixelfox',
+    ]) {
+      await assertSucceeds(getDoc(doc(db, path)));
+    }
+  });
+
+  it('gives admins no writes and keeps the rest private', async () => {
+    const db = admin();
+    await assertFails(setDoc(doc(db, 'scoreFlags/s1'), { status: 'approved' }));
+    await assertFails(setDoc(doc(db, 'users/u1'), { username: 'Hacked' }));
+    await assertFails(getDoc(doc(db, 'voteRate/u1')));
+    await assertFails(getDoc(doc(db, 'users/u1/library/state')));
+    const player = google('u2');
+    await assertFails(getDoc(doc(player, 'usernames/pixelfox')));
+    await assertFails(getDoc(doc(player, 'users/u1')));
+  });
+});

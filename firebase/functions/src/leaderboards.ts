@@ -63,14 +63,20 @@ export async function applyScore(options: {
   continued: boolean;
   sessionId: string;
   now: number;
+  /** When the score was reached; defaults to `now` (an approved flag keeps its original time). */
+  achievedAt?: number;
+  /** Boards to write; defaults to both. */
+  boards?: readonly BoardKey[];
 }): Promise<BoardOutcome[]> {
   const { game, uid, score, continued, sessionId, now } = options;
+  const achievedAt = options.achievedAt ?? now;
+  const keys = options.boards ?? BOARD_KEYS;
   const order = game.scoring.order;
   return db().runTransaction(async (tx) => {
     const profile = await tx.get(db().doc(`users/${uid}`));
     const card = playerCard(profile.data());
     const reads = await Promise.all(
-      BOARD_KEYS.map(async (board) => {
+      keys.map(async (board) => {
         const [boardDoc, entry] = await Promise.all([
           tx.get(boardRef(game.gameId, board)),
           tx.get(entryRef(game.gameId, board, uid)),
@@ -110,14 +116,14 @@ export async function applyScore(options: {
       }
       tx.set(entryRef(game.gameId, board, uid), {
         score,
-        achievedAt: Timestamp.fromMillis(now),
+        achievedAt: Timestamp.fromMillis(achievedAt),
         periodKey: period,
         continued,
         sessionId,
       });
-      top = upsertRow(top, { uid, ...card, score, achievedAt: now, continued }, order);
+      top = upsertRow(top, { uid, ...card, score, achievedAt, continued }, order);
       writeBoard(tx, game.gameId, board, period, order, top);
-      return { board, improved, best: score, previous, achievedAt: now };
+      return { board, improved, best: score, previous, achievedAt };
     });
   });
 }

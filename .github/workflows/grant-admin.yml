@@ -1,0 +1,48 @@
+name: Grant admin role
+
+# Gives (or takes away) the admin panel role for an account on ayvago-prod. Run it from the Actions
+# tab with the account's Google email; the account must have signed in to Ayvago once.
+# Uses the deploy service account, which needs the "Firebase Authentication Admin" role
+# (docs/setup/phase-2.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: Google email of the account
+        required: true
+        type: string
+      action:
+        description: grant or revoke
+        required: true
+        default: grant
+        type: choice
+        options: [grant, revoke]
+
+permissions:
+  contents: read
+
+jobs:
+  set-role:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @ayvago/functions
+      - name: Set the admin claim
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD }}
+          EMAIL: ${{ inputs.email }}
+          ACTION: ${{ inputs.action }}
+          FIREBASE_PROJECT_ID: ayvago-prod
+        run: |
+          key_file="$RUNNER_TEMP/firebase-service-account.json"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s' "$SERVICE_ACCOUNT" > "$key_file"
+          export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
+          cd firebase/functions
+          node scripts/set-admin.mjs "$EMAIL" "$ACTION"

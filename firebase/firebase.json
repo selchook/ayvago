@@ -37,7 +37,7 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs22",
-      "ignore": ["node_modules", "src", "*.log", "tsconfig.json"]
+      "ignore": ["node_modules", "src", "*.log", "tsconfig.json", "scripts"]
     }
   ]
 }
