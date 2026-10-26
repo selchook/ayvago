@@ -14,7 +14,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.1 | Score sessions (`startSession` / `finishSession`) and weekly + all-time leaderboards | ✅ code, ⏳ deploy check and App Check key |
 | 2.2 | Voting (like/dislike, feedback reasons), Wilson + engagement ranking, Continue Playing shelf | ✅ code |
 | 2.3 | Admin panel v1: `admin` custom claim, flagged-score review (approve / reject / ban), players, feedback, game overview | ✅ code, ⏳ grant the admin role |
-| 2.4 | App Check enforcement (after the verified share reaches ~100%) | ⬜ waits on ⏳ |
+| 2.4 | App Check enforcement (after the verified share reaches ~100%) | ✅ code, ⏳ site key, then the switch in the panel |
 | 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ⬜ |
 
 ## 2.1 Score sessions and leaderboards ✅
@@ -164,3 +164,34 @@ Deviations (deliberate, revisit later):
 - **No board reset action yet** (spec: reset the all-time board after a scoring change). Today it
   is done by deleting the board documents in the console.
 - **Burst detection** for votes is still open.
+
+## 2.4 App Check enforcement ✅ (code)
+
+What shipped:
+- **Runtime switch:** `config/appCheck.mode` (`monitor` by default, or `enforce`) replaces the
+  `APP_CHECK_ENFORCED` constant. Every player-facing callable checks it through `requirePlayer`
+  (`firebase/functions/src/appcheck.ts`): `startSession`, `finishSession` and `castVote`.
+  - Each function instance caches the mode for a minute.
+  - While enforcing, calls without a verified token fail with `app-check`. The game keeps
+    running; only the leaderboard and voting calls are refused.
+- **Readiness:** `getAppCheckStatus` (admins) counts the score sessions of the last 24 hours and
+  how many carried a verified token. Sessions record `appCheck` since slice 2.1; a composite
+  index serves the count.
+- **Guarded switch:** `setAppCheckMode({ mode, force? })` (admins) refuses `enforce` until at
+  least 20 sessions were seen, 95% of them verified, unless forced. Monitoring can always be
+  restored.
+- **Admin panel:** an **App Check** tab with the mode, the verified share, **Turn on
+  enforcement**, **Enforce anyway** (with a confirmation step) and **Back to monitoring**.
+- **Tests:**
+  - `firebase/tests/appcheck.test.ts` (3): status for admins only, the readiness guard, unverified
+    calls refused while enforcing and accepted again after.
+  - Checked end to end against the emulators: switch, refused run, game still running, recovery.
+
+Deviations (deliberate):
+- **Firestore is not App Check-enforced:** the server reads `rankings/catalog` through the REST API
+  without a token, and the rules already protect every write.
+- **No replay protection** (`consumeAppCheckToken` / limited-use tokens) yet. Score sessions
+  already carry their own single-use token.
+
+What remains for the owner: the reCAPTCHA Enterprise key, registering it in App Check and the Vercel
+variable ([setup §2](../setup/phase-2.md#2-app-check-recaptcha-enterprise)); then the switch in the panel.

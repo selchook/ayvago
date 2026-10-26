@@ -29,11 +29,19 @@ so nobody is locked out by a misconfiguration.
 3. ⏳ Vercel → `ayvago-web` → Settings → Environment Variables (Production):
    `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` = the key ID. Redeploy. The build log shows
    `[ayvago] App Check enabled (reCAPTCHA Enterprise)`.
-4. ⏳ After a few days, Firebase console → App Check → **APIs → Cloud Functions** shows the share
-   of verified requests (each session also records `appCheck: true/false`).
-5. 🤖 When it is close to 100%, Claude flips `APP_CHECK_ENFORCED` in
-   `firebase/functions/src/caller.ts` (slice 2.4). Unverified calls to every player-facing
-   function (sessions, votes) are refused from then on.
+4. ⏳ After a few days, open `https://ayvago.com/en/admin` → **App Check**. It shows how many of
+   the last 24 hours' game sessions carried a verified token. A share near 0% means steps 1–3
+   are not complete yet.
+5. ⏳ When the panel says **Ready** (at least 20 sessions, 95% or more verified), press **Turn on
+   enforcement**. Unverified calls to every player-facing function (sessions, votes) are refused
+   within a minute. **Back to monitoring** undoes it the same way, with no deploy.
+
+Do **not** press "Enforce" in the Firebase console:
+- For **Cloud Functions**, the console switch bypasses the panel's readiness check and its quick
+  rollback.
+- For **Firestore**, it would break the server-side read of `rankings/catalog` (the home shelves
+  and like percentages). That read uses the REST API without an App Check token. The Firestore
+  rules already decide who may read and write.
 
 ## 3. Voting (slice 2.2, automatic)
 - 🤖 Merging deploys `castVote`, `deleteMyData` and the hourly `recomputeRankings`. Nothing to set

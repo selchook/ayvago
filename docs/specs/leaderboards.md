@@ -145,3 +145,4 @@ Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
   - p99.9 outlier statistics (currently 3 × the all-time #1 once the board has 10 players).
   - Profile placements.
 - **Review (slice 2.3):** flagged scores are approved, rejected or the player banned from `/admin`. An approved score keeps its original time. It joins the weekly board only when it was reached in the current season.
+- **App Check (slice 2.4):** sessions record whether their App Check token was verified. Admins switch enforcement on in `/admin` once 95% of the last day's sessions are verified.

@@ -31,8 +31,12 @@ must never show a score that was sent without a real run.
   resets the season board inside the same transaction; `closeLeaderboardSeason` (Monday 09:00
   UTC) does the same for idle boards and deletes finished-season entries.
 - **App Check rolls out in two steps:** the web app sends tokens once a reCAPTCHA Enterprise key
-  is configured; `APP_CHECK_ENFORCED` in `firebase/functions/src/caller.ts` (shared by every player-facing callable) turns enforcement on
-  in a commit after the share of verified sessions (`sessions.appCheck`) is close to 100%.
+  is configured, and every session records whether its token was verified. Enforcement is a
+  runtime switch in `config/appCheck` (`monitor` / `enforce`), read by every player-facing
+  callable (`firebase/functions/src/appcheck.ts`, cached for a minute). Admins flip it in the
+  admin panel, which refuses to enforce until 95% of at least 20 sessions in the last day were
+  verified, unless forced. Rollback needs no deploy. Firestore itself is not App Check-enforced,
+  because the server reads public ranking data through the REST API.
 
 ## Consequences
 - A score from the browser console without a valid session never reaches a board

@@ -193,7 +193,7 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 
 | Function | Type | Purpose |
 |---|---|---|
-| `startSession` ✅ | Callable (App Check, enforced after rollout) | Creates the session document and a random token (hash stored) |
+| `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored) |
 | `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
@@ -209,6 +209,7 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 | `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge; guest cleanup (30 days); score session cleanup (14 days) |
 | `cleanupLobbies` | Scheduled (hourly) | Removes stale rooms and signaling data |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
+| `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
 
@@ -465,7 +466,7 @@ Slice summary: [Phase 1 plan](phase-1.md); the open items below carry forward.
 
 ### Phase 2 — Competition and community (2–3 weeks) — in progress
 Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup](../setup/phase-2.md)
-- [ ] `startSession` / `finishSession` + App Check — sessions, validation, flags and the App Check client done ([ADR 0006](../adr/0006-score-sessions.md)); enforcement waits for the reCAPTCHA Enterprise key
+- [x] `startSession` / `finishSession` + App Check — sessions, validation, flags, App Check client and an admin-panel enforcement switch guarded by the verified share ([ADR 0006](../adr/0006-score-sessions.md)); turning it on waits for the owner's reCAPTCHA Enterprise key
 - [x] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting — game page panel and `/games/{slug}/leaderboard`; country scope and season rewards deferred (see the plan)
 - [x] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — `castVote`, hourly `recomputeRankings`, Popular and Continue Playing shelves; day-1 return and burst detection deferred (see the plan)
 - [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile

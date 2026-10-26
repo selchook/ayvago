@@ -5,14 +5,15 @@ A web game platform that brings retro action, casual and puzzle games together i
 ## Status
 
 **Phase 2 — Competition and community (in progress).** Server-validated scores with weekly and
-all-time leaderboards, voting with catalog ranking, and the admin panel are live; App Check
-enforcement and Space Defender touch controls remain.
+all-time leaderboards, voting with catalog ranking, the admin panel and the App Check rollout switch
+are live. Space Defender touch controls remain, and App Check is turned on once its site key is
+set up.
 
 | Phase | Scope | Status | Docs |
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Setup checklist](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore, sdk-playground and PWA carried forward) | [Plan](docs/plan/phase-1.md) |
-| 2 | Competition and community: score sessions, leaderboards, voting, admin panel | In progress (2.1–2.3 done) | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel | In progress (2.1–2.4 done) | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: WebRTC + Cloudflare TURN, import wave 3 | Not started | |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
