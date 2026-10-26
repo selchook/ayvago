@@ -64,7 +64,6 @@ Do **not** press "Enforce" in the Firebase console:
 5. To remove the role, run the same workflow with `revoke`.
 
 ## 5. Space Defender touch controls (slice 2.5)
-- ⏳ Review and merge selchook/space-defender#2 (Vercel preview built successfully). Merging
-  redeploys the live game.
+- ✅ selchook/space-defender#2 merged; the live game was redeployed.
 - ⏳ Try it on your phone: open Space Defender on ayvago.com, press Play, and use the buttons
   in the bottom corners.

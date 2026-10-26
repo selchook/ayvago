@@ -6,8 +6,8 @@ A web game platform that brings retro action, casual and puzzle games together i
 
 **Phase 2 — Competition and community (in progress).** Server-validated scores with weekly and
 all-time leaderboards, voting with catalog ranking, the admin panel and the App Check rollout switch
-are live. Space Defender's touch controls wait for their PR to be merged, and App Check is turned
-on once its site key is set up.
+and touch controls for Space Defender are live. App Check is turned on once its site key is set
+up.
 
 | Phase | Scope | Status | Docs |
 |---|---|---|---|

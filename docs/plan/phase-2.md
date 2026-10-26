@@ -15,7 +15,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.2 | Voting (like/dislike, feedback reasons), Wilson + engagement ranking, Continue Playing shelf | ✅ code |
 | 2.3 | Admin panel v1: `admin` custom claim, flagged-score review (approve / reject / ban), players, feedback, game overview | ✅ code, ⏳ grant the admin role |
 | 2.4 | App Check enforcement (after the verified share reaches ~100%) | ✅ code, ⏳ site key, then the switch in the panel |
-| 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ✅ code, ⏳ merge selchook/space-defender#2 |
+| 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ✅ live (selchook/space-defender#2 merged) |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -196,7 +196,7 @@ Deviations (deliberate):
 What remains for the owner: the reCAPTCHA Enterprise key, registering it in App Check and the Vercel
 variable ([setup §2](../setup/phase-2.md#2-app-check-recaptcha-enterprise)); then the switch in the panel.
 
-## 2.5 Space Defender touch controls ✅ (code)
+## 2.5 Space Defender touch controls ✅
 
 What shipped (in `selchook/space-defender`, PR selchook/space-defender#2):
 - **Buttons:** rotate left, rotate right, thrust and fire appear on touch screens, or after the
@@ -218,6 +218,5 @@ What shipped (in `selchook/space-defender`, PR selchook/space-defender#2):
   - Inside Ayvago on a phone the buttons fit the player at 48 px.
 
 Open:
-- ⏳ Merge selchook/space-defender#2. The Vercel preview built successfully; merging redeploys the
-  live game. Until then the catalog already lists touch input.
+- ✅ selchook/space-defender#2 merged on 2026-10-26; Vercel redeployed the live game.
 - Promoting Space Defender on mobile shelves is an editorial choice once the PR is live.
