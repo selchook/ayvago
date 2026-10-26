@@ -217,6 +217,6 @@ What shipped (in `selchook/space-defender`, PR selchook/space-defender#2):
   - Desktop shows no buttons.
   - Inside Ayvago on a phone the buttons fit the player at 48 px.
 
-Open:
+Status:
 - ✅ selchook/space-defender#2 merged on 2026-10-26; Vercel redeployed the live game.
-- Promoting Space Defender on mobile shelves is an editorial choice once the PR is live.
+- Promoting Space Defender on mobile shelves is now an editorial choice.
