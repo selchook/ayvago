@@ -10,7 +10,7 @@ import {
   type NegativeReason,
 } from '../../../packages/shared/src/ranking';
 import { db } from './admin';
-import { signedInPlayer } from './caller';
+import { requirePlayer } from './appcheck';
 import { fail } from './errors';
 import { leaderboardGame, leaderboardGames } from './games';
 import { dayKey, statsRef } from './stats';
@@ -47,7 +47,7 @@ function counters(likes: number, dislikes: number) {
  * may be sent again without changing the value (the feedback sheet after 👎).
  */
 export async function castVote(request: CallableRequest<unknown>) {
-  const caller = signedInPlayer(request);
+  const caller = await requirePlayer(request);
   const data = (request.data ?? {}) as Record<string, unknown>;
   const gameId = typeof data.gameId === 'string' ? data.gameId : '';
   if (!leaderboardGame(gameId)) throw fail('not-found', 'unknown-game');

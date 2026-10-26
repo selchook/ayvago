@@ -4,7 +4,7 @@ import { logger } from 'firebase-functions';
 import type { CallableRequest } from 'firebase-functions/v2/https';
 import { isBetterScore } from '../../../packages/shared/src/leaderboard';
 import { db } from './admin';
-import { signedInPlayer } from './caller';
+import { requirePlayer } from './appcheck';
 import { fail } from './errors';
 import { leaderboardGame, type LeaderboardGame } from './games';
 import { applyScore, boardRef, playerCard, rankOf } from './leaderboards';
@@ -29,7 +29,7 @@ const hash = (token: string) => createHash('sha256').update(token).digest();
 
 /** startSession({ gameId }) → { sessionId, token } */
 export async function startSession(request: CallableRequest<unknown>) {
-  const caller = signedInPlayer(request);
+  const caller = await requirePlayer(request);
   const data = request.data as { gameId?: unknown } | null;
   const gameId = typeof data?.gameId === 'string' ? data.gameId : '';
   const game = leaderboardGame(gameId);
@@ -123,7 +123,7 @@ export function judgeRun(options: {
 
 /** finishSession({ sessionId, token, score, durationMs, continues }) → FinishResult */
 export async function finishSession(request: CallableRequest<unknown>): Promise<FinishResult> {
-  const caller = signedInPlayer(request);
+  const caller = await requirePlayer(request);
   const data = (request.data ?? {}) as Record<string, unknown>;
   const { sessionId, token, score, durationMs } = data;
   const continues = data.continues ?? 0;

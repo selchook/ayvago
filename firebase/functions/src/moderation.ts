@@ -4,6 +4,7 @@ import type { CallableRequest } from 'firebase-functions/v2/https';
 import { seasonKey, type BoardKey } from '../../../packages/shared/src/leaderboard';
 import { auth, db } from './admin';
 import { fail } from './errors';
+import { requireAdmin } from './roles';
 import { leaderboardGame } from './games';
 import { applyScore, syncPlayerRows } from './leaderboards';
 import { removeVotes } from './votes';
@@ -11,13 +12,6 @@ import { removeVotes } from './votes';
 // Admin panel v1 (docs/plan/phase-2.md §2.3). Admins carry the `admin` custom claim, granted
 // with the "Grant admin role" workflow. Reading the review queues happens directly in Firestore
 // under admin-only rules; every change goes through these callables.
-
-export function requireAdmin(request: CallableRequest<unknown>) {
-  const caller = request.auth;
-  if (!caller) throw fail('unauthenticated', 'signed-out');
-  if (caller.token.admin !== true) throw fail('permission-denied', 'admin-only');
-  return caller;
-}
 
 type FlagAction = 'approve' | 'reject' | 'ban';
 

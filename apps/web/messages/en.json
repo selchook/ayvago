@@ -279,7 +279,8 @@
       "flags": "Flagged scores",
       "games": "Games",
       "feedback": "Feedback",
-      "players": "Players"
+      "players": "Players",
+      "appCheck": "App Check"
     },
     "flags": {
       "title": "Flagged scores ({count})",
@@ -329,6 +330,22 @@
       "banned": "Banned {name}; their scores and votes were removed.",
       "unbanned": "Lifted the ban on {name}.",
       "joined": "joined {date}"
+    },
+    "appCheck": {
+      "title": "App Check",
+      "intro": "App Check lets the score and vote functions tell the real Ayvago site from scripts. While monitoring, unverified calls are still accepted; enforcing refuses them. Switching takes effect within a minute and can be undone here.",
+      "modeMonitor": "Mode: monitoring (unverified calls accepted)",
+      "modeEnforce": "Mode: enforcing (unverified calls refused)",
+      "share": "Last 24 hours: {verified} of {sessions} game sessions verified ({percent}).",
+      "ready": "Ready: at least 95% of the last day's sessions were verified.",
+      "notReadyHint": "Not ready yet: enforcing needs at least 20 sessions in the last day, 95% of them verified. If the share stays near 0%, the App Check site key is not set up (see the Phase 2 setup checklist).",
+      "enforce": "Turn on enforcement",
+      "force": "Enforce anyway",
+      "confirmForce": "Confirm: unverified players will be refused",
+      "monitor": "Back to monitoring",
+      "enforced": "Enforcement is on.",
+      "monitoring": "Back to monitoring; unverified calls are accepted again.",
+      "notReady": "Not enough verified sessions yet to enforce safely."
     }
   }
 }

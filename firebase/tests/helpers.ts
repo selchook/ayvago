@@ -149,3 +149,12 @@ export async function play(player: Player, score: number, seconds = 60) {
     continues: 0,
   });
 }
+
+/** A registered player with the `admin` claim (set with the Admin SDK, then picked up by a token refresh). */
+export async function admin() {
+  const { auth } = await import('../functions/src/admin');
+  const player = await registered('admin@example.com', { username: 'Boss' });
+  await auth().setCustomUserClaims(player.uid, { admin: true });
+  await player.auth.currentUser!.getIdToken(true);
+  return player;
+}

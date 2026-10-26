@@ -279,7 +279,8 @@
       "flags": "İşaretli skorlar",
       "games": "Oyunlar",
       "feedback": "Geri bildirim",
-      "players": "Oyuncular"
+      "players": "Oyuncular",
+      "appCheck": "App Check"
     },
     "flags": {
       "title": "İşaretli skorlar ({count})",
@@ -329,6 +330,22 @@
       "banned": "{name} engellendi; skorları ve oyları kaldırıldı.",
       "unbanned": "{name} için engel kaldırıldı.",
       "joined": "katılma: {date}"
+    },
+    "appCheck": {
+      "title": "App Check",
+      "intro": "App Check, skor ve oy fonksiyonlarının gerçek Ayvago sitesini betiklerden ayırt etmesini sağlar. İzleme modunda doğrulanmamış çağrılar yine kabul edilir; zorunlu modda reddedilir. Değişiklik bir dakika içinde etkinleşir ve buradan geri alınabilir.",
+      "modeMonitor": "Mod: izleme (doğrulanmamış çağrılar kabul ediliyor)",
+      "modeEnforce": "Mod: zorunlu (doğrulanmamış çağrılar reddediliyor)",
+      "share": "Son 24 saat: {sessions} oyun oturumunun {verified} tanesi doğrulandı ({percent}).",
+      "ready": "Hazır: son bir günün oturumlarının en az %95'i doğrulandı.",
+      "notReadyHint": "Henüz hazır değil: zorunlu mod için son bir günde en az 20 oturum ve bunların %95'inin doğrulanmış olması gerekir. Oran %0 civarında kalıyorsa App Check site anahtarı kurulmamıştır (Faz 2 kurulum listesine bak).",
+      "enforce": "Zorunlu modu aç",
+      "force": "Yine de zorunlu yap",
+      "confirmForce": "Onayla: doğrulanmamış oyuncular reddedilecek",
+      "monitor": "İzleme moduna dön",
+      "enforced": "Zorunlu mod açıldı.",
+      "monitoring": "İzleme moduna dönüldü; doğrulanmamış çağrılar yeniden kabul ediliyor.",
+      "notReady": "Zorunlu modu güvenle açmak için henüz yeterli doğrulanmış oturum yok."
     }
   }
 }

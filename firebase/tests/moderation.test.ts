@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { seasonKey } from '@ayvago/shared';
 import { auth } from '../functions/src/admin';
 import {
+  admin,
   FIXTURE,
   age,
   guest,
@@ -18,13 +19,6 @@ useEmulators();
 
 const ALL = `leaderboards/${FIXTURE}/boards/all`;
 const SEASON = `leaderboards/${FIXTURE}/boards/season`;
-
-async function admin() {
-  const player = await registered('admin@example.com', { username: 'Boss' });
-  await auth().setCustomUserClaims(player.uid, { admin: true });
-  await player.auth.currentUser!.getIdToken(true);
-  return player;
-}
 
 /** A run the server flags (client duration far from the server's). */
 async function flaggedRun(player: Awaited<ReturnType<typeof guest>>, score: number) {

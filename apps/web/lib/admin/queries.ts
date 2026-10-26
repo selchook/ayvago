@@ -175,3 +175,16 @@ export async function findPlayers(text: string): Promise<PlayerSummary[]> {
       };
     });
 }
+
+/** Mirrors AppCheckStatus in firebase/functions/src/appcheck.ts. */
+export type AppCheckStatus = {
+  mode: 'monitor' | 'enforce';
+  sessions: number;
+  verified: number;
+  ready: boolean;
+};
+
+export const appCheckStatus = () => call<AppCheckStatus>('getAppCheckStatus', {});
+
+export const setAppCheckMode = (mode: 'monitor' | 'enforce', force = false) =>
+  call<AppCheckStatus>('setAppCheckMode', { mode, force });

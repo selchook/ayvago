@@ -5,6 +5,10 @@ import { setGlobalOptions } from 'firebase-functions/v2';
 import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db } from './admin';
+import {
+  getAppCheckStatus as appCheckStatusCall,
+  setAppCheckMode as appCheckModeCall,
+} from './appcheck';
 import { fail } from './errors';
 import { deleteInactiveGuests, deletePlayerData, mergeGuestAccount as mergeGuest } from './guests';
 import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
@@ -35,6 +39,8 @@ export const castVote = onCall(vote);
 // Admin panel (requires the `admin` custom claim).
 export const reviewScoreFlag = onCall(review);
 export const setPlayerBan = onCall(ban);
+export const getAppCheckStatus = onCall(appCheckStatusCall);
+export const setAppCheckMode = onCall(appCheckModeCall);
 
 /** syncLeaderboardProfile(): copies the caller's current name and avatar into their board rows. */
 export const syncLeaderboardProfile = onCall(async (request) => {

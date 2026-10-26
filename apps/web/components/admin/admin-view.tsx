@@ -4,12 +4,15 @@ import { NEGATIVE_REASONS, likePercent } from '@ayvago/shared';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import {
+  appCheckStatus,
   findPlayers,
   gameFeedback,
   gameNumbers,
   pendingFlags,
   reviewFlag,
+  setAppCheckMode,
   setBan,
+  type AppCheckStatus,
   type Feedback,
   type GameNumbers,
   type PlayerSummary,
@@ -21,11 +24,11 @@ import styles from './admin.module.css';
 
 export type AdminGame = { gameId: string; title: string; scoreFormat: ScoreFormat };
 
-type Tab = 'flags' | 'games' | 'feedback' | 'players';
+type Tab = 'flags' | 'games' | 'feedback' | 'players' | 'appCheck';
 // Reasons finishSession records on a flag (firebase/functions/src/sessions.ts judgeRun).
 const FLAG_REASONS = ['too-fast', 'max-score', 'duration-mismatch', 'outlier'] as const;
 type FlagReason = (typeof FLAG_REASONS)[number];
-const TABS: Tab[] = ['flags', 'games', 'feedback', 'players'];
+const TABS: Tab[] = ['flags', 'games', 'feedback', 'players', 'appCheck'];
 
 /** Admin panel v1 (docs/plan/phase-2.md §2.3). Visible only with the `admin` claim. */
 export function AdminView({ games }: { games: AdminGame[] }) {
@@ -79,6 +82,7 @@ export function AdminView({ games }: { games: AdminGame[] }) {
       {tab === 'games' ? <Games games={games} /> : null}
       {tab === 'feedback' ? <FeedbackPanel games={games} /> : null}
       {tab === 'players' ? <Players /> : null}
+      {tab === 'appCheck' ? <AppCheckPanel /> : null}
     </div>
   );
 }
@@ -391,6 +395,94 @@ function Players() {
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+/**
+ * App Check rollout: the share of the last day's score sessions that carried a verified token,
+ * and the switch between monitoring and enforcing (docs/setup/phase-2.md §2).
+ */
+function AppCheckPanel() {
+  const t = useTranslations('admin.appCheck');
+  const ta = useTranslations('admin');
+  const format = useFormatter();
+  const { data, error, setData } = useLoad<AppCheckStatus>(appCheckStatus);
+  const [busy, setBusy] = useState(false);
+  const [confirmForce, setConfirmForce] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function change(mode: 'monitor' | 'enforce', force = false) {
+    setBusy(true);
+    setMessage(null);
+    try {
+      setData(await setAppCheckMode(mode, force));
+      setMessage(t(mode === 'enforce' ? 'enforced' : 'monitoring'));
+    } catch (e) {
+      const reason = (e as { details?: { reason?: string } }).details?.reason;
+      setMessage(reason === 'not-ready' ? t('notReady') : ta('actionFailed'));
+    } finally {
+      setBusy(false);
+      setConfirmForce(false);
+    }
+  }
+
+  if (error) return <p className={styles.note}>{ta('loadFailed')}</p>;
+  if (!data) return <p role="status">{ta('loading')}</p>;
+  const share = data.sessions > 0 ? data.verified / data.sessions : 0;
+  return (
+    <section className={styles.card} aria-labelledby="appcheck-heading">
+      <h2 id="appcheck-heading">{t('title')}</h2>
+      <p className={styles.note}>{t('intro')}</p>
+      <p>
+        <strong>{data.mode === 'enforce' ? t('modeEnforce') : t('modeMonitor')}</strong>
+      </p>
+      <p data-testid="appcheck-share">
+        {t('share', {
+          verified: format.number(data.verified),
+          sessions: format.number(data.sessions),
+          percent: format.number(share, { style: 'percent', maximumFractionDigits: 1 }),
+        })}
+      </p>
+      <p className={styles.note}>{data.ready ? t('ready') : t('notReadyHint')}</p>
+      {message ? (
+        <p role="status" className={styles.message}>
+          {message}
+        </p>
+      ) : null}
+      <div className={styles.actions}>
+        {data.mode === 'monitor' ? (
+          <>
+            <button
+              type="button"
+              className={styles.button}
+              disabled={busy || !data.ready}
+              onClick={() => change('enforce')}
+            >
+              {t('enforce')}
+            </button>
+            {!data.ready ? (
+              <button
+                type="button"
+                className={styles.danger}
+                disabled={busy}
+                onClick={() => (confirmForce ? change('enforce', true) : setConfirmForce(true))}
+              >
+                {confirmForce ? t('confirmForce') : t('force')}
+              </button>
+            ) : null}
+          </>
+        ) : (
+          <button
+            type="button"
+            className={styles.plain}
+            disabled={busy}
+            onClick={() => change('monitor')}
+          >
+            {t('monitor')}
+          </button>
+        )}
+      </div>
     </section>
   );
 }
