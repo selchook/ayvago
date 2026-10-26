@@ -28,7 +28,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 - ✅ `ayvago-prod` Web app registered and its config entered in Vercel (Production); guest and Google sign-in verified on the live site
 - ⏳ `ayvago-dev` Web app → config into Vercel (Preview + Development)
 - ✅ Firestore rules published to `ayvago-prod`
-- 🤖 Firestore rules deploy automatically: `.github/workflows/deploy-firebase-rules.yml` tests them against the emulator and publishes them to `ayvago-prod` whenever `firebase/firestore.rules` changes on `main` (or when run manually from the Actions tab).
+- 🤖 Firestore rules and indexes deploy automatically: `.github/workflows/deploy-firebase-rules.yml` tests them against the emulator and publishes them to `ayvago-prod` whenever `firebase/firestore.rules` or `firebase/firestore.indexes.json` changes on `main` (or when run manually from the Actions tab).
 - ✅ One-time setup for the automatic deploy (done; first automatic deploy succeeded as `github-rules-deployer`):
   1. Google Cloud Console, project `ayvago-prod` → **IAM & Admin → Service Accounts → Create service account**, name `github-rules-deployer`. Roles: **Firebase Rules Admin**, **Cloud Datastore Index Admin** (the CLI reads the database metadata before deploying; no data access) and **Service Usage Consumer**. Roles can be added later under **IAM & Admin → IAM** (pencil icon next to the account).
   2. Open the account → **Keys → Add key → Create new key → JSON** (downloads a file).

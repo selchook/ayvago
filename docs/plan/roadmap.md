@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Related: [Game import plan](game-import-plan.md) · [Phase 0 checklist](../setup/phase-0.md) · [ADRs](../adr/)
+> Related: [Game import plan](game-import-plan.md) · [Phase 0 checklist](../setup/phase-0.md) · [Phase 2 plan](phase-2.md) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -193,17 +193,19 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 
 | Function | Type | Purpose |
 |---|---|---|
-| `startSession` | Callable (App Check enforced) | Creates the session document and an HMAC token |
-| `finishSession` | Callable | Validates the score; updates `stats`, `entries`, `top` |
+| `startSession` ✅ | Callable (App Check, enforced after rollout) | Creates the session document and a random token (hash stored) |
+| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review |
+| `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into board rows, or removes them before account deletion |
 | `onVoteWritten` | Firestore trigger | Vote counters |
 | `recomputeGameScores` | Scheduled (nightly) | Wilson rating, engagement, `qualityScore`, `trendScore` |
-| `reserveUsername` | Callable | Unique usernames, profanity filter |
+| `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` | Callable (auth + rate limit) | Short-lived TURN credentials from Cloudflare (§10) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
 | `grantAdReward` | Callable | Grants rewarded-ad rewards (daily cap) |
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
-| `closeLeaderboardSeason` | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, grants season rewards, starts the new season |
+| `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
+| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge; guest cleanup (30 days); score session cleanup (14 days) |
 | `cleanupLobbies` | Scheduled (hourly) | Removes stale rooms and signaling data |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
@@ -458,13 +460,14 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] Platform PWA (manifest, service worker)
 - **Done when:** a guest picks a theme and a language, plays the 4 games and sees their scores on the profile.
 
-### Phase 2 — Competition and community (2–3 weeks)
-- [ ] `startSession` / `finishSession` + App Check
-- [ ] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting
-- [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf
+### Phase 2 — Competition and community (2–3 weeks) — in progress
+Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup](../setup/phase-2.md)
+- [ ] `startSession` / `finishSession` + App Check — sessions, validation, flags and the App Check client done ([ADR 0006](../adr/0006-score-sessions.md)); enforcement waits for the reCAPTCHA Enterprise key
+- [x] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting — game page panel and `/games/{slug}/leaderboard`; country scope and season rewards deferred (see the plan)
+- [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — favorites done in Phase 1
 - [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
-- [ ] Admin panel v1 (custom claims): game management, flagged scores
-- **Done when:** a fake score sent from the console never reaches a leaderboard.
+- [ ] Admin panel v1 (custom claims): game management, flagged scores — flagged scores already collected in `scoreFlags/`
+- **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)
 - [ ] CMP + Consent Mode v2, KVKK/GDPR texts (en + tr)

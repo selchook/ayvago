@@ -1,7 +1,7 @@
 # Spec — Leaderboards
 
-- Status: Draft (2026-10-18)
-- Related: [Roadmap §5.3 and §7](../plan/roadmap.md), [Accounts](accounts.md), [Game manifest schema](../../packages/shared/src/manifest.ts)
+- Status: Implemented in part (2026-10-26) — see §12
+- Related: [Roadmap §5.3 and §7](../plan/roadmap.md), [Phase 2 plan](../plan/phase-2.md), [ADR 0006](../adr/0006-score-sessions.md), [Accounts](accounts.md), [Game manifest schema](../../packages/shared/src/manifest.ts)
 
 ## 1. Goals
 
@@ -112,3 +112,36 @@ A scheduled function runs every Monday at 09:00 UTC:
 - Viewing a board costs one document read (plus one count query for the player's rank).
 - Turkish visitors see `12.450` and a Turkish score label; English visitors see `12,450`.
 - At Monday 09:00 UTC the weekly board empties and last week's top 100 is visible in the archive.
+
+## 12. Implementation status
+
+Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
+
+- **Sessions (§7):** `startSession` runs on `GHA_SESSION_START`, sent at the start of every run, rather than on `GHA_READY`, which comes once per page load. `finishSession` runs on `GHA_END`. The token is random and only its hash is stored. Run length comes from the server clock.
+- **Validation:**
+  - Too short → rejected.
+  - Over `maxScore` or `maxPerSecond` → rejected, or flagged while the game calibrates (14 days from the later of its launch and 2026-10-26).
+  - Client/server duration mismatch or an outlier → flagged.
+  - 60 session starts per player per game per hour.
+  - Flagged runs are stored in `scoreFlags/{sessionId}` and never touch the boards.
+- **Boards (§2, §4, §9):**
+  - Weekly season and all-time boards, each with a cached top 100.
+  - Entries hold accepted scores only (no `flagged` field on entries); entries no longer carry `country`.
+  - Ranks come from `count()` queries with ties broken by the earlier `achievedAt`.
+  - Season archives are written lazily on the first score of a new week and by `closeLeaderboardSeason`. Finished-season entries are then deleted, since the archive keeps the top 100.
+- **Rows:** usernames, avatars and the guest flag are copied into the top list. They are refreshed by `reserveUsername` and `syncLeaderboardProfile`. Guest merge moves the guest's better scores, and account deletion and guest cleanup remove the rows.
+- **UI (§5, §6):**
+  - Game page panel: tabs, top 10, the player's own row with rank, countdown, guest note.
+  - Full page: top 100 plus last week's top 10.
+  - End-of-run rank in the player toolbar.
+  - Locale-aware formatting.
+- **Not yet:**
+  - Country and friends scopes.
+  - Neighbors ±2.
+  - In-game overlay.
+  - Season rewards and notifications (Phase 5).
+  - `accumulate` boards (Phase 4).
+  - `scoring.allowContinues`.
+  - Admin review of `scoreFlags` (slice 2.3).
+  - p99.9 outlier statistics (currently 3 × the all-time #1 once the board has 10 players).
+  - Profile placements.
