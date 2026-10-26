@@ -220,3 +220,9 @@ What shipped (in `selchook/space-defender`, PR selchook/space-defender#2):
 Status:
 - ✅ selchook/space-defender#2 merged on 2026-10-26; Vercel redeployed the live game.
 - Promoting Space Defender on mobile shelves is now an editorial choice.
+
+## Game fixes during the phase
+
+| Game | Change | Status |
+|---|---|---|
+| ChromaShift | Fits phone screens: the board scales to the screen (24–60 px cells instead of a fixed 48, which cut off the outer columns on 360 px phones) and re-fits on rotation; menu, HUD and game-over screens adapt to short and narrow screens; stray markdown fences removed from `index.html` (they showed as text above the game) | ⏳ merge selchook/chromashift#3 (Vercel preview built) |

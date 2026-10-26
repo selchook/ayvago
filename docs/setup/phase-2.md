@@ -67,3 +67,6 @@ Do **not** press "Enforce" in the Firebase console:
 - ✅ selchook/space-defender#2 merged; the live game was redeployed.
 - ⏳ Try it on your phone: open Space Defender on ayvago.com, press Play, and use the buttons
   in the bottom corners.
+
+## 6. Game fixes
+- ⏳ Review and merge selchook/chromashift#3 (ChromaShift fits phone screens; Vercel preview built).
