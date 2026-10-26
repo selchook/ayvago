@@ -4,7 +4,7 @@ import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import type { Functions } from 'firebase/functions';
-import { readFirebaseConfig, USE_EMULATORS } from './config';
+import { APP_CHECK_SITE_KEY, readFirebaseConfig, USE_EMULATORS } from './config';
 
 let appPromise: Promise<FirebaseApp> | null = null;
 let authPromise: Promise<Auth> | null = null;
@@ -16,12 +16,32 @@ export function firebaseEnabled(): boolean {
 }
 
 function loadApp(): Promise<FirebaseApp> {
-  appPromise ??= import('firebase/app').then(({ initializeApp }) => {
+  appPromise ??= import('firebase/app').then(async ({ initializeApp }) => {
     const config = readFirebaseConfig();
     if (!config) throw new Error('Firebase is not configured');
-    return initializeApp(config);
+    const app = initializeApp(config);
+    await startAppCheck(app);
+    return app;
   });
   return appPromise;
+}
+
+/**
+ * App Check proves to Cloud Functions that calls come from this site (reCAPTCHA Enterprise,
+ * invisible to players). Enabled once the site key is configured (docs/setup/phase-2.md);
+ * a failure never blocks the app, the functions decide whether to accept unverified calls.
+ */
+async function startAppCheck(app: FirebaseApp) {
+  if (!APP_CHECK_SITE_KEY || USE_EMULATORS) return;
+  try {
+    const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (error) {
+    console.warn('[firebase] App Check failed to start', error);
+  }
 }
 
 export function loadAuth(): Promise<Auth> {

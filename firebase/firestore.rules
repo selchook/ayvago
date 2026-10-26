@@ -85,6 +85,21 @@ service cloud.firestore {
       }
     }
 
+    // Leaderboards are public and written by Cloud Functions only (finishSession). Entries hold
+    // accepted scores only (flagged ones wait in scoreFlags/), so anyone may read them, e.g. to
+    // count a player's rank. Spec: docs/specs/leaderboards.md §9.
+    match /leaderboards/{gameId}/boards/{board} {
+      allow read: if true;
+      match /entries/{uid} {
+        allow read: if true;
+      }
+    }
+    match /leaderboards/{gameId}/seasons/{season} {
+      allow read: if true;
+    }
+
+    // sessions/ and scoreFlags/ are Functions-only: they fall through to the rule below.
+
     match /{document=**} {
       allow read, write: if false;
     }

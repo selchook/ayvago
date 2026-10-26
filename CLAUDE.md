@@ -32,8 +32,10 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 
 ## Layout
 - `apps/web` — Next.js platform app; `app/[locale]/` routes, `i18n/` config, `messages/` catalogs,
-  `lib/catalog` (seed catalog behind an access layer), `lib/gha` (game bridge protocol)
-- `packages/shared` — locales, categories, zod schemas (`ayvago.json` game manifest)
+  `lib/catalog` (catalog access layer), `lib/gha` (game bridge protocol), `lib/leaderboard`
+  (score sessions, board views)
+- `packages/shared` — locales, categories, zod schemas (`ayvago.json` game manifest), the seed catalog
+  (`seed-catalog.ts`, read by the web app and the functions), leaderboard and season helpers
 - `packages/themes` — theme tokens, generated CSS, contrast tests (components read semantic tokens only)
 - `packages/platform-adapter` — single-file adapter games vendor into `src/ayvago/`; change it here, then
   copy it into each game repository

@@ -1,13 +1,16 @@
 import {
+  FIXTURE_GAME,
+  SEED_GAMES,
   categorySlug,
   parseGameManifest,
   pickLocalized,
   resolveAssetUrl,
   type GameCategory,
   type GameManifest,
+  type CatalogStatus,
   type Locale,
+  type SeedGame,
 } from '@ayvago/shared';
-import { FIXTURE_GAME, SEED_GAMES, type CatalogStatus, type SeedGame } from './seed';
 
 // Catalog access layer. Pages only talk to these functions, so the seed data can be swapped
 // for Firestore reads later without touching any page.

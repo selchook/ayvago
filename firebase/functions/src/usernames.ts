@@ -7,6 +7,7 @@ import {
   usernameProblem,
 } from '../../../packages/shared/src/profile';
 import { db } from './admin';
+import { playerCard, syncPlayerRows } from './leaderboards';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -35,7 +36,7 @@ export async function reserveUsername(request: CallableRequest<unknown>) {
   const userRef = db().doc(`users/${caller.uid}`);
   const nameRef = db().doc(`usernames/${key}`);
 
-  return db().runTransaction(async (tx) => {
+  const result = await db().runTransaction(async (tx) => {
     const [user, reservation] = await Promise.all([tx.get(userRef), tx.get(nameRef)]);
     if (!user.exists) throw fail('failed-precondition', 'no-profile');
     if (reservation.exists && reservation.get('uid') !== caller.uid) {
@@ -62,4 +63,8 @@ export async function reserveUsername(request: CallableRequest<unknown>) {
     });
     return { username };
   });
+  // Leaderboard rows carry the name; refresh them outside the transaction.
+  const profile = await userRef.get();
+  await syncPlayerRows(caller.uid, playerCard(profile.data()));
+  return result;
 }

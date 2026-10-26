@@ -11,6 +11,9 @@ export type FirebaseWebConfig = {
   databaseURL?: string;
 };
 
+/** reCAPTCHA Enterprise site key for App Check; optional until App Check is set up. */
+export const APP_CHECK_SITE_KEY = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY ?? '';
+
 /** Local development and end-to-end tests: talk to the Firebase Emulator Suite. Never set on Vercel. */
 export const USE_EMULATORS = process.env.NEXT_PUBLIC_FIREBASE_EMULATORS === '1';
 

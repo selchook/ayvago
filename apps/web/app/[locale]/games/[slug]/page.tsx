@@ -1,10 +1,11 @@
-import type { Locale } from '@ayvago/shared';
+import { pickLocalized, type Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CoverArt } from '@/components/catalog/cover-art';
 import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
+import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
 import styles from '@/components/game/game.module.css';
 import { TrophyIcon } from '@/components/icons';
 import { Link } from '@/i18n/navigation';
@@ -97,6 +98,7 @@ export default async function GamePage({ params }: Props) {
         <div>
           <GamePlayer
             slug={game.slug}
+            gameId={manifest.id}
             title={title}
             entry={manifest.entry}
             comingSoon={game.status === 'coming_soon'}
@@ -157,11 +159,18 @@ export default async function GamePage({ params }: Props) {
               <TrophyIcon />
               {t('game.leaderboard')}
             </h2>
-            <p>
-              {game.status === 'live'
-                ? t('game.leaderboardWithAccounts')
-                : t('game.leaderboardSoon')}
-            </p>
+            {game.status === 'live' ? (
+              <LeaderboardPanel
+                gameId={manifest.id}
+                slug={game.slug}
+                order={manifest.scoring.order}
+                scoreFormat={manifest.scoring.format}
+                scoreLabel={pickLocalized(manifest.scoring.label, locale)}
+                limit={10}
+              />
+            ) : (
+              <p>{t('game.leaderboardSoon')}</p>
+            )}
           </section>
 
           <section className={styles.section} aria-labelledby="related-heading">

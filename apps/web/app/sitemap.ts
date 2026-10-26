@@ -12,6 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/multiplayer',
     ...GAME_CATEGORIES.map(categoryPath),
     ...getAllGames().map(gamePath),
+    ...getAllGames()
+      .filter((game) => game.status === 'live')
+      .map((game) => `${gamePath(game)}/leaderboard`),
   ];
   return paths.flatMap((path) =>
     routing.locales.map((locale) => ({

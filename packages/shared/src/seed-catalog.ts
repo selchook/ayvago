@@ -1,4 +1,4 @@
-import type { GameManifestInput } from '@ayvago/shared';
+import type { GameManifestInput } from './manifest';
 
 // Seed catalog used until games are imported into Firestore (Phase 1, import wave 1).
 // Entry URLs are the production URLs confirmed by the owner. A game stays "coming_soon" until

@@ -1,7 +1,8 @@
-name: Deploy Firestore rules
+name: Deploy Firestore rules and indexes
 
-# Publishes firebase/firestore.rules to ayvago-prod after the rules tests pass against the
-# emulator. Runs when the rules change on main, or manually from the Actions tab.
+# Publishes firebase/firestore.rules and firebase/firestore.indexes.json to ayvago-prod after the
+# rules tests pass against the emulator. Runs when either changes on main, or manually from the
+# Actions tab.
 # Needs the repository secret FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD: the JSON key of a service
 # account with the "Firebase Rules Admin", "Cloud Datastore Index Admin" (the CLI reads the database
 # metadata first) and "Service Usage Consumer" roles (docs/setup/phase-0.md).
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - firebase/firestore.rules
+      - firebase/firestore.indexes.json
   workflow_dispatch:
 
 permissions:
@@ -63,8 +65,8 @@ jobs:
           log="$RUNNER_TEMP/deploy.log"
           # --debug output goes to a file only; on failure the cause (the CLI's own message is just
           # "Failed to authenticate") is surfaced as annotations, with credential lines removed.
-          if pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules --project prod --non-interactive --debug > "$log" 2>&1; then
-            grep -E "Deploy complete|released rules" "$log" | sed 's/\x1b\[[0-9;]*m//g' || true
+          if pnpm --filter @ayvago/firebase exec firebase deploy --only firestore:rules,firestore:indexes --project prod --non-interactive --debug > "$log" 2>&1; then
+            grep -E "Deploy complete|released rules|indexes" "$log" | sed 's/\x1b\[[0-9;]*m//g' || true
           else
             sed 's/\x1b\[[0-9;]*m//g' "$log" \
               | grep -E "Error|error:|denied|PERMISSION|invalid_grant|Unexpected|HTTP [45][0-9][0-9]" \

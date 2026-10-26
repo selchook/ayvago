@@ -306,3 +306,40 @@ describe('everything else', () => {
     );
   });
 });
+
+describe('leaderboards', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'leaderboards/orbsurge/boards/season'), { periodKey: 's', top: [] });
+      await setDoc(doc(db, 'leaderboards/orbsurge/boards/season/entries/u1'), { score: 10 });
+      await setDoc(doc(db, 'leaderboards/orbsurge/seasons/s-2026-W43'), { top: [] });
+      await setDoc(doc(db, 'sessions/abc'), { uid: 'u1' });
+      await setDoc(doc(db, 'scoreFlags/abc'), { uid: 'u1' });
+    });
+  });
+
+  it('can be read by anyone, including signed-out visitors', async () => {
+    const visitor = env.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(visitor, 'leaderboards/orbsurge/boards/season')));
+    await assertSucceeds(getDoc(doc(visitor, 'leaderboards/orbsurge/boards/season/entries/u1')));
+    await assertSucceeds(getDoc(doc(visitor, 'leaderboards/orbsurge/seasons/s-2026-W43')));
+  });
+
+  it('cannot be written by players', async () => {
+    const db = google('u1');
+    await assertFails(setDoc(doc(db, 'leaderboards/orbsurge/boards/season'), { top: [] }));
+    await assertFails(
+      setDoc(doc(db, 'leaderboards/orbsurge/boards/season/entries/u1'), { score: 1e9 }),
+    );
+    await assertFails(deleteDoc(doc(db, 'leaderboards/orbsurge/boards/season/entries/u1')));
+    await assertFails(setDoc(doc(db, 'leaderboards/orbsurge/seasons/x'), { top: [] }));
+  });
+
+  it('keeps score sessions and flags private', async () => {
+    const db = google('u1');
+    await assertFails(getDoc(doc(db, 'sessions/abc')));
+    await assertFails(setDoc(doc(db, 'sessions/new'), { uid: 'u1' }));
+    await assertFails(getDoc(doc(db, 'scoreFlags/abc')));
+  });
+});

@@ -343,6 +343,19 @@ export async function updateProfile(changes: ProfileChanges): Promise<void> {
   const db = await loadFirestore();
   const { doc, serverTimestamp, updateDoc } = await import('firebase/firestore');
   await updateDoc(doc(db, 'users', uid), { ...changes, updatedAt: serverTimestamp() });
+  // Leaderboard rows show the avatar; the server copies the new one into them.
+  if (changes.avatarId !== undefined) {
+    syncLeaderboardProfile(false).catch((error) =>
+      console.warn('[account] leaderboard rows not updated', error),
+    );
+  }
+}
+
+/** Refreshes the player's leaderboard rows from their profile, or removes them. */
+async function syncLeaderboardProfile(remove: boolean): Promise<void> {
+  const functions = await loadFunctions();
+  const { httpsCallable } = await import('firebase/functions');
+  await httpsCallable(functions, 'syncLeaderboardProfile')({ remove });
 }
 
 // Preferences (theme, mode, language) follow the account. The first time a browser meets an
@@ -472,6 +485,8 @@ export async function deleteAccount(): Promise<'deleted' | 'cancelled'> {
     }
   }
 
+  // Leaderboard rows are written by the server, so the server removes them, while still signed in.
+  await syncLeaderboardProfile(true);
   cancelLibrarySync();
   const db = await loadFirestore();
   const { deleteDoc, doc } = await import('firebase/firestore');

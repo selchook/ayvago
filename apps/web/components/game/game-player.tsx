@@ -13,6 +13,7 @@ import {
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { ensureGuest } from '@/lib/account/store';
+import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
 import {
@@ -36,6 +37,8 @@ const SLOW_LOAD_MS = 12_000;
 
 export type GamePlayerProps = {
   slug: string;
+  /** Manifest id: the game's key for score sessions and leaderboards. */
+  gameId: string;
   title: string;
   entry: string;
   comingSoon: boolean;
@@ -46,7 +49,8 @@ export type GamePlayerProps = {
 };
 
 export function GamePlayer(props: GamePlayerProps) {
-  const { slug, title, entry, comingSoon, orientation, scoreOrder, scoreFormat, cover } = props;
+  const { slug, gameId, title, entry, comingSoon, orientation, scoreOrder, scoreFormat, cover } =
+    props;
   const t = useTranslations();
   const locale = useLocale();
   const gameOrigin = useMemo(() => originOf(entry), [entry]);
@@ -54,6 +58,10 @@ export function GamePlayer(props: GamePlayerProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const startedRef = useRef(false);
+  // Resolves once the player has an identity (a guest at least); runs register after that.
+  const identityRef = useRef<Promise<unknown>>(Promise.resolve());
+  // The run in progress, registered with the server for the leaderboards.
+  const runRef = useRef<Run | null>(null);
 
   const [phase, setPhase] = useState<Phase>('cover');
   const [frameKey, setFrameKey] = useState(0);
@@ -63,6 +71,7 @@ export function GamePlayer(props: GamePlayerProps) {
   const [theater, setTheater] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [result, setResult] = useState<{ score: number; improved: boolean } | null>(null);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // True once the game completed the SDK handshake; exposed for diagnostics and tests.
   const [connected, setConnected] = useState(false);
@@ -108,12 +117,20 @@ export function GamePlayer(props: GamePlayerProps) {
         case 'loading':
           setProgress(message.progress);
           break;
-        case 'end':
+        case 'sessionStart':
+          runRef.current = beginRun(gameId, identityRef.current);
+          setRunResult(null);
+          break;
+        case 'end': {
+          const run = runRef.current;
+          runRef.current = null;
           if (message.score !== null) {
             const improved = recordBestScore(slug, message.score, scoreOrder);
             setResult({ score: message.score, improved });
+            run?.finish(message.score).then(setRunResult);
           }
           break;
+        }
         case 'adRequest':
           // Ads are not live yet (adsEnabled is false); answer so the game never waits.
           post({ type: 'GHA_AD_RESULT', id: message.id, shown: false, rewarded: false });
@@ -128,7 +145,7 @@ export function GamePlayer(props: GamePlayerProps) {
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [phase, gameOrigin, post, sendStart, slug, scoreOrder]);
+  }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder]);
 
   // Pause the game while the tab is hidden.
   useEffect(() => {
@@ -183,13 +200,14 @@ export function GamePlayer(props: GamePlayerProps) {
     startedRef.current = false;
     setConnected(false);
     setResult(null);
+    setRunResult(null);
+    runRef.current = null;
     setProgress(null);
     setPhase('loading');
     recordPlay(slug);
     // Every player gets an identity on their first game (a guest unless signed in); never blocks play.
-    ensureGuest(locale as Locale).catch((error) =>
-      console.warn('[account] guest sign-in failed', error),
-    );
+    identityRef.current = ensureGuest(locale as Locale);
+    identityRef.current.catch((error) => console.warn('[account] guest sign-in failed', error));
   }
 
   function reload() {
@@ -309,6 +327,7 @@ export function GamePlayer(props: GamePlayerProps) {
           ) : best !== null ? (
             <span>{t('game.bestScore', { score: formatScore(best, scoreFormat, locale) })}</span>
           ) : null}
+          {runResult ? <RunNote result={runResult} /> : null}
           {toast ? <span className={styles.toast}>{toast}</span> : null}
         </div>
         <FavoriteButton slug={slug} />
@@ -359,5 +378,24 @@ export function GamePlayer(props: GamePlayerProps) {
         )}
       </div>
     </div>
+  );
+}
+
+/** What happened to the last run on the leaderboard, next to the score. */
+function RunNote({ result }: { result: RunResult }) {
+  const t = useTranslations('game');
+  if (result.status === 'flagged') return <span className={styles.runNote}>{t('runFlagged')}</span>;
+  if (result.status === 'rejected') {
+    return result.reason === 'too-short' ? (
+      <span className={styles.runNote}>{t('runTooShort')}</span>
+    ) : null;
+  }
+  const { rank, previousRank } = result.boards.season;
+  return (
+    <span className={styles.runNote}>
+      {previousRank !== null && previousRank > rank
+        ? t('runRankUp', { rank, previous: previousRank })
+        : t('runRank', { rank })}
+    </span>
   );
 }

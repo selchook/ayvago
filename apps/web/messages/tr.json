@@ -2,7 +2,8 @@
   "metadata": {
     "title": "Ayvago",
     "description": "Retro aksiyon, casual ve bulmaca oyunları tek platformda. Tarayıcında ücretsiz oyna.",
-    "gameDescriptionSuffix": "Ayvago'da tarayıcında ücretsiz oyna."
+    "gameDescriptionSuffix": "Ayvago'da tarayıcında ücretsiz oyna.",
+    "leaderboardDescription": "Ayvago'da {title} oyununun haftalık ve tüm zamanların en iyi skorları."
   },
   "nav": {
     "main": "Ana menü",
@@ -74,11 +75,35 @@
     "players": "{count, plural, one {Tek oyunculu} other {# oyunculu}}",
     "related": "Bunları da sevebilirsin",
     "leaderboard": "Skor tablosu",
-    "leaderboardSoon": "Haftalık skor tabloları bu oyun Ayvago'da yayına girince açılacak.",
-    "leaderboardWithAccounts": "Haftalık skor tabloları yakında açılıyor. Kişisel en iyi skorun hesabına kaydediliyor.",
+    "leaderboardSoon": "Liderlik tabloları bu oyun Ayvago'da yayına girince açılır.",
     "lastScore": "Skor: {score}",
     "personalBest": "Kişisel rekor!",
-    "bestScore": "En iyi skorun: {score}"
+    "bestScore": "En iyi skorun: {score}",
+    "runRank": "Bu hafta #{rank}",
+    "runRankUp": "Bu hafta #{rank} (önceki: #{previous})",
+    "runFlagged": "Skorun liderlik tablosunda görünmeden önce inceleniyor.",
+    "runTooShort": "Bu kadar kısa oyunlar liderlik tablosuna sayılmaz."
+  },
+  "leaderboard": {
+    "boards": "Liderlik tabloları",
+    "weekly": "Bu hafta",
+    "allTime": "Tüm zamanlar",
+    "endsIn": "Sezonun bitmesine {days}g {hours}sa",
+    "loading": "Liderlik tablosu yükleniyor…",
+    "unavailable": "Liderlik tablosu şu anda kullanılamıyor.",
+    "emptyWeek": "Bu hafta henüz skor yok. Bir oyun oyna, birinciliği kap!",
+    "empty": "Henüz skor yok. Bir oyun oyna, birinciliği kap!",
+    "player": "Oyuncu",
+    "guest": "Misafir",
+    "you": "Sen",
+    "continued": "Devam hakkı kullandı",
+    "claimAsGuest": "Liderlik tablosundaki yerini korumak için Google ile giriş yap.",
+    "seeAll": "Tüm liderlik tablosunu gör",
+    "pageTitle": "{title} liderlik tablosu",
+    "pageIntro": "{title} oyunundaki doğrulanmış en iyi skorlar. Haftalık sezonlar her pazartesi 12:00'de (TSİ) sıfırlanır.",
+    "backToGame": "{title} oyna",
+    "lastSeason": "Geçen haftanın en iyileri",
+    "comingSoon": "Bu liderlik tablosu oyun Ayvago'da yayına girince açılır."
   },
   "input": {
     "touch": "Dokunmatik",

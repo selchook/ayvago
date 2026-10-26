@@ -2,7 +2,8 @@
   "metadata": {
     "title": "Ayvago",
     "description": "Retro action, casual and puzzle games in one place. Free to play in your browser.",
-    "gameDescriptionSuffix": "Play free in your browser on Ayvago."
+    "gameDescriptionSuffix": "Play free in your browser on Ayvago.",
+    "leaderboardDescription": "Weekly and all-time top scores in {title} on Ayvago."
   },
   "nav": {
     "main": "Main navigation",
@@ -74,11 +75,35 @@
     "players": "{count, plural, one {Single player} other {# players}}",
     "related": "You may also like",
     "leaderboard": "Leaderboard",
-    "leaderboardSoon": "Weekly leaderboards open when this game launches on Ayvago.",
-    "leaderboardWithAccounts": "Weekly leaderboards are coming soon. Your personal best is saved to your account.",
+    "leaderboardSoon": "Leaderboards open when this game launches on Ayvago.",
     "lastScore": "Score: {score}",
     "personalBest": "Personal best!",
-    "bestScore": "Your best: {score}"
+    "bestScore": "Your best: {score}",
+    "runRank": "#{rank} this week",
+    "runRankUp": "#{rank} this week (up from #{previous})",
+    "runFlagged": "Your score is being reviewed before it appears on the leaderboard.",
+    "runTooShort": "Runs this short do not count for the leaderboard."
+  },
+  "leaderboard": {
+    "boards": "Leaderboards",
+    "weekly": "This week",
+    "allTime": "All time",
+    "endsIn": "Season ends in {days}d {hours}h",
+    "loading": "Loading leaderboard…",
+    "unavailable": "The leaderboard is not available right now.",
+    "emptyWeek": "No scores yet this week. Play a run to take first place!",
+    "empty": "No scores yet. Play a run to take first place!",
+    "player": "Player",
+    "guest": "Guest",
+    "you": "You",
+    "continued": "Used a continue",
+    "claimAsGuest": "Sign in with Google to keep your place on the leaderboard.",
+    "seeAll": "See the full leaderboard",
+    "pageTitle": "{title} leaderboard",
+    "pageIntro": "The best validated scores in {title}. Weekly seasons reset every Monday at 09:00 UTC.",
+    "backToGame": "Play {title}",
+    "lastSeason": "Last week’s top players",
+    "comingSoon": "This leaderboard opens when the game launches on Ayvago."
   },
   "input": {
     "touch": "Touch",

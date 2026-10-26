@@ -1,130 +1,30 @@
-import { readFileSync } from 'node:fs';
-import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { deleteApp, initializeApp, type FirebaseApp } from 'firebase/app';
-import {
-  connectAuthEmulator,
-  getAuth,
-  GoogleAuthProvider,
-  linkWithCredential,
-  signInAnonymously,
-  signInWithCredential,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { linkWithCredential } from 'firebase/auth';
+import { Timestamp } from 'firebase/firestore';
+import { describe, expect, it } from 'vitest';
 import { deleteInactiveGuests } from '../functions/src/guests';
+import {
+  authUserExists,
+  googleCredential,
+  guest,
+  outcome,
+  read,
+  registered,
+  useEmulators,
+  write,
+} from './helpers';
 
-const PROJECT = 'demo-ayvago';
-let env: RulesTestEnvironment;
-const apps: FirebaseApp[] = [];
-
-beforeAll(async () => {
-  env = await initializeTestEnvironment({
-    projectId: PROJECT,
-    firestore: { rules: readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8') },
-  });
-});
-
-afterAll(async () => {
-  await env.cleanup();
-});
-
-beforeEach(async () => {
-  await env.clearFirestore();
-  await fetch(`http://127.0.0.1:9099/emulator/v1/projects/${PROJECT}/accounts`, {
-    method: 'DELETE',
-  });
-});
-
-afterEach(async () => {
-  await Promise.all(apps.splice(0).map((app) => deleteApp(app)));
-});
-
-// A separate client app per player, like separate browsers.
-function client() {
-  const app = initializeApp({ apiKey: 'demo-key', projectId: PROJECT }, `player-${Math.random()}`);
-  apps.push(app);
-  const auth = getAuth(app);
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-  const functions = getFunctions(app, 'europe-west1');
-  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
-  return {
-    auth,
-    call: <T = unknown>(name: string, data: unknown) =>
-      httpsCallable<unknown, T>(functions, name)(data).then((result) => result.data),
-  };
-}
-
-const googleCredential = (email: string) =>
-  GoogleAuthProvider.credential(
-    JSON.stringify({ sub: `google-${email}`, email, email_verified: true }),
-  );
-
-async function registered(email: string, profile: Record<string, unknown> = {}) {
-  const player = client();
-  const { user } = await signInWithCredential(player.auth, googleCredential(email));
-  await seedProfile(user.uid, { isGuest: false, ...profile });
-  return { ...player, uid: user.uid };
-}
-
-async function guest() {
-  const player = client();
-  const { user } = await signInAnonymously(player.auth);
-  await seedProfile(user.uid, { isGuest: true });
-  return { ...player, uid: user.uid, user };
-}
-
-async function seedProfile(uid: string, data: Record<string, unknown>) {
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'users', uid), {
-      username: 'PixelFox4821',
-      locale: 'en',
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      ...data,
-    });
-  });
-}
+useEmulators();
 
 async function seedLibrary(uid: string, favorites: string[], best: Record<string, number> = {}) {
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'users', uid, 'library', 'state'), {
-      favorites,
-      recent: favorites.map((slug, i) => ({ slug, playedAt: 1000 + i })),
-      best: Object.fromEntries(
-        Object.entries(best).map(([slug, score]) => [slug, { score, order: 'desc' }]),
-      ),
-      updatedAt: Timestamp.now(),
-    });
+  await write(`users/${uid}/library/state`, {
+    favorites,
+    recent: favorites.map((slug, i) => ({ slug, playedAt: 1000 + i })),
+    best: Object.fromEntries(
+      Object.entries(best).map(([slug, score]) => [slug, { score, order: 'desc' }]),
+    ),
+    updatedAt: Timestamp.now(),
   });
 }
-
-async function read(path: string) {
-  let data: Record<string, unknown> | undefined;
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    data = (await getDoc(doc(ctx.firestore(), path))).data();
-  });
-  return data;
-}
-
-async function authUserExists(uid: string) {
-  const res = await fetch(
-    `http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`,
-    {
-      method: 'POST',
-      headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ localId: [uid] }),
-    },
-  );
-  return ((await res.json()).users ?? []).length > 0;
-}
-
-// Resolves to the callable error's reason ("taken", "cooldown", …), or "ok".
-const outcome = (promise: Promise<unknown>) =>
-  promise.then(
-    () => 'ok',
-    (error: { details?: { reason?: string } }) => error.details?.reason ?? 'unknown',
-  );
 
 describe('reserveUsername', () => {
   it('reserves a name for a registered player', async () => {
@@ -179,13 +79,11 @@ describe('reserveUsername', () => {
   it('releases the old name after the cooldown', async () => {
     const ayla = await registered('ayla@example.com');
     await ayla.call('reserveUsername', { username: 'OldName' });
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(
-        doc(ctx.firestore(), 'users', ayla.uid),
-        { usernameChangedAt: Timestamp.fromMillis(Date.now() - 31 * 24 * 3600 * 1000) },
-        { merge: true },
-      );
-    });
+    await write(
+      `users/${ayla.uid}`,
+      { usernameChangedAt: Timestamp.fromMillis(Date.now() - 31 * 24 * 3600 * 1000) },
+      true,
+    );
     await ayla.call('reserveUsername', { username: 'NewName' });
     expect(await read('usernames/oldname')).toBeUndefined();
     expect(await read('usernames/newname')).toMatchObject({ uid: ayla.uid });

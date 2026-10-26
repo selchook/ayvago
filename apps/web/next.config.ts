@@ -18,6 +18,13 @@ if (process.env.NEXT_PUBLIC_FIREBASE_EMULATORS !== '1') {
       ? `[ayvago] Account features disabled; missing: ${missing.join(', ')}`
       : `[ayvago] Account features enabled (Firebase project ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID})`,
   );
+  if (!missing.length) {
+    console.log(
+      process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY
+        ? '[ayvago] App Check enabled (reCAPTCHA Enterprise)'
+        : '[ayvago] App Check not configured; set NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY (docs/setup/phase-2.md)',
+    );
+  }
   // Values copied from the firebaseConfig snippet often keep quotes, commas or spaces.
   const malformed = Object.keys(process.env).filter(
     (name) => name.startsWith('NEXT_PUBLIC_FIREBASE_') && /["',\s]/.test(process.env[name] ?? ''),

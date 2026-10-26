@@ -56,6 +56,8 @@
         var embedded = window.parent !== window;
         var platformOrigin = document.referrer ? new URL(document.referrer).origin : null;
         var score = 0;
+        // A run starts with GHA_START and again with the first point after a game over.
+        var running = false;
         var status = document.getElementById('status');
 
         function send(message) {
@@ -77,6 +79,7 @@
             });
             status.textContent =
               'started: ' + config.theme + '/' + config.colorMode + ' ' + config.locale;
+            running = true;
             send({ type: 'GHA_SESSION_START' });
           } else if (msg.type === 'GHA_THEME_CHANGE') {
             Object.keys(msg.tokens || {}).forEach(function (name) {
@@ -93,6 +96,10 @@
         });
 
         document.getElementById('add').addEventListener('click', function () {
+          if (!running) {
+            running = true;
+            send({ type: 'GHA_SESSION_START' });
+          }
           score += 10;
           render();
           send({ type: 'GHA_SCORE', score: score });
@@ -100,6 +107,7 @@
         document.getElementById('end').addEventListener('click', function () {
           send({ type: 'GHA_END', score: score, won: false });
           status.textContent = 'ended with ' + score;
+          running = false;
           score = 0;
           render();
         });

@@ -320,3 +320,20 @@
     display: none;
   }
 }
+
+.runNote {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.leaderboardPage {
+  display: grid;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.leaderboardPage h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
