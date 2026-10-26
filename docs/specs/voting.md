@@ -103,6 +103,6 @@ Shipped in Phase 2 slice 2.2 ([plan](../plan/phase-2.md#22-voting-and-ranking-))
   - Day-1 return rate and median session length.
   - Remote Config weights.
   - Burst detection.
-  - Admin feedback view (Phase 2 slice 2.3).
   - "Top rated" shelf.
   - Long-press favorite.
+- **Admin feedback view (slice 2.3):** `/admin` shows each game's reasons over 14 days and the latest comments.

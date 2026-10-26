@@ -1,7 +1,7 @@
 # Phase 2 — Competition and community
 
 - Status: In progress (started 2026-10-25)
-- Roadmap: [§12 Phase 2](roadmap.md#phase-2--competition-and-community-23-weeks) · Specs: [Leaderboards](../specs/leaderboards.md), [Voting](../specs/voting.md) · Owner steps: [Phase 2 setup](../setup/phase-2.md) · Decision: [ADR 0006](../adr/0006-score-sessions.md)
+- Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Specs: [Leaderboards](../specs/leaderboards.md), [Voting](../specs/voting.md) · Owner steps: [Phase 2 setup](../setup/phase-2.md) · Decision: [ADR 0006](../adr/0006-score-sessions.md)
 
 **Done when:** a fake score sent from the console never reaches a leaderboard.
 
@@ -13,7 +13,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 |---|---|---|
 | 2.1 | Score sessions (`startSession` / `finishSession`) and weekly + all-time leaderboards | ✅ code, ⏳ deploy check and App Check key |
 | 2.2 | Voting (like/dislike, feedback reasons), Wilson + engagement ranking, Continue Playing shelf | ✅ code |
-| 2.3 | Admin panel v1: `admin` custom claim, flagged-score review (approve / reject / ban), game management | ⬜ |
+| 2.3 | Admin panel v1: `admin` custom claim, flagged-score review (approve / reject / ban), players, feedback, game overview | ✅ code, ⏳ grant the admin role |
 | 2.4 | App Check enforcement (after the verified share reaches ~100%) | ⬜ waits on ⏳ |
 | 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ⬜ |
 
@@ -119,7 +119,48 @@ Deviations from the spec (deliberate, revisit later):
 - **Long-press to favorite on mobile tiles** is not implemented; the heart is in the player
   toolbar.
 
-## 2.3 Admin panel v1 ⬜
-Daily feedback aggregates (`games/{gameId}/feedback/{day}`) and vote comments are ready for an admin feedback view. Flagged scores are already collected in `scoreFlags/{sessionId}` (`status: 'pending'`, reasons,
-player, score, durations), indexed by `status` + `createdAt`. Approving one will apply it with the
-same transaction as `finishSession` (`applyScore`).
+## 2.3 Admin panel v1 ✅
+
+What shipped:
+- **Role:**
+  - Admins carry the `admin` custom claim, granted (or revoked) by email with the
+    **Grant admin role** workflow (`.github/workflows/grant-admin.yml`, script
+    `firebase/functions/scripts/set-admin.mjs`). Setup: [Phase 2 setup §4](../setup/phase-2.md).
+  - Rules give admins read access to the review data, with no extra writes: `scoreFlags`,
+    `sessions`, `usernames`, player profiles and stats, votes, daily play counts and feedback.
+- **Functions** (`firebase/functions/src/moderation.ts`):
+  - `reviewScoreFlag({ sessionId, action })`:
+    - **approve** puts the score on the all-time board, and on the weekly board when it was
+      reached in the current season, keeping its original time;
+    - **reject** drops it;
+    - **ban** bans the player.
+  - `setPlayerBan({ uid, banned })`. A ban:
+    - sets the `banned` claim (rules refuse the player's writes, functions their calls);
+    - revokes their sessions;
+    - removes their leaderboard rows, votes and play stats;
+    - marks their pending flags.
+
+    Unbanning lifts the claim only. Admins cannot be banned.
+- **Web:**
+  - `/{locale}/admin` (not indexed), linked from the account menu for admins. A "Refresh access"
+    button picks up a newly granted role without signing out.
+  - Tabs:
+    - **Flagged scores:** reasons, server versus browser run length, Approve / Reject / Ban with a
+      confirmation step.
+    - **Games:** plays in 7 days, votes, quality and trend scores.
+    - **Feedback:** reasons over 14 days and the latest comments per game.
+    - **Players:** find by username or uid, ban and lift bans.
+- **Tests:**
+  - `firebase/tests/moderation.test.ts` (6): admin only, approve (current and earlier week),
+    reject, ban clears the player's traces, unban, admins cannot be banned.
+  - Admin rules tests.
+  - The flow was checked end to end against the emulators.
+  - The "flagged" session test no longer depends on the fixture game's calibration window, which
+    ends on 2026-11-09.
+
+Deviations (deliberate, revisit later):
+- **Game management is read-only:** the catalog still comes from the seed. Editing games (status,
+  featured, text) follows the move of the catalog to Firestore (carried over from Phase 1).
+- **No board reset action yet** (spec: reset the all-time board after a scoring change). Today it
+  is done by deleting the board documents in the console.
+- **Burst detection** for votes is still open.

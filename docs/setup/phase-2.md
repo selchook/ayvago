@@ -40,5 +40,17 @@ so nobody is locked out by a misconfiguration.
   up. "Popular this week" and like percentages appear once the first hourly run has seen plays
   (like percentages need 20 votes per game).
 
-## 4. Later in Phase 2
-- ⏳ Grant yourself the `admin` custom claim (slice 2.3; a one-line script will be provided).
+## 4. Admin role (slice 2.3)
+1. ⏳ Give the deploy account the right to set roles. Google Cloud console → Cloud Shell:
+   ```bash
+   gcloud projects add-iam-policy-binding ayvago-prod \
+     --member=serviceAccount:github-rules-deployer@ayvago-prod.iam.gserviceaccount.com \
+     --role=roles/firebaseauth.admin --condition=None --quiet > /dev/null
+   ```
+2. ⏳ Sign in to ayvago.com with Google once (the account must exist).
+3. ⏳ GitHub → `selchook/ayvago` → **Actions → Grant admin role → Run workflow**: your Google
+   email, action `grant`. The email is only typed into that form; it is not stored in the
+   repository.
+4. ⏳ Open `https://ayvago.com/en/admin` and press **Refresh access** (or sign out and in). The
+   account menu now shows **Admin panel**.
+5. To remove the role, run the same workflow with `revoke`.

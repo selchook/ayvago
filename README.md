@@ -4,11 +4,25 @@ A web game platform that brings retro action, casual and puzzle games together i
 
 ## Status
 
-**Phase 0 — Preparation.** Monorepo scaffold, CI, Firebase security-rule baseline, i18n foundation (English and Turkish) and the game manifest schema are in place.
+**Phase 2 — Competition and community (in progress).** Server-validated scores with weekly and
+all-time leaderboards, voting with catalog ranking, and the admin panel are live; App Check
+enforcement and Space Defender touch controls remain.
+
+| Phase | Scope | Status | Docs |
+|---|---|---|---|
+| 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Setup checklist](docs/setup/phase-0.md) |
+| 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore, sdk-playground and PWA carried forward) | [Plan](docs/plan/phase-1.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel | In progress (2.1–2.3 done) | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
+| 4 | Multiplayer: WebRTC + Cloudflare TURN, import wave 3 | Not started | |
+| 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
+| 6 | Developer program | Not started | |
+| 7 | App stores | Not started | |
+
+Live games: Crystal Runner 3D, Orb Surge, Pixel Cascade, ChromaShift, Space Defender, Gyroball Infinite.
 
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
 - Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)
-- Phase 0 checklist: [`docs/setup/phase-0.md`](docs/setup/phase-0.md)
 - Feature specs: [`docs/specs/`](docs/specs/) (accounts, leaderboards, voting, UI and themes)
 - Architecture decisions: [`docs/adr/`](docs/adr/)
 
@@ -17,11 +31,13 @@ A web game platform that brings retro action, casual and puzzle games together i
 ```
 apps/web            Next.js platform app (Vercel), localized with next-intl
   messages/         UI translations (en.json is the source of truth, tr.json)
-packages/shared     Shared constants, types and zod schemas (locales, categories, ayvago.json manifest)
+packages/shared     Shared constants, types and zod schemas (locales, categories, ayvago.json manifest),
+                    seed catalog, leaderboard seasons, vote ranking
 packages/themes     Theme tokens (minimal, retro, cartoon), generated CSS, contrast tests
 packages/platform-adapter  Adapter games vendor to talk to Ayvago (protocol 2)
 tools/fixture-game  Local test game for the iframe bridge
-firebase/           Firebase configuration and security rules
+firebase/           Firebase configuration, security rules, indexes and emulator tests
+  functions/        Cloud Functions (europe-west1): score sessions, leaderboards, votes, accounts, admin
 docs/               Roadmap, ADRs, setup checklists
 ```
 
@@ -46,6 +62,8 @@ pnpm fixture-game                         # http://localhost:4173
 AYVAGO_DEV_GAMES=1 pnpm dev               # lists "Bridge Fixture" in the catalog
 ```
 
+With the Firebase emulators (`cd firebase && npx firebase emulators:start --only auth,firestore,functions --project demo-ayvago`) and `NEXT_PUBLIC_FIREBASE_EMULATORS=1`, accounts, leaderboards and votes work locally too.
+
 Open `/en/games/bridge-fixture`, press Play, and the fixture shows the theme and locale it received; scores, mute and theme changes flow through the same `GHA_*` messages real games use.
 
 To play a game's integration branch inside the platform before it is deployed, serve its build locally and point the catalog at it:
@@ -67,4 +85,9 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` for environment variables.
 
 ## Deployment
 
-Vercel project **Root Directory** = `apps/web`. Firebase rules are deployed from `firebase/` with `firebase deploy --only firestore:rules,database,storage`.
+- Web: Vercel project `ayvago-web`, **Root Directory** = `apps/web`, deployed on every push to `main`.
+- Firestore rules and indexes: `.github/workflows/deploy-firebase-rules.yml` (tests against the emulator, then deploys).
+- Cloud Functions: `.github/workflows/deploy-functions.yml` (same tests, then deploys).
+- Admin role: `.github/workflows/grant-admin.yml` (run manually with an email).
+
+Setup and the required roles are in [`docs/setup/phase-0.md`](docs/setup/phase-0.md) and [`docs/setup/phase-2.md`](docs/setup/phase-2.md).

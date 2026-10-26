@@ -142,6 +142,6 @@ Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
   - Season rewards and notifications (Phase 5).
   - `accumulate` boards (Phase 4).
   - `scoring.allowContinues`.
-  - Admin review of `scoreFlags` (slice 2.3).
   - p99.9 outlier statistics (currently 3 × the all-time #1 once the board has 10 players).
   - Profile placements.
+- **Review (slice 2.3):** flagged scores are approved, rejected or the player banned from `/admin`. An approved score keeps its original time. It joins the weekly board only when it was reached in the current season.

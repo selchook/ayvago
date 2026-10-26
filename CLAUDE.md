@@ -16,6 +16,14 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 
 ## Conventions
 - Plans: `docs/plan/roadmap.md` and `docs/plan/game-import-plan.md`. Decisions are ADRs in `docs/adr/`.
+- **Phase documentation is part of every slice** (owner request). In the same change that ships a slice:
+  - Update `docs/plan/phase-N.md`. It holds the slice table, what shipped, deviations from the spec,
+    tests and what is still open. Create it when a phase starts.
+  - Update `docs/setup/phase-N.md` for every step the owner must take (⏳).
+  - Tick the roadmap checklist (§12) and the functions table (§2.4).
+  - Update the "Implementation status" section of the affected spec.
+  - Update the phase table in `README.md`.
+  - Record significant decisions as ADRs.
 - Stack: pnpm workspaces + Turborepo, Next.js 16 (App Router) on Vercel, Firebase (Auth, Firestore,
   Realtime Database, Functions, Storage, App Check, Remote Config) in `europe-west1`,
   Cloudflare Realtime TURN for WebRTC relay.

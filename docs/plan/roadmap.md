@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Related: [Game import plan](game-import-plan.md) · [Phase 0 checklist](../setup/phase-0.md) · [Phase 2 plan](phase-2.md) · [ADRs](../adr/)
+> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0 checklist](../setup/phase-0.md) · [Phase 1](phase-1.md) · [Phase 2](phase-2.md) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -208,7 +208,8 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
 | `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge; guest cleanup (30 days); score session cleanup (14 days) |
 | `cleanupLobbies` | Scheduled (hourly) | Removes stale rooms and signaling data |
-| `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data |
+| `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
+| `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
 
 Secrets (Cloudflare API token, Paddle secret) live in **Secret Manager** (`defineSecret`) — never in the client.
@@ -445,7 +446,8 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [ ] Cloudflare account, Realtime TURN key
 - [ ] **AdSense + H5 Games Ads application**, Paddle/Lemon Squeezy seller application
 
-### Phase 1 — MVP platform (3–4 weeks)
+### Phase 1 — MVP platform (3–4 weeks) — done
+Slice summary: [Phase 1 plan](phase-1.md); the open items below carry forward.
 - [ ] Firestore model v1 + Security Rules + rules tests (emulator) — `users/{uid}` and `users/{uid}/library/state` done with 26 emulator tests, deployed automatically; catalog (`games`) still served from the seed
 - [x] Guest (anonymous) + Google sign-in, upgrade that keeps the uid, profile document with a generated name — Spark plan, client writes under Firestore rules with emulator tests
 - [x] Profile and settings page (`/profile`): preset avatars, theme/mode/language saved to the account and applied on new devices, personal bests, data download, account deletion
@@ -467,7 +469,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting — game page panel and `/games/{slug}/leaderboard`; country scope and season rewards deferred (see the plan)
 - [x] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — `castVote`, hourly `recomputeRankings`, Popular and Continue Playing shelves; day-1 return and burst detection deferred (see the plan)
 - [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
-- [ ] Admin panel v1 (custom claims): game management, flagged scores — flagged scores already collected in `scoreFlags/`
+- [x] Admin panel v1 (custom claims): game management, flagged scores — `/admin` with flag review (approve / reject / ban), players, feedback and a games overview; editing games waits for the Firestore catalog
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)
