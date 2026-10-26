@@ -31,7 +31,7 @@ must never show a score that was sent without a real run.
   resets the season board inside the same transaction; `closeLeaderboardSeason` (Monday 09:00
   UTC) does the same for idle boards and deletes finished-season entries.
 - **App Check rolls out in two steps:** the web app sends tokens once a reCAPTCHA Enterprise key
-  is configured; `APP_CHECK_ENFORCED` in `firebase/functions/src/sessions.ts` turns enforcement on
+  is configured; `APP_CHECK_ENFORCED` in `firebase/functions/src/caller.ts` (shared by every player-facing callable) turns enforcement on
   in a commit after the share of verified sessions (`sessions.appCheck`) is close to 100%.
 
 ## Consequences

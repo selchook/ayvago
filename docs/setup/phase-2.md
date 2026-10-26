@@ -32,7 +32,13 @@ so nobody is locked out by a misconfiguration.
 4. ⏳ After a few days, Firebase console → App Check → **APIs → Cloud Functions** shows the share
    of verified requests (each session also records `appCheck: true/false`).
 5. 🤖 When it is close to 100%, Claude flips `APP_CHECK_ENFORCED` in
-   `firebase/functions/src/sessions.ts` (slice 2.4). Unverified calls are refused from then on.
+   `firebase/functions/src/caller.ts` (slice 2.4). Unverified calls to every player-facing
+   function (sessions, votes) are refused from then on.
 
-## 3. Later in Phase 2
+## 3. Voting (slice 2.2, automatic)
+- 🤖 Merging deploys `castVote`, `deleteMyData` and the hourly `recomputeRankings`. Nothing to set
+  up. "Popular this week" and like percentages appear once the first hourly run has seen plays
+  (like percentages need 20 votes per game).
+
+## 4. Later in Phase 2
 - ⏳ Grant yourself the `admin` custom claim (slice 2.3; a one-line script will be provided).

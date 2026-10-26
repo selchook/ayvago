@@ -1,7 +1,7 @@
 # Spec — Voting, Favorites and Game Ranking
 
-- Status: Draft (2026-10-18)
-- Related: [Roadmap §8](../plan/roadmap.md), [Accounts](accounts.md)
+- Status: Implemented in part (2026-10-26) — see §7
+- Related: [Roadmap §8](../plan/roadmap.md), [Accounts](accounts.md), [Phase 2 plan](../plan/phase-2.md)
 
 ## 1. Goals
 
@@ -85,3 +85,24 @@ Engagement inputs come from `sessions` (written by `startSession`/`finishSession
 - A game with 3 likes and no dislikes ranks below a game with 950 likes and 50 dislikes.
 - Negative reasons appear in the admin feedback view, aggregated per day.
 - A new game appears in the "New" shelf on launch day regardless of score.
+
+## 7. Implementation status
+
+Shipped in Phase 2 slice 2.2 ([plan](../plan/phase-2.md#22-voting-and-ranking-)):
+
+- **Votes:** written only through the `castVote` callable (no client writes, no `onVoteWritten` trigger). The callable checks eligibility (60 s of play from `users/{uid}/stats/{gameId}`, which only the session functions write) and the rate limit (30 changes per hour). It also validates the reasons and comment, and updates the counters in the same transaction. `games/{gameId}/votes/{uid}` is readable by its owner only.
+- **Feedback:** daily aggregates in `games/{gameId}/feedback/{day}` (`count`, `comments`, `reasons.<id>`), written by `castVote`. No nightly `aggregateFeedback` job.
+- **Ranking:** `recomputeRankings` runs hourly. It computes Wilson, engagement, `qualityScore` and `trendScore` from `games/{gameId}/daily/{day}` (started/finished runs and play time from score sessions), and publishes `rankings/catalog` for the web app.
+- **UI:**
+  - Toolbar 👍 / 👎 and the negative feedback form.
+  - The vote nudge.
+  - Like percentages from 20 votes on the toolbar and tiles.
+  - "Popular this week" and "Continue playing" shelves; quality-ordered category shelves, category pages and related games.
+- **Favorites** stay in the library document (`users/{uid}/library/state`) from Phase 1, not in `users/{uid}/favorites/{gameId}`.
+- **Not yet:**
+  - Day-1 return rate and median session length.
+  - Remote Config weights.
+  - Burst detection.
+  - Admin feedback view (Phase 2 slice 2.3).
+  - "Top rated" shelf.
+  - Long-press favorite.

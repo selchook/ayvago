@@ -195,9 +195,10 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 |---|---|---|
 | `startSession` ✅ | Callable (App Check, enforced after rollout) | Creates the session document and a random token (hash stored) |
 | `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review |
-| `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into board rows, or removes them before account deletion |
-| `onVoteWritten` | Firestore trigger | Vote counters |
-| `recomputeGameScores` | Scheduled (nightly) | Wilson rating, engagement, `qualityScore`, `trendScore` |
+| `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
+| `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
+| `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
+| `deleteMyData` ✅ | Callable | Account deletion, server part: profile, library, username, board rows, votes, stats |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` | Callable (auth + rate limit) | Short-lived TURN credentials from Cloudflare (§10) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
@@ -464,7 +465,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup](../setup/phase-2.md)
 - [ ] `startSession` / `finishSession` + App Check — sessions, validation, flags and the App Check client done ([ADR 0006](../adr/0006-score-sessions.md)); enforcement waits for the reCAPTCHA Enterprise key
 - [x] Leaderboards (weekly season + all-time, `top[]` cache, `count()` rank, season archive) with locale-aware number formatting — game page panel and `/games/{slug}/leaderboard`; country scope and season rewards deferred (see the plan)
-- [ ] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — favorites done in Phase 1
+- [x] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — `castVote`, hourly `recomputeRankings`, Popular and Continue Playing shelves; day-1 return and burst detection deferred (see the plan)
 - [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender is keyboard-only and needs touch controls before it is promoted on mobile
 - [ ] Admin panel v1 (custom claims): game management, flagged scores — flagged scores already collected in `scoreFlags/`
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
