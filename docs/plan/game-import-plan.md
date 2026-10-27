@@ -30,7 +30,7 @@
 | 9 | Naval Strike | `battleships` | React | MP | Ably (key in source!) | Ably → netcode | **M** | 3 |
 | 10 | Tito | `tito-multiplayer` | Next.js | MP | Ably (wrapper with a PeerJS-style interface) | Ably → netcode; Next.js build | **M** | 3 |
 | — | PyraStack | `PyraStackInstant` | Unity | — | Empty Unity template | No game yet | — | Out of scope |
-| 11–36 | Ayvago Arcade (26 games) | `ayvago-games` | Phaser 3 (TS), shared runtime | Retro Action / Puzzle / Board | Built in-house with SDK v2, manifests and art generated ([ADR 0007](../adr/0007-ayvago-arcade.md)) | Origin not deployed yet | — | Phase 2 (slice 2.6) |
+| 11–36 | Ayvago Arcade (26 games) | `ayvago-games` | Phaser 3 (TS), shared runtime | Retro Action / Puzzle / Board | Built in-house with SDK v2, manifests and art generated ([ADR 0007](../adr/0007-ayvago-arcade.md)); deployed and live | — | — | Phase 2 (slice 2.6) |
 
 Effort: **S** ≈ half a day, **M** ≈ 1–2 days, **L** ≈ 3–4 days (with Claude).
 

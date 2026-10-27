@@ -75,15 +75,14 @@ Do **not** press "Enforce" in the Firebase console:
 The 26 in-house games live in `selchook/ayvago-games`, built with Claude. They are in the catalog
 as "coming soon" until their origin is deployed.
 
-1. ⏳ GitHub: create the repository `selchook/ayvago-games` (empty, no README) and push the games
-   project to it (Claude can do this once it has access to the repository).
-2. ⏳ Vercel → **Add New → Project** → import `selchook/ayvago-games`. Framework preset
+1. ✅ GitHub: the repository `selchook/ayvago-games` is created and the games project is pushed.
+2. ✅ Vercel → **Add New → Project** → import `selchook/ayvago-games`. Framework preset
    **Other**. Build settings come from `vercel.json` (`npm run build`, output `dist`). Project
    name `ayvago-games`, so the URL is `https://ayvago-games.vercel.app`. If you choose another
    domain, tell Claude: the catalog entries are regenerated with that origin.
-3. ⏳ Check one game directly, e.g. `https://ayvago-games.vercel.app/games/space-blaster/`. The
+3. ✅ Check one game directly, e.g. `https://ayvago-games.vercel.app/games/space-blaster/`. The
    Ayvago intro plays, then the menu appears.
-4. 🤖 Claude regenerates `arcade-catalog.ts` with `--live` (`ARCADE_STATUS = 'live'`) in a PR.
+4. ✅ 🤖 Claude regenerated `arcade-catalog.ts` with `--live` (`ARCADE_STATUS = 'live'`).
    Merging deploys the web app and the score functions with the new games.
 5. ⏳ Check on ayvago.com: open an arcade game, play a run of at least 5 seconds; the score
    reaches the leaderboard panel.

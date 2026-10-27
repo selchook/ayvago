@@ -471,7 +471,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] Voting + Wilson/engagement ranking, negative-feedback reasons, favorites, Continue Playing shelf — `castVote`, hourly `recomputeRankings`, Popular and Continue Playing shelves; day-1 return and burst detection deferred (see the plan)
 - [x] **Import wave 2** (space-defender, gyroball-infinite) — integrated, deployed and live in the catalog; Space Defender touch controls live (selchook/space-defender#2)
 - [x] Admin panel v1 (custom claims): game management, flagged scores — `/admin` with flag review (approve / reject / ban), players, feedback and a games overview; editing games waits for the Firestore catalog
-- [ ] **Ayvago Arcade** (26 in-house games from `selchook/ayvago-games`, [ADR 0007](../adr/0007-ayvago-arcade.md)) — catalog entries, local test switch and game-side SDK v2 integration done; live once the games origin is deployed
+- [x] **Ayvago Arcade** (26 in-house games from `selchook/ayvago-games`, [ADR 0007](../adr/0007-ayvago-arcade.md)) — SDK v2 integration, generated catalog entries with covers and icons, deployed and live in the catalog
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)

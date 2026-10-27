@@ -20,9 +20,8 @@ up.
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
 
-Live games: Crystal Runner 3D, Orb Surge, Pixel Cascade, ChromaShift, Space Defender, Gyroball Infinite.
-Coming next: the 26 in-house Ayvago Arcade games (`selchook/ayvago-games`, slice 2.6), live once
-their origin is deployed.
+Live games: Crystal Runner 3D, Orb Surge, Pixel Cascade, ChromaShift, Space Defender, Gyroball Infinite,
+and the 26 in-house Ayvago Arcade games (`selchook/ayvago-games`, slice 2.6).
 
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
 - Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)

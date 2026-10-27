@@ -16,7 +16,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.3 | Admin panel v1: `admin` custom claim, flagged-score review (approve / reject / ban), players, feedback, game overview | ✅ code, ⏳ grant the admin role |
 | 2.4 | App Check enforcement (after the verified share reaches ~100%) | ✅ code, ⏳ site key, then the switch in the panel |
 | 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ✅ live (selchook/space-defender#2 merged) |
-| 2.6 | Ayvago Arcade: 26 in-house games in the catalog ([ADR 0007](../adr/0007-ayvago-arcade.md)) | ✅ code, ⏳ deploy `selchook/ayvago-games`, then switch to live |
+| 2.6 | Ayvago Arcade: 26 in-house games in the catalog ([ADR 0007](../adr/0007-ayvago-arcade.md)) | ✅ live (`ayvago-games.vercel.app` deployed, `ARCADE_STATUS = 'live'`) |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -246,8 +246,9 @@ What shipped:
     - `retro_action`: 15 games
     - `puzzle`: 8 games
     - `board`: Connect Four, Reversi and Solitaire
-- **Status switch:** `ARCADE_STATUS` keeps all of them `coming_soon` until the origin is deployed.
-  Switching it to `live` (regenerate with `--live`) makes them playable and opens score sessions.
+- **Status switch:** `ARCADE_STATUS` kept all of them `coming_soon` until the origin was deployed.
+  It is now `live`: the games are playable on ayvago.com and accept score sessions (the functions
+  redeploy because `packages/shared` changed).
 - **Local testing:** `AYVAGO_DEV_ARCADE_ORIGIN=http://localhost:4173` points every arcade game at
   a local build, like `AYVAGO_DEV_ENTRY_OVERRIDES` (listed in `turbo.json`).
 - **Game side (in `selchook/ayvago-games`):**
@@ -277,10 +278,13 @@ Deviations:
 - **Generous scoring limits.** `maxPerSecond` 1000, `minDurationMs` 3 s and `maxScore` 10M apply
   to every arcade game until calibration. Games can override them in their `game.json`.
 
+Status:
+- ✅ `selchook/ayvago-games` deployed on Vercel (`https://ayvago-games.vercel.app`); the owner
+  checked that the games open with the Ayvago intro and menu.
+- ✅ `ARCADE_STATUS` switched to `live`.
+
 Open:
-- ⏳ Create `selchook/ayvago-games` and its Vercel project, then deploy
-  ([setup](../setup/phase-2.md#7-ayvago-arcade-slice-26)).
-- ⏳ Switch `ARCADE_STATUS` to `live` once the deployed games pass the checks.
+- ⏳ Check one run on ayvago.com reaches the leaderboard ([setup](../setup/phase-2.md#7-ayvago-arcade-slice-26)).
 - Calibrate the scoring limits per game after two weeks of sessions.
 
 ## Game fixes during the phase
