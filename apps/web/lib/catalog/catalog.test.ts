@@ -1,3 +1,4 @@
+import { ARCADE_GAMES, resolveAssetUrl } from '@ayvago/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 async function loadCatalog() {
@@ -57,6 +58,34 @@ describe('seed catalog', () => {
     });
   });
 
+  it('lists every Ayvago Arcade game with its own entry and art', async () => {
+    const { getAllGames } = await loadCatalog();
+    const arcade = getAllGames().filter((game) => game.repo === 'selchook/ayvago-games');
+    expect(arcade).toHaveLength(ARCADE_GAMES.length);
+    expect(arcade.length).toBeGreaterThanOrEqual(26);
+    for (const game of arcade) {
+      expect(game.manifest.id, game.slug).toBe(game.slug.replace(/-/g, ''));
+      expect(game.manifest.entry, game.slug).toMatch(new RegExp(`/games/${game.slug}/$`));
+      expect(resolveAssetUrl(game.manifest, game.manifest.assets.cover), game.slug).toBe(
+        new URL(`/games/${game.slug}/ayvago/cover-1920x1080.jpg`, game.manifest.entry).toString(),
+      );
+    }
+  });
+
+  it('points the arcade games at a local build with AYVAGO_DEV_ARCADE_ORIGIN', async () => {
+    vi.stubEnv('AYVAGO_DEV_ARCADE_ORIGIN', 'http://localhost:4173/');
+    let catalog = await loadCatalog();
+    expect(catalog.getGameBySlug('space-blaster')).toMatchObject({
+      status: 'live',
+      manifest: { entry: 'http://localhost:4173/games/space-blaster/' },
+      coverUrl: 'http://localhost:4173/games/space-blaster/ayvago/cover-1920x1080.jpg',
+    });
+
+    vi.stubEnv('NODE_ENV', 'production');
+    catalog = await loadCatalog();
+    expect(catalog.getGameBySlug('space-blaster')?.manifest.entry).toMatch(/^https:\/\//);
+  });
+
   it('uses the cover a live game serves from its own origin', async () => {
     vi.stubEnv('AYVAGO_DEV_GAMES', '1');
     const { getAllGames } = await loadCatalog();
@@ -65,7 +94,7 @@ describe('seed catalog', () => {
         expect(game.coverUrl, game.slug).toBeNull();
       } else {
         expect(game.coverUrl, game.slug).toBe(
-          new URL('/ayvago/cover-1920x1080.jpg', game.manifest.entry).toString(),
+          resolveAssetUrl(game.manifest, game.manifest.assets.cover),
         );
       }
     }

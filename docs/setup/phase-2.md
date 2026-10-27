@@ -70,3 +70,24 @@ Do **not** press "Enforce" in the Firebase console:
 
 ## 6. Game fixes
 - ⏳ Review and merge selchook/chromashift#3 (ChromaShift fits phone screens; Vercel preview built).
+
+## 7. Ayvago Arcade (slice 2.6)
+The 26 in-house games live in `selchook/ayvago-games`, built with Claude. They are in the catalog
+as "coming soon" until their origin is deployed.
+
+1. ⏳ GitHub: create the repository `selchook/ayvago-games` (empty, no README) and push the games
+   project to it (Claude can do this once it has access to the repository).
+2. ⏳ Vercel → **Add New → Project** → import `selchook/ayvago-games`. Framework preset
+   **Other**. Build settings come from `vercel.json` (`npm run build`, output `dist`). Project
+   name `ayvago-games`, so the URL is `https://ayvago-games.vercel.app`. If you choose another
+   domain, tell Claude: the catalog entries are regenerated with that origin.
+3. ⏳ Check one game directly, e.g. `https://ayvago-games.vercel.app/games/space-blaster/`. The
+   Ayvago intro plays, then the menu appears.
+4. 🤖 Claude regenerates `arcade-catalog.ts` with `--live` (`ARCADE_STATUS = 'live'`) in a PR.
+   Merging deploys the web app and the score functions with the new games.
+5. ⏳ Check on ayvago.com: open an arcade game, play a run of at least 5 seconds; the score
+   reaches the leaderboard panel.
+
+To play them locally before the deploy: in `ayvago-games`, run
+`npm run build && npx vite preview --port 4173`. In this repository, run
+`AYVAGO_DEV_ARCADE_ORIGIN=http://localhost:4173 pnpm dev`.

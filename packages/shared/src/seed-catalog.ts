@@ -1,3 +1,4 @@
+import { ARCADE_GAMES } from './arcade-catalog';
 import type { GameManifestInput } from './manifest';
 
 // Seed catalog used until games are imported into Firestore (Phase 1, import wave 1).
@@ -306,6 +307,8 @@ export const SEED_GAMES: SeedGame[] = [
       version: '1.0.0',
     },
   },
+  // In-house Ayvago Arcade games (packages/shared/src/arcade-catalog.ts).
+  ...ARCADE_GAMES,
 ];
 
 // Local test game served by `pnpm fixture-game` (tools/fixture-game) on another origin,
