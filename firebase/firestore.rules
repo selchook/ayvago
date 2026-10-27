@@ -42,7 +42,7 @@ service cloud.firestore {
     // "<glyph>-<color>" from apps/web/lib/account/avatars.ts.
     function validPreferences(data) {
       return (!('avatarId' in data) || (data.avatarId is string && data.avatarId.matches('^[a-z]{2,12}-[a-z]{2,12}$')))
-        && (!('theme' in data) || data.theme in ['retro', 'cartoon', 'minimal'])
+        && (!('theme' in data) || data.theme in ['retro', 'cartoon', 'minimal', 'arcade'])
         && (!('mode' in data) || data.mode in ['system', 'light', 'dark']);
     }
 

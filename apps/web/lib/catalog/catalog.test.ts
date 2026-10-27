@@ -56,6 +56,19 @@ describe('seed catalog', () => {
     );
   });
 
+  it('lists a game under every one of its categories', async () => {
+    const { getGameBySlug, getGamesByCategory } = await loadCatalog();
+    const blaster = getGameBySlug('space-blaster')!;
+    expect(blaster.manifest.category).toBe('arcade');
+    for (const category of blaster.manifest.categories ?? []) {
+      expect(
+        getGamesByCategory(category).map((g) => g.slug),
+        category,
+      ).toContain('space-blaster');
+    }
+    expect(getGamesByCategory('puzzle').map((g) => g.slug)).not.toContain('space-blaster');
+  });
+
   it('leaves the parked imported games out of the catalog', async () => {
     const { getAllGames, getGameBySlug, getMultiplayerGames, getFeaturedGames } =
       await loadCatalog();

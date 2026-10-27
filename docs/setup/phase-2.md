@@ -94,3 +94,9 @@ To play them locally before the deploy: in `ayvago-games`, run
 ## 8. Imported games parked (slice 2.7)
 - 🤖 Nothing to set up. Merging redeploys the web app and the functions without the ten imported
   games. Their own Vercel deployments keep running, and their Firestore data stays.
+
+## 9. Ayvago Arcade look (slice 2.8)
+- 🤖 Nothing to set up. Merging deploys:
+  - the web app, with the new categories, the Ayvago Arcade theme and the logo;
+  - the Firestore rules, which accept the new theme;
+  - the functions, because `packages/shared` changed.

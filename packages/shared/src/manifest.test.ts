@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  gameCategories,
   parseGameManifest,
   pickLocalized,
   resolveAssetUrl,
@@ -10,7 +11,7 @@ const orbSurge: GameManifestInput = {
   id: 'orbsurge',
   title: { tr: 'Orb Surge', en: 'Orb Surge' },
   description: { en: 'Pop the neon orbs.', tr: 'Neon küreleri patlat.' },
-  category: 'retro_action',
+  category: 'arcade',
   tags: ['arcade', 'reflex'],
   entry: 'https://orb-surge.vercel.app/',
   orientation: 'any',
@@ -75,9 +76,24 @@ describe('parseGameManifest', () => {
     expect(issuePaths({ ...orbSurge, catgory: 'puzzle' })).toContain('(root)');
   });
 
+  it('accepts extra categories only together with the primary one', () => {
+    expect(parseGameManifest({ ...orbSurge, categories: ['arcade', 'action'] }).ok).toBe(true);
+    expect(issuePaths({ ...orbSurge, categories: ['action', 'retro'] })).toContain('categories');
+    expect(issuePaths({ ...orbSurge, categories: ['shooter'] })).toContain('categories.0');
+  });
+
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');
+  });
+});
+
+describe('gameCategories', () => {
+  it('lists the primary category first, then the others once', () => {
+    expect(gameCategories({ category: 'puzzle' })).toEqual(['puzzle']);
+    expect(
+      gameCategories({ category: 'puzzle', categories: ['casual', 'puzzle', 'retro'] }),
+    ).toEqual(['puzzle', 'casual', 'retro']);
   });
 });
 

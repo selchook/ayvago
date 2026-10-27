@@ -473,6 +473,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] Admin panel v1 (custom claims): game management, flagged scores — `/admin` with flag review (approve / reject / ban), players, feedback and a games overview; editing games waits for the Firestore catalog
 - [x] **Ayvago Arcade** (26 in-house games from `selchook/ayvago-games`, [ADR 0007](../adr/0007-ayvago-arcade.md)) — SDK v2 integration, generated catalog entries with covers and icons, deployed and live in the catalog
 - [x] Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)); the multiplayer ones return with import wave 3
+- [x] Ayvago Arcade look: categories follow the arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)

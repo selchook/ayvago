@@ -1,7 +1,7 @@
 // Theme definitions: one set of semantic tokens per theme and color mode.
 // Components only ever read these semantic tokens (as CSS custom properties).
 
-export const THEME_IDS = ['minimal', 'retro', 'cartoon'] as const;
+export const THEME_IDS = ['minimal', 'retro', 'cartoon', 'arcade'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
 export const COLOR_MODES = ['light', 'dark'] as const;
@@ -229,6 +229,54 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       motionBase: '220ms',
       motionSlow: '380ms',
       easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    },
+  },
+
+  // The Ayvago Arcade look (selchook/ayvago-games portal and games): brand ink, red and paper
+  // from the boot intro, yellow display headings, chunky black outlines with hard drop shadows,
+  // Press Start 2P headings and Pixelify Sans body text (both cover Turkish).
+  arcade: {
+    id: 'arcade',
+    modes: ['dark'],
+    colors: {
+      dark: {
+        bg: '#201e1d',
+        surface: '#2a2726',
+        surfaceRaised: '#34302f',
+        text: '#f3f2f2',
+        textMuted: '#b5b0ae',
+        // Brand red (#ec3013) a touch darker so white text on it passes WCAG AA.
+        accent: '#e02a10',
+        accentContrast: '#ffffff',
+        accent2: '#ffd23f',
+        success: '#5dff7a',
+        warning: '#ffd23f',
+        danger: '#ff7a66',
+        border: '#4a4543',
+        focusRing: '#3ee6ff',
+      },
+    },
+    shape: {
+      radiusSm: '0',
+      radiusMd: '0',
+      radiusLg: '0',
+      borderWidth: '3px',
+      shadowSm: '0 3px 0 #000',
+      shadowMd: '0 6px 0 #000',
+      shadowLg: '0 10px 0 #000',
+    },
+    type: {
+      fontDisplay: `'Press Start 2P', ${SYSTEM_MONO}`,
+      fontBody: `'Pixelify Sans', ${SYSTEM_SANS}`,
+      fontMono: `'Press Start 2P', ${SYSTEM_MONO}`,
+      fontBodyScale: '1.1',
+      displayTransform: 'uppercase',
+    },
+    motion: {
+      motionFast: '100ms',
+      motionBase: '160ms',
+      motionSlow: '260ms',
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
     },
   },
 };

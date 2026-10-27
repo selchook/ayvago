@@ -10,5 +10,22 @@ describe('category slugs', () => {
 
   it('rejects unknown slugs', () => {
     expect(categoryFromSlug('shooter')).toBeNull();
+    // Retired before the categories matched the Ayvago Arcade genres (ADR 0009).
+    expect(categoryFromSlug('retro-action')).toBeNull();
+    expect(categoryFromSlug('board')).toBeNull();
+  });
+
+  it('matches the Ayvago Arcade genres', () => {
+    expect([...GAME_CATEGORIES]).toEqual([
+      'arcade',
+      'action',
+      'casual',
+      'puzzle',
+      'retro',
+      'sports',
+      'strategy',
+      'card',
+      'word',
+    ]);
   });
 });

@@ -16,10 +16,15 @@
     "skipToContent": "Skip to content"
   },
   "categories": {
-    "retro_action": "Retro Action",
+    "arcade": "Arcade",
+    "action": "Action",
     "casual": "Casual",
     "puzzle": "Puzzle",
-    "board": "Board"
+    "retro": "Retro",
+    "sports": "Sports",
+    "strategy": "Strategy",
+    "card": "Card",
+    "word": "Word"
   },
   "localeSwitcher": {
     "label": "Language"
@@ -30,11 +35,12 @@
     "minimal": "Minimal",
     "retro": "Retro",
     "cartoon": "Cartoon",
+    "arcade": "Ayvago Arcade",
     "mode": "Color mode",
     "system": "System",
     "light": "Light",
     "dark": "Dark",
-    "retroDarkOnly": "Retro is always dark."
+    "darkOnly": "This theme is always dark."
   },
   "home": {
     "tagline": "Retro action, casual and puzzle games in one place.",

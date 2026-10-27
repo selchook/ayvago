@@ -16,10 +16,15 @@
     "skipToContent": "İçeriğe geç"
   },
   "categories": {
-    "retro_action": "Retro Aksiyon",
-    "casual": "Casual",
+    "arcade": "Arcade",
+    "action": "Aksiyon",
+    "casual": "Gündelik",
     "puzzle": "Bulmaca",
-    "board": "Masa Oyunları"
+    "retro": "Retro",
+    "sports": "Spor",
+    "strategy": "Strateji",
+    "card": "Kart",
+    "word": "Kelime"
   },
   "localeSwitcher": {
     "label": "Dil"
@@ -30,11 +35,12 @@
     "minimal": "Minimal",
     "retro": "Retro",
     "cartoon": "Cartoon",
+    "arcade": "Ayvago Arcade",
     "mode": "Renk modu",
     "system": "Sistem",
     "light": "Açık",
     "dark": "Koyu",
-    "retroDarkOnly": "Retro tema her zaman koyudur."
+    "darkOnly": "Bu tema her zaman koyudur."
   },
   "home": {
     "tagline": "Retro aksiyon, casual ve bulmaca oyunları tek platformda.",

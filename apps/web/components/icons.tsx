@@ -99,6 +99,46 @@ export const DiceIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const BoltIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
+  </Icon>
+);
+
+export const PixelIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+  </Icon>
+);
+
+export const BallIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3.6 9.5c4.6 1.4 12.2 1.4 16.8 0M3.6 14.5c4.6-1.4 12.2-1.4 16.8 0M12 3c-3 5-3 13 0 18M12 3c3 5 3 13 0 18" />
+  </Icon>
+);
+
+export const CrownIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 10H5L3 8Z" />
+    <path d="M5 21h14" />
+  </Icon>
+);
+
+export const CardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="5" y="3" width="14" height="18" rx="2" />
+    <path d="M12 8.5c1.6-2 4 .3 0 4-4-3.7-1.6-6 0-4Z" />
+  </Icon>
+);
+
+export const LetterIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="3" />
+    <path d="m8 17 4-10 4 10M9.6 13h4.8" />
+  </Icon>
+);
+
 export const SmileIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="9" />

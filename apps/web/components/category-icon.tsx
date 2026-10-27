@@ -1,11 +1,26 @@
 import type { GameCategory } from '@ayvago/shared';
-import { DiceIcon, JoystickIcon, PuzzleIcon, SmileIcon } from './icons';
+import {
+  BallIcon,
+  BoltIcon,
+  CardIcon,
+  CrownIcon,
+  JoystickIcon,
+  LetterIcon,
+  PixelIcon,
+  PuzzleIcon,
+  SmileIcon,
+} from './icons';
 
 const ICONS: Record<GameCategory, typeof JoystickIcon> = {
-  retro_action: JoystickIcon,
+  arcade: JoystickIcon,
+  action: BoltIcon,
   casual: SmileIcon,
   puzzle: PuzzleIcon,
-  board: DiceIcon,
+  retro: PixelIcon,
+  sports: BallIcon,
+  strategy: CrownIcon,
+  card: CardIcon,
+  word: LetterIcon,
 };
 
 export function CategoryIcon({ category, size }: { category: GameCategory; size?: number }) {

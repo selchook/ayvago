@@ -1,4 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#3a4ddc"/>
-  <path d="M18 48 32 14l14 34h-8l-2.6-7H26.6L24 48h-6Zm11-13.5h6L32 26l-3 8.5Z" fill="#fff"/>
+  <!-- The Ayvago mark from the boot intro: paper ring and five red seeds on brand ink. -->
+  <rect width="64" height="64" rx="14" fill="#201e1d"/>
+  <g transform="translate(32 32)">
+    <circle r="18.2" fill="none" stroke="#f3f2f2" stroke-width="6.5"/>
+    <g fill="#ec3013">
+      <ellipse cy="-8.2" rx="2.3" ry="3.75"/>
+      <ellipse cy="-8.2" rx="2.3" ry="3.75" transform="rotate(72)"/>
+      <ellipse cy="-8.2" rx="2.3" ry="3.75" transform="rotate(144)"/>
+      <ellipse cy="-8.2" rx="2.3" ry="3.75" transform="rotate(216)"/>
+      <ellipse cy="-8.2" rx="2.3" ry="3.75" transform="rotate(288)"/>
+    </g>
+  </g>
 </svg>

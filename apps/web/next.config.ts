@@ -48,6 +48,17 @@ const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript sources; let Next compile them.
   transpilePackages: ['@ayvago/shared', '@ayvago/themes'],
   poweredByHeader: false,
+  // Category URLs from before the categories matched the Ayvago Arcade genres (ADR 0009).
+  async redirects() {
+    return [
+      {
+        source: '/:locale(en|tr)/c/retro-action',
+        destination: '/:locale/c/arcade',
+        permanent: true,
+      },
+      { source: '/:locale(en|tr)/c/board', destination: '/:locale/c/strategy', permanent: true },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

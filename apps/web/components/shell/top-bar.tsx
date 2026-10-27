@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { AccountMenu } from '../account/account-menu';
 import { LocaleSwitcher } from '../locale-switcher';
 import { ThemeSwitcher } from '../theme-switcher';
+import { BrandLogo } from './brand-logo';
 import styles from './shell.module.css';
 
 export async function TopBar() {
@@ -10,7 +11,8 @@ export async function TopBar() {
   return (
     <header className={styles.topBar}>
       <Link href="/" className={styles.logo}>
-        {t('title')}
+        <BrandLogo />
+        <span className="visually-hidden">{t('title')}</span>
       </Link>
       <div className={styles.topActions}>
         <ThemeSwitcher />

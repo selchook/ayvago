@@ -6,7 +6,7 @@
 ## 1. Goals
 
 - A catalog that feels instant: browse, hover, click, play.
-- Three distinct looks — **retro**, **cartoon**, **minimal** — from one component library.
+- Distinct looks — **retro**, **cartoon**, **minimal** and **arcade** (the Ayvago Arcade look) — from one component library.
 - Accessible (WCAG 2.2 AA), localized (en, tr) and mobile-first.
 
 ### Lessons taken from CrazyGames
@@ -16,8 +16,8 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 
 | Region | Desktop (≥ 1024 px) | Tablet | Phone |
 |---|---|---|---|
-| **TopBar** | Logo, search (⌘K / Ctrl+K), theme switch, language, coins (later), avatar menu | Same, search collapses to an icon | Logo, search icon, avatar |
-| **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, Retro Action, Casual, Puzzle, Board, Multiplayer | Icon-only rail | Hidden |
+| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), search (⌘K / Ctrl+K), theme switch, language, coins (later), avatar menu | Same, search collapses to an icon | Logo, search icon, avatar |
+| **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon-only rail | Hidden |
 | **BottomNav** | — | — | Home, Search, Recent, Favorites, Profile |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
 
@@ -93,6 +93,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **minimal** (default) | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
 | **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons |
 | **cartoon** | light + dark | Saturated yellow/blue/pink, 20 px radius, 3 px dark outlines, springy hover, confetti on personal bests |
+| **arcade** | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines |
 
 Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
 
@@ -103,6 +104,7 @@ Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
 | minimal | Inter (600–800) | Inter |
 | retro | Press Start 2P (headings only, small sizes) | VT323 or IBM Plex Mono |
 | cartoon | Fredoka | Baloo 2 |
+| arcade | Press Start 2P | Pixelify Sans |
 
 Fonts load through `next/font` with `latin` + `latin-ext` subsets. A glyph test page (`/dev/glyphs`) renders `ç ğ ı İ ö ş ü Ç Ğ Ö Ş Ü` in every font; fonts that fail are replaced.
 
@@ -141,6 +143,6 @@ Covers are served as responsive AVIF/WebP; preview videos load only on hover int
 
 - Switching theme or mode updates the whole UI and a running game's SDK overlays without reloading.
 - A first visit with a saved theme cookie renders the right theme with no flash.
-- Every component renders correctly in all 5 theme/mode combinations and both locales in Storybook.
+- Every component renders correctly in all 6 theme/mode combinations and both locales in Storybook.
 - The contrast test passes for all themes.
 - Lighthouse on the home page meets the budgets above on a mid-range phone profile.

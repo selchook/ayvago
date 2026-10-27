@@ -41,19 +41,19 @@
 }
 
 .logo {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
-  text-transform: var(--display-transform);
+  display: flex;
+  align-items: center;
   color: var(--text);
   text-decoration: none;
 }
 
 [data-theme='retro'] .logo {
-  font-size: 0.95rem;
   color: var(--accent);
-  text-shadow: 2px 2px 0 var(--accent-2);
+}
+
+/* The Ayvago Arcade look: a brand-red rule under the top bar, as on the games portal. */
+[data-theme='arcade'] .topBar {
+  border-bottom-color: var(--accent);
 }
 
 .topActions {

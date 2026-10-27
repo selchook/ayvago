@@ -4,6 +4,7 @@ import {
   FIXTURE_GAME,
   SEED_GAMES,
   categorySlug,
+  gameCategories,
   parseGameManifest,
   pickLocalized,
   resolveAssetUrl,
@@ -112,7 +113,7 @@ export function getGameBySlug(slug: string): CatalogGame | undefined {
 }
 
 export function getGamesByCategory(category: GameCategory): CatalogGame[] {
-  return getAllGames().filter((game) => game.manifest.category === category);
+  return getAllGames().filter((game) => gameCategories(game.manifest).includes(category));
 }
 
 export function getFeaturedGames(): CatalogGame[] {
@@ -139,8 +140,10 @@ export function getRelatedGames(
     rankings,
     'qualityScore',
   );
-  const same = others.filter((g) => g.manifest.category === game.manifest.category);
-  const rest = others.filter((g) => g.manifest.category !== game.manifest.category);
+  const mine = new Set(gameCategories(game.manifest));
+  const shares = (g: CatalogGame) => gameCategories(g.manifest).some((c) => mine.has(c));
+  const same = others.filter(shares);
+  const rest = others.filter((g) => !shares(g));
   return [...same, ...rest].slice(0, limit);
 }
 

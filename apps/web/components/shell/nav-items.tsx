@@ -2,7 +2,7 @@ import { GAME_CATEGORIES } from '@ayvago/shared';
 import { getTranslations } from 'next-intl/server';
 import { CategoryIcon } from '../category-icon';
 import { ClockIcon, HeartIcon, HomeIcon, SparkleIcon, UsersIcon } from '../icons';
-import { categoryPath, getMultiplayerGames } from '@/lib/catalog';
+import { categoryPath, getGamesByCategory, getMultiplayerGames } from '@/lib/catalog';
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -15,11 +15,14 @@ export async function getNavItems() {
     { href: '/favorites', label: t('nav.favorites'), icon: <HeartIcon /> },
   ];
   const categories: NavItem[] = [
-    ...GAME_CATEGORIES.map((category) => ({
-      href: categoryPath(category),
-      label: t(`categories.${category}`),
-      icon: <CategoryIcon category={category} />,
-    })),
+    // Categories without games stay out of the navigation.
+    ...GAME_CATEGORIES.filter((category) => getGamesByCategory(category).length > 0).map(
+      (category) => ({
+        href: categoryPath(category),
+        label: t(`categories.${category}`),
+        icon: <CategoryIcon category={category} />,
+      }),
+    ),
   ];
   // Hidden while the catalog has no multiplayer games, so the link never leads to an empty page.
   if (getMultiplayerGames().length > 0) {
