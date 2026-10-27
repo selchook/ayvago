@@ -29,6 +29,8 @@ export type CatalogGame = {
   multiplayer: boolean;
   // Absolute URL of the game's own cover image; null shows the generated placeholder.
   coverUrl: string | null;
+  // Absolute URL of an in-game screenshot (Arcade theme tiles); null falls back to the cover.
+  screenshotUrl: string | null;
 };
 
 function toCatalogGame(seed: SeedGame): CatalogGame {
@@ -37,6 +39,8 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     const issues = parsed.issues.map((i) => `${i.path}: ${i.message}`).join('; ');
     throw new Error(`Invalid manifest for ${seed.slug}: ${issues}`);
   }
+  const ownAssets = seed.status === 'live' && !seed.generatedCover;
+  const { cover, screenshot } = parsed.manifest.assets;
   return {
     slug: seed.slug,
     repo: seed.repo,
@@ -45,11 +49,9 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     featured: seed.featured ?? false,
     manifest: parsed.manifest,
     multiplayer: parsed.manifest.players.max > 1,
-    // Coming-soon games are not deployed with their assets yet, so their cover URLs would 404.
-    coverUrl:
-      seed.status === 'live' && !seed.generatedCover
-        ? resolveAssetUrl(parsed.manifest, parsed.manifest.assets.cover)
-        : null,
+    // Coming-soon games are not deployed with their assets yet, so their asset URLs would 404.
+    coverUrl: ownAssets ? resolveAssetUrl(parsed.manifest, cover) : null,
+    screenshotUrl: ownAssets && screenshot ? resolveAssetUrl(parsed.manifest, screenshot) : null,
   };
 }
 

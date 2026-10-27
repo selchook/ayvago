@@ -35,7 +35,7 @@
     "minimal": "Minimal",
     "retro": "Retro",
     "cartoon": "Cartoon",
-    "arcade": "Ayvago Arcade",
+    "arcade": "Arcade",
     "mode": "Color mode",
     "system": "System",
     "light": "Light",
@@ -353,5 +353,13 @@
       "monitoring": "Back to monitoring; unverified calls are accepted again.",
       "notReady": "Not enough verified sessions yet to enforce safely."
     }
+  },
+  "install": {
+    "title": "Install Ayvago",
+    "body": "Play from your home screen: full screen, one tap away.",
+    "iosBody": "Tap Share, then “Add to Home Screen”.",
+    "install": "Install",
+    "later": "Not now",
+    "ok": "Got it"
   }
 }

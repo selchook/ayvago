@@ -33,6 +33,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  // Browser chrome and the installed app's status bar use the brand ink.
+  themeColor: '#201e1d',
 };
 
 export async function generateMetadata({ params }: Omit<Props, 'children'>): Promise<Metadata> {
@@ -45,6 +47,7 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
     description: t('description'),
     alternates: localizedAlternates(locale, ''),
     openGraph: { siteName: t('title'), locale, type: 'website' },
+    appleWebApp: { capable: true, title: t('title'), statusBarStyle: 'black-translucent' },
   };
 }
 

@@ -35,7 +35,7 @@
     "minimal": "Minimal",
     "retro": "Retro",
     "cartoon": "Cartoon",
-    "arcade": "Ayvago Arcade",
+    "arcade": "Arcade",
     "mode": "Renk modu",
     "system": "Sistem",
     "light": "Açık",
@@ -353,5 +353,13 @@
       "monitoring": "İzleme moduna dönüldü; doğrulanmamış çağrılar yeniden kabul ediliyor.",
       "notReady": "Zorunlu modu güvenle açmak için henüz yeterli doğrulanmış oturum yok."
     }
+  },
+  "install": {
+    "title": "Ayvago'yu yükle",
+    "body": "Ana ekranından tek dokunuşla, tam ekran oyna.",
+    "iosBody": "Paylaş simgesine dokun, ardından “Ana Ekrana Ekle”yi seç.",
+    "install": "Yükle",
+    "later": "Şimdi değil",
+    "ok": "Tamam"
   }
 }

@@ -1,4 +1,4 @@
-import type { Locale } from '@ayvago/shared';
+import { gameCategories, type Locale } from '@ayvago/shared';
 import { getTranslations } from 'next-intl/server';
 import type { TileData, TileLabels } from '@/components/catalog/game-tile';
 import { gameTitle, type CatalogGame } from './index';
@@ -25,11 +25,16 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
     id: game.manifest.id,
     title: gameTitle(game, locale),
     category: game.manifest.category,
-    categoryLabel: tc(game.manifest.category),
+    // Up to three categories, primary first, like the tags on the Ayvago Arcade games portal.
+    categoryLabels: gameCategories(game.manifest)
+      .slice(0, 3)
+      .map((category) => tc(category)),
     comingSoon: game.status === 'coming_soon',
     isNew: now - Date.parse(game.addedAt) < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000,
     multiplayer: game.multiplayer,
     cover: game.coverUrl,
+    screenshot: game.screenshotUrl,
+    landscape: game.manifest.orientation === 'landscape',
     likePercent: gameLikePercent(game, rankings),
   }));
 }

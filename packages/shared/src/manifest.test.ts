@@ -82,6 +82,14 @@ describe('parseGameManifest', () => {
     expect(issuePaths({ ...orbSurge, categories: ['shooter'] })).toContain('categories.0');
   });
 
+  it('accepts an optional screenshot asset', () => {
+    const assets = { ...orbSurge.assets, screenshot: '/ayvago/screenshot.jpg' };
+    expect(parseGameManifest({ ...orbSurge, assets }).ok).toBe(true);
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, screenshot: 'ftp://x/y.jpg' } }),
+    ).toContain('assets.screenshot');
+  });
+
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');
