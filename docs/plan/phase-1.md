@@ -107,7 +107,7 @@ Legend: ✅ done · ⏳ owner action · ⬜ not started
 ## Still open (carried forward)
 - ⬜ Catalog in Firestore (`games/{gameId}`), editable from the admin panel.
 - ⬜ sdk-playground (developer test host), needed before the developer program (Phase 6).
-- ⬜ Platform PWA (manifest, service worker).
+- ✅ Platform PWA (manifest, service worker, install prompt): shipped in Phase 2, slice 2.9.
 - ⏳ `ayvago-dev` web config in Vercel Preview/Development and budget alerts ([Phase 0 setup §3](../setup/phase-0.md#3-firebase)).
 
 ## Tests at the end of the phase

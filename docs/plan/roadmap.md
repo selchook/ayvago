@@ -461,7 +461,7 @@ Slice summary: [Phase 1 plan](phase-1.md); the open items below carry forward.
 - [x] Platform adapter (`packages/platform-adapter`, protocol 2, vendored into games) — sdk-playground still open
 - [ ] sdk-playground (developer test host)
 - [x] **Import wave 1** (crystal-runner, orb-surge, pixel-cascade, chromashift) — integrated, deployed and live in the catalog with their own covers
-- [ ] Platform PWA (manifest, service worker)
+- [x] Platform PWA (manifest, service worker, install prompt) — Phase 2 slice 2.9
 - **Done when:** a guest picks a theme and a language, plays the 4 games and sees their scores on the profile.
 
 ### Phase 2 — Competition and community (2–3 weeks) — in progress

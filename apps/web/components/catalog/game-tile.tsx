@@ -11,11 +11,15 @@ export type TileData = {
   id: string;
   title: string;
   category: GameCategory;
-  categoryLabel: string;
+  /** Localized category names, primary first (at most three). */
+  categoryLabels: string[];
   comingSoon: boolean;
   isNew: boolean;
   multiplayer: boolean;
   cover: string | null;
+  /** In-game screenshot; the Arcade theme shows it instead of the cover. */
+  screenshot: string | null;
+  landscape: boolean;
   /** Shown from 20 votes (docs/specs/voting.md §2). */
   likePercent: number | null;
 };
@@ -23,10 +27,33 @@ export type TileData = {
 /** `likes` is an ICU message with a {percent} placeholder, already formatted by the caller. */
 export type TileLabels = { comingSoon: string; new: string; multiplayer: string; likes: string };
 
-export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {
+/**
+ * `wide` keeps the 16:9 cover in every theme (spotlight side tiles); otherwise the Arcade theme
+ * shows the game's screenshot in its own orientation, like the Ayvago Arcade games portal.
+ */
+export function GameTile({
+  tile,
+  labels,
+  wide = false,
+}: {
+  tile: TileData;
+  labels: TileLabels;
+  wide?: boolean;
+}) {
+  const shot = !wide && tile.screenshot;
   return (
-    <Link href={`/games/${tile.slug}`} className={styles.tile}>
+    <Link
+      href={`/games/${tile.slug}`}
+      className={styles.tile}
+      data-shot={shot ? (tile.landscape ? 'landscape' : 'portrait') : undefined}
+    >
       <CoverArt id={tile.id} title={tile.title} category={tile.category} image={tile.cover} />
+      {shot ? (
+        <span className={styles.shot}>
+          {/* Hidden (and so never loaded) outside the Arcade theme. */}
+          <img src={shot} alt="" loading="lazy" decoding="async" />
+        </span>
+      ) : null}
       <span className={styles.badges}>
         {tile.comingSoon ? (
           <span className={styles.badge} data-kind="soon">
@@ -46,7 +73,13 @@ export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels 
       <span className={styles.tileMeta}>
         <span className={styles.tileTitle}>{tile.title}</span>
         <span className={styles.tileCategory}>
-          {tile.categoryLabel}
+          <span className={styles.tags}>
+            {tile.categoryLabels.map((label) => (
+              <span key={label} className={styles.tag}>
+                {label}
+              </span>
+            ))}
+          </span>
           {tile.likePercent !== null ? (
             <span className={styles.tileLikes}>
               <ThumbUpIcon size={13} />

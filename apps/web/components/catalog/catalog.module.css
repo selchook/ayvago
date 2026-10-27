@@ -102,15 +102,62 @@
   box-shadow: var(--shadow-md);
 }
 
+/* In-game screenshot: only the Arcade theme shows it (hidden images are never loaded). */
+.shot {
+  display: none;
+}
+
+/* Arcade theme: the card of the Ayvago Arcade games portal (selchook/ayvago-games
+   portal/style.css) — the game's own screenshot at 9:12 (16:12 for landscape games), black
+   outline with a hard drop shadow, a red outline on hover and colored genre tags. */
 [data-theme='arcade'] .tile {
-  border-color: #000;
+  align-content: start;
+  border: 3px solid #000;
+  box-shadow: 0 6px 0 #000;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
 }
 
 [data-theme='arcade'] .tile:hover,
 [data-theme='arcade'] .tile:focus-visible {
   transform: translateY(-4px);
   border-color: #000;
+  box-shadow: 0 10px 0 #000;
   outline: 3px solid var(--accent);
+}
+
+[data-theme='arcade'] .tile[data-shot] .cover {
+  display: none;
+}
+
+[data-theme='arcade'] .tile[data-shot] .shot {
+  display: block;
+  aspect-ratio: 9 / 12;
+  background: #111;
+}
+
+[data-theme='arcade'] .tile[data-shot='landscape'] .shot {
+  aspect-ratio: 16 / 12;
+}
+
+[data-theme='arcade'] .shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-theme='arcade'] .tileMeta {
+  padding: 10px;
+  gap: 6px;
+}
+
+[data-theme='arcade'] .tileTitle {
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+  white-space: normal;
 }
 
 [data-theme='cartoon'] .tile:hover {
@@ -159,8 +206,50 @@
 }
 
 .tileCategory {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+/* Category tags, like the genre tags on the Ayvago Arcade games portal. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) .tag {
+  border-radius: 0;
+}
+
+/* Arcade: the portal's cyan / yellow / pink tags with ink text. */
+[data-theme='arcade'] .tag {
+  padding: 1px 6px;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: #201e1d;
+  background: #3ee6ff;
+}
+
+[data-theme='arcade'] .tag:nth-child(2) {
+  background: #ffd23f;
+}
+
+[data-theme='arcade'] .tag:nth-child(3) {
+  background: #ff4fa3;
 }
 
 .shelf {
@@ -258,10 +347,31 @@
   }
 }
 
+/* Arcade grids and shelves use the portal's card widths. */
+[data-theme='arcade'] .grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+[data-theme='arcade'] .shelfList {
+  align-items: start;
+  grid-auto-columns: clamp(220px, 22%, 260px);
+  gap: 14px;
+  padding-bottom: 14px;
+}
+
 @media (max-width: 639px) {
   .shelfList {
     grid-auto-columns: 72%;
     gap: 12px;
+  }
+
+  [data-theme='arcade'] .shelfList {
+    grid-auto-columns: 44%;
+  }
+
+  [data-theme='arcade'] .grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 
   .arrow {
@@ -282,6 +392,5 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  margin-inline-start: 8px;
   font-variant-numeric: tabular-nums;
 }

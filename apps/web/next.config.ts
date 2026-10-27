@@ -48,6 +48,18 @@ const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript sources; let Next compile them.
   transpilePackages: ['@ayvago/shared', '@ayvago/themes'],
   poweredByHeader: false,
+  // The service worker must never be cached, so a fix reaches players on their next visit.
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+        ],
+      },
+    ];
+  },
   // Category URLs from before the categories matched the Ayvago Arcade genres (ADR 0009).
   async redirects() {
     return [

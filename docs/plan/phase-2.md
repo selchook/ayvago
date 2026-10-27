@@ -19,6 +19,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.6 | Ayvago Arcade: 26 in-house games in the catalog ([ADR 0007](../adr/0007-ayvago-arcade.md)) | ✅ live (`ayvago-games.vercel.app` deployed, `ARCADE_STATUS = 'live'`) |
 | 2.7 | Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)) | ✅ code |
 | 2.8 | Ayvago Arcade look: categories = arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo | ✅ code |
+| 2.9 | Category tags on game tiles, the games portal's cards in the Arcade theme, installable PWA | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -368,6 +369,54 @@ What shipped:
 Open:
 - Nothing for the owner beyond merging. The rules workflow deploys the updated
   `firestore.rules`.
+
+## 2.9 Tiles, Arcade cards and PWA ✅
+
+What shipped:
+- **Category tags on every tile:**
+  - Tiles show up to three of a game's categories as tags, primary first, instead of only the
+    primary one, like the genre tags on the Ayvago Arcade games portal.
+  - `TileData.categoryLabels` replaces `categoryLabel`.
+- **Arcade cards:** in the Arcade theme, tiles are the games portal's cards
+  (`selchook/ayvago-games` `portal/style.css`).
+  - **Image:** the game's own in-game screenshot at 9:12, or 16:12 for landscape games.
+  - **Style:**
+    - 3 px black outline with a hard drop shadow;
+    - a red outline on hover;
+    - the title in Press Start 2P;
+    - cyan / yellow / pink tags with ink text.
+  - **Sizes:** grids use the portal's card widths (200 px minimum, 160 px on phones), and shelves
+    get wider columns.
+  - **Screenshot asset:** manifests gain an optional `assets.screenshot`, resolved as
+    `CatalogGame.screenshotUrl` for live games. The games repository generates a 540×960 (or
+    960×540) JPEG per game, about 55 KB each.
+  - **Loading:** other themes never download the screenshot; it is a hidden lazy image.
+  - **Spotlight:** the spotlight side tiles keep their 16:9 covers (`GameTile wide`).
+- **Theme name:** the theme is now labelled "Arcade".
+- **PWA:**
+  - `app/manifest.ts`: standalone display, brand ink colors, 192/512 icons and a maskable icon
+    of the Ayvago mark.
+  - `app/apple-icon.png` and `appleWebApp` metadata, plus `themeColor`.
+  - `public/sw.js` is a network-first service worker for page navigations only, with an offline
+    page (`public/offline.html`). Nothing else is cached, so deploys are never stale. It is
+    served with `Cache-Control: no-store`.
+  - **Install prompt:** `InstallPrompt` registers the worker in production and shows an install
+    banner above the phone bottom bar.
+    - **Chromium (Android, desktop):** our "Install" button opens the browser's own prompt
+      (`beforeinstallprompt`).
+    - **iOS:** it shows the Share → Add to Home Screen hint.
+    - It is hidden when already installed, and for 14 days after "Not now".
+- **Tests:**
+  - The manifest meets the install criteria, and its icons, `sw.js` and `offline.html` exist.
+  - The optional screenshot asset is validated.
+  - Arcade games resolve their screenshot URL.
+  - Checked on a production build:
+    - the manifest is served;
+    - the service worker activates;
+    - `sw.js` has no-store headers;
+    - the install banner works on desktop (Chromium) and iPhone (iOS hint);
+    - Arcade cards render on desktop and phone;
+    - tags render in the minimal theme.
 
 ## Game fixes during the phase
 

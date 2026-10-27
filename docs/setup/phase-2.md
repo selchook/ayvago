@@ -100,3 +100,8 @@ To play them locally before the deploy: in `ayvago-games`, run
   - the web app, with the new categories, the Ayvago Arcade theme and the logo;
   - the Firestore rules, which accept the new theme;
   - the functions, because `packages/shared` changed.
+
+## 10. Tiles, Arcade cards and PWA (slice 2.9)
+- 🤖 Nothing to set up. Merging deploys the web app. Players can install Ayvago from the banner,
+  or from the browser menu: "Install app" on Android and desktop, Share → "Add to Home Screen"
+  on iOS.

@@ -68,7 +68,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
             <ul className={styles.spotlightSide}>
               {sideTiles.map((tile) => (
                 <li key={tile.slug}>
-                  <GameTile tile={tile} labels={labels} />
+                  <GameTile tile={tile} labels={labels} wide />
                 </li>
               ))}
             </ul>

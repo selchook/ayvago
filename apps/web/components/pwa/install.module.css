@@ -1,0 +1,88 @@
+/* Install banner: bottom of the screen, above the phone bottom bar. */
+.banner {
+  position: fixed;
+  z-index: 40;
+  inset-inline: 16px;
+  bottom: 16px;
+  max-width: 440px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  text-transform: var(--display-transform);
+}
+
+.body {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) .title {
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+[data-theme='arcade'] .banner {
+  border: 3px solid #000;
+  box-shadow: 0 6px 0 #000;
+}
+
+@media (max-width: 639px) {
+  .banner {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}

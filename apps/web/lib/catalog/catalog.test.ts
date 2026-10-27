@@ -92,6 +92,10 @@ describe('seed catalog', () => {
       expect(resolveAssetUrl(game.manifest, game.manifest.assets.cover), game.slug).toBe(
         new URL(`/games/${game.slug}/ayvago/cover-1920x1080.jpg`, game.manifest.entry).toString(),
       );
+      // The Arcade theme's tiles show the in-game screenshot.
+      expect(game.screenshotUrl, game.slug).toBe(
+        new URL(`/games/${game.slug}/ayvago/screenshot.jpg`, game.manifest.entry).toString(),
+      );
     }
   });
 

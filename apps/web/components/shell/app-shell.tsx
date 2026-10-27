@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { InstallPrompt } from '../pwa/install-prompt';
 import { BottomNav } from './bottom-nav';
 import { SideNav } from './side-nav';
 import { TopBar } from './top-bar';
@@ -17,6 +18,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <BottomNav />
+      <InstallPrompt />
     </div>
   );
 }

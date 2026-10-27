@@ -65,7 +65,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
-- 16:9 cover (AVIF/WebP with blur placeholder), title, like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**).
+- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The Arcade theme shows the manifest's in-game `screenshot` instead of the cover.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
@@ -93,7 +93,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **minimal** (default) | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
 | **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons |
 | **cartoon** | light + dark | Saturated yellow/blue/pink, 20 px radius, 3 px dark outlines, springy hover, confetti on personal bests |
-| **arcade** | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines |
+| **arcade** (labelled "Arcade") | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
 
 Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
 
@@ -127,6 +127,18 @@ Optional layers that never change layout:
 - An automated test computes contrast for every text/background token pair in every theme and mode and fails CI below WCAG AA (4.5:1 body, 3:1 large text and UI).
 - Visible focus ring in every theme (`--focus-ring`), keyboard navigation for shelves (arrow keys) and the player toolbar.
 - Touch targets ≥ 44 × 44 px.
+
+## 5.8 Installable app (PWA)
+- **Manifest and icons.** `app/manifest.ts` declares a standalone app with brand ink colors and
+  the Ayvago mark: 192/512 icons and a maskable icon. `app/apple-icon.png` and `appleWebApp`
+  metadata cover iOS.
+- **Service worker.** `public/sw.js` handles page navigations only, network first, with an
+  offline page, and is served with `no-store`. Nothing else is cached, and games (cross-origin
+  iframes) are untouched.
+- **Install banner.** `InstallPrompt` sits above the phone bottom bar.
+  - Chromium shows our "Install" button, which opens the browser's own prompt.
+  - iOS shows a Share → Add to Home Screen hint.
+  - It is hidden when the app is installed, and for 14 days after "Not now".
 
 ## 6. Performance budgets
 
