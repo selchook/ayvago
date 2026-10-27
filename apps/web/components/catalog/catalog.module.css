@@ -27,7 +27,7 @@
 }
 
 /* Retro covers: hard-edged stripes and a pixel grid instead of soft gradients. */
-[data-theme='retro'] .cover {
+:is([data-theme='retro'], [data-theme='arcade']) .cover {
   background:
     repeating-linear-gradient(0deg, rgb(0 0 0 / 0.25) 0 2px, transparent 2px 6px),
     linear-gradient(180deg, hsl(var(--h1) 80% 30%) 0 50%, hsl(var(--h2) 80% 22%) 50% 100%);
@@ -47,7 +47,7 @@
   height: 96px;
 }
 
-[data-theme='retro'] .coverIcon {
+:is([data-theme='retro'], [data-theme='arcade']) .coverIcon {
   border-radius: 0;
 }
 
@@ -70,12 +70,12 @@
   font-size: clamp(1.4rem, 3vw, 2.2rem);
 }
 
-[data-theme='retro'] .coverTitle {
+:is([data-theme='retro'], [data-theme='arcade']) .coverTitle {
   font-size: 0.7rem;
   line-height: 1.6;
 }
 
-[data-theme='retro'] .cover[data-size='hero'] .coverTitle {
+:is([data-theme='retro'], [data-theme='arcade']) .cover[data-size='hero'] .coverTitle {
   font-size: clamp(0.9rem, 2vw, 1.3rem);
 }
 
@@ -100,6 +100,17 @@
   transform: translateY(-3px);
   border-color: var(--accent);
   box-shadow: var(--shadow-md);
+}
+
+[data-theme='arcade'] .tile {
+  border-color: #000;
+}
+
+[data-theme='arcade'] .tile:hover,
+[data-theme='arcade'] .tile:focus-visible {
+  transform: translateY(-4px);
+  border-color: #000;
+  outline: 3px solid var(--accent);
 }
 
 [data-theme='cartoon'] .tile:hover {
@@ -130,7 +141,7 @@
   color: var(--accent-contrast);
 }
 
-[data-theme='retro'] .badge {
+:is([data-theme='retro'], [data-theme='arcade']) .badge {
   border-radius: 0;
 }
 
@@ -225,7 +236,7 @@
   display: none;
 }
 
-[data-theme='retro'] .arrow {
+:is([data-theme='retro'], [data-theme='arcade']) .arrow {
   border-radius: 0;
 }
 

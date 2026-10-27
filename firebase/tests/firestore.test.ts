@@ -190,6 +190,12 @@ describe('users/{uid} update', () => {
         updatedAt: serverTimestamp(),
       }),
     );
+    // Every theme in packages/themes THEME_IDS is accepted, including the Ayvago Arcade theme.
+    for (const theme of ['minimal', 'cartoon', 'arcade']) {
+      await assertSucceeds(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), { theme, updatedAt: serverTimestamp() }),
+      );
+    }
   });
 
   it('rejects unknown preference values', async () => {

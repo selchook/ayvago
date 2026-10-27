@@ -84,7 +84,7 @@ export function ThemeControls({ name }: { name: string }) {
             </label>
           ))}
         </div>
-        {singleMode ? <p className={styles.hint}>{t('retroDarkOnly')}</p> : null}
+        {singleMode ? <p className={styles.hint}>{t('darkOnly')}</p> : null}
       </fieldset>
     </>
   );

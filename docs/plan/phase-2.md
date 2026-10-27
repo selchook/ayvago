@@ -18,6 +18,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ✅ live (selchook/space-defender#2 merged) |
 | 2.6 | Ayvago Arcade: 26 in-house games in the catalog ([ADR 0007](../adr/0007-ayvago-arcade.md)) | ✅ live (`ayvago-games.vercel.app` deployed, `ARCADE_STATUS = 'live'`) |
 | 2.7 | Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)) | ✅ code |
+| 2.8 | Ayvago Arcade look: categories = arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -318,6 +319,55 @@ What shipped:
 Open:
 - Bring the multiplayer games back with Phase 4 (import wave 3 in the
   [import plan](game-import-plan.md)), against the standards in ADR 0008.
+
+## 2.8 Ayvago Arcade look ✅
+
+The owner asked for three changes, so that the platform matches the Ayvago Arcade games.
+
+What shipped:
+- **Categories = arcade genres** ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)):
+  - `GAME_CATEGORIES` is now `arcade, action, casual, puzzle, retro, sports, strategy, card, word`,
+    the same list and order as `game.json` genres in `selchook/ayvago-games`.
+  - Manifests gain an optional `categories` list next to the primary `category`, and
+    `gameCategories()` resolves it. A game is listed under every category it has.
+  - Arcade games take their categories straight from their genres.
+  - Empty categories (`word` today) are hidden from the navigation and the sitemap.
+  - `/c/retro-action` and `/c/board` redirect permanently to `/c/arcade` and `/c/strategy`.
+  - New category icons: bolt, pixel grid, ball, crown, card, letter tile.
+  - Labels follow the games portal (TR: Arcade, Aksiyon, Gündelik, Bulmaca, Retro, Spor, Strateji,
+    Kart, Kelime).
+- **Ayvago Arcade theme** (`arcade`, dark only), the look of the games and their portal:
+  - Brand ink background, paper text and brand red accent. The red is `#e02a10`, a touch darker
+    than the brand `#ec3013`, so white text on it passes AA.
+  - Yellow display headings with a hard drop shadow.
+  - Black outlines with hard drop shadows, square corners and a red rule under the top bar.
+  - Scanlines.
+  - Press Start 2P headings and Pixelify Sans body text (`@fontsource/pixelify-sans`). Both cover
+    Turkish.
+  - The pixel-font sizing rules that `retro` had now apply to both pixel themes.
+  - The single-mode hint is generic ("This theme is always dark").
+  - `firestore.rules` accepts `theme: 'arcade'` in profiles.
+- **Ayvago Games logo:** the top bar shows the boot intro's closing lockup (`BrandLogo`): AYVAG
+  with the mark in the O slot, then the red rule and GAMES.
+  - It uses the intro geometry, drawn as SVG.
+  - The letters and the ring take the theme's text color. The seeds and the rule stay brand red.
+  - GAMES and the rule are drawn larger than in the intro so they stay legible at top-bar size.
+  - The favicon (`app/icon.svg`) is the mark on brand ink.
+- **Game side:** cover art is regenerated so its category chip shows the new primary category.
+- **Tests:**
+  - Contrast test: six theme/mode combinations, `arcade` included.
+  - `resolveMode` forces `arcade` to dark.
+  - The category list matches the arcade genres, and the old slugs are rejected.
+  - `categories` must include the primary category, and `gameCategories()` order is checked.
+  - The catalog lists a game under every category it has.
+  - An emulator rules test accepts every theme id. It fails when `arcade` is missing from
+    `firestore.rules`; this was checked.
+  - The UI was checked in every theme on desktop and phone: the switcher selects and saves
+    `arcade`, the logo follows the theme color, and the old category URL redirects.
+
+Open:
+- Nothing for the owner beyond merging. The rules workflow deploys the updated
+  `firestore.rules`.
 
 ## Game fixes during the phase
 

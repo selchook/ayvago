@@ -43,12 +43,12 @@ h2 {
 }
 
 /* Pixel display fonts are much wider; scale them down so headings keep the same rhythm. */
-[data-theme='retro'] h1 {
+:is([data-theme='retro'], [data-theme='arcade']) h1 {
   font-size: clamp(1rem, 2vw, 1.4rem);
   line-height: 1.5;
 }
 
-[data-theme='retro'] h2 {
+:is([data-theme='retro'], [data-theme='arcade']) h2 {
   font-size: 0.85rem;
   line-height: 1.6;
 }
@@ -81,8 +81,14 @@ button {
   white-space: nowrap;
 }
 
-/* Retro CRT scanlines; pointer-events none so they never block input. */
-[data-theme='retro'] body::after {
+/* Ayvago Arcade headings: yellow with a hard drop shadow, like the games' title screens. */
+[data-theme='arcade'] h1 {
+  color: var(--accent-2);
+  text-shadow: 0 4px 0 #000;
+}
+
+/* CRT scanlines (retro and arcade); pointer-events none so they never block input. */
+:is([data-theme='retro'], [data-theme='arcade']) body::after {
   content: '';
   position: fixed;
   inset: 0;

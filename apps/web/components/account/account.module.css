@@ -47,7 +47,7 @@
   font-size: 1.2rem;
 }
 
-[data-theme='retro'] .avatar {
+:is([data-theme='retro'], [data-theme='arcade']) .avatar {
   border-radius: 0;
 }
 
@@ -70,7 +70,7 @@
 }
 
 /* The retro pixel font is wide; keep generated names (up to 20 characters) on one line. */
-[data-theme='retro'] .title {
+:is([data-theme='retro'], [data-theme='arcade']) .title {
   font-size: 0.7rem;
   line-height: 1.6;
 }

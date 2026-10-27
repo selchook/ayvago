@@ -11,6 +11,8 @@ import { SITE_URL, localizedAlternates } from '@/lib/seo';
 import '@fontsource-variable/inter';
 import '@fontsource/press-start-2p';
 import '@fontsource/vt323';
+import '@fontsource/pixelify-sans/400.css';
+import '@fontsource/pixelify-sans/700.css';
 import '@fontsource-variable/fredoka';
 import '@fontsource-variable/baloo-2';
 import '../globals.css';
