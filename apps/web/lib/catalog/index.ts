@@ -1,5 +1,6 @@
 import { rankGames } from './rankings';
 import {
+  ARCADE_GAMES,
   FIXTURE_GAME,
   SEED_GAMES,
   categorySlug,
@@ -72,6 +73,21 @@ export function parseEntryOverrides(raw: string | undefined): Map<string, string
   return overrides;
 }
 
+/**
+ * Local testing only: AYVAGO_DEV_ARCADE_ORIGIN="http://localhost:4173" points every Ayvago Arcade
+ * game at a local build of selchook/ayvago-games (`npm run build && npx vite preview`), the same
+ * way AYVAGO_DEV_ENTRY_OVERRIDES does for single games. Ignored in production builds.
+ */
+export function arcadeEntryOverrides(origin: string | undefined): Map<string, string> {
+  const overrides = new Map<string, string>();
+  if (!origin || (process.env.NODE_ENV === 'production' && process.env.AYVAGO_DEV_GAMES !== '1')) {
+    return overrides;
+  }
+  const base = origin.replace(/\/+$/, '');
+  for (const game of ARCADE_GAMES) overrides.set(game.slug, `${base}/games/${game.slug}/`);
+  return overrides;
+}
+
 function applyOverride(seed: SeedGame, overrides: Map<string, string>): SeedGame {
   const entry = overrides.get(seed.slug);
   return entry ? { ...seed, status: 'live', manifest: { ...seed.manifest, entry } } : seed;
@@ -82,7 +98,10 @@ let cache: CatalogGame[] | null = null;
 export function getAllGames(): CatalogGame[] {
   if (!cache) {
     const seeds = includeDevGames() ? [FIXTURE_GAME, ...SEED_GAMES] : SEED_GAMES;
-    const overrides = parseEntryOverrides(process.env.AYVAGO_DEV_ENTRY_OVERRIDES);
+    const overrides = new Map([
+      ...arcadeEntryOverrides(process.env.AYVAGO_DEV_ARCADE_ORIGIN),
+      ...parseEntryOverrides(process.env.AYVAGO_DEV_ENTRY_OVERRIDES),
+    ]);
     cache = seeds.map((seed) => toCatalogGame(applyOverride(seed, overrides)));
   }
   return cache;

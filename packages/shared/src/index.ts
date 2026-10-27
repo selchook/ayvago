@@ -5,4 +5,5 @@ export * from './profile';
 export * from './library';
 export * from './leaderboard';
 export * from './seed-catalog';
+export * from './arcade-catalog';
 export * from './ranking';

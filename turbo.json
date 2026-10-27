@@ -4,7 +4,12 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "lib/**"],
-      "env": ["AYVAGO_DEV_GAMES", "AYVAGO_DEV_ENTRY_OVERRIDES", "NEXT_PUBLIC_FIREBASE_*"]
+      "env": [
+        "AYVAGO_DEV_GAMES",
+        "AYVAGO_DEV_ENTRY_OVERRIDES",
+        "AYVAGO_DEV_ARCADE_ORIGIN",
+        "NEXT_PUBLIC_FIREBASE_*"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^build"]
