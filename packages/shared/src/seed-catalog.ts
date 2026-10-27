@@ -47,7 +47,14 @@ const winsScoring: GameManifestInput['scoring'] = {
 
 const SCORE = { en: 'Score', tr: 'Puan' };
 
-export const SEED_GAMES: SeedGame[] = [
+// The catalog: the in-house Ayvago Arcade games (packages/shared/src/arcade-catalog.ts). Read by
+// the web app and the score functions.
+export const SEED_GAMES: SeedGame[] = [...ARCADE_GAMES];
+
+// Imported games taken out of the catalog until they meet the platform standards (slice 2.7,
+// docs/plan/phase-2.md). They are kept here so a game comes back by moving its entry into
+// SEED_GAMES; the multiplayer ones return with Phase 4 netcode. Nothing reads this list.
+export const PARKED_GAMES: SeedGame[] = [
   {
     slug: 'crystal-runner-3d',
     repo: 'selchook/crystal-runner-3d-three-js-r168',
@@ -307,8 +314,6 @@ export const SEED_GAMES: SeedGame[] = [
       version: '1.0.0',
     },
   },
-  // In-house Ayvago Arcade games (packages/shared/src/arcade-catalog.ts).
-  ...ARCADE_GAMES,
 ];
 
 // Local test game served by `pnpm fixture-game` (tools/fixture-game) on another origin,
