@@ -13,15 +13,16 @@ up.
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Plan](docs/plan/phase-0.md) · [Setup](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore, sdk-playground and PWA carried forward) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
-| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.6), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.7), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: WebRTC + Cloudflare TURN, import wave 3 | Not started | |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
 
-Live games: Crystal Runner 3D, Orb Surge, Pixel Cascade, ChromaShift, Space Defender, Gyroball Infinite,
-and the 26 in-house Ayvago Arcade games (`selchook/ayvago-games`, slice 2.6).
+Live games: the 26 in-house Ayvago Arcade games (`selchook/ayvago-games`, slice 2.6). The ten
+imported games are parked until they meet the platform standards (slice 2.7,
+[ADR 0008](docs/adr/0008-park-imported-games.md)).
 
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
 - Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)

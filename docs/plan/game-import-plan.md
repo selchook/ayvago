@@ -17,6 +17,8 @@
 
 ## 2. Inventory and Waves
 
+> **2026-10-27:** games 1–10 are parked (out of the catalog) until they meet the platform standards; see [ADR 0008](../adr/0008-park-imported-games.md). The multiplayer games (wave 3) come back first, with Phase 4.
+
 | # | Game | Repository | Engine | Category | Current state | Blockers | Effort | Wave |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Crystal Runner 3D | `crystal-runner-3d-three-js-r168` | Three.js | Retro Action | GHA SDK v1 ✅, CORP header present | — | **S** (move to SDK v2) | 1 |

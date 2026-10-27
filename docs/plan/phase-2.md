@@ -17,6 +17,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.4 | App Check enforcement (after the verified share reaches ~100%) | ✅ code, ⏳ site key, then the switch in the panel |
 | 2.5 | Space Defender touch controls (needed before it is promoted on mobile) | ✅ live (selchook/space-defender#2 merged) |
 | 2.6 | Ayvago Arcade: 26 in-house games in the catalog ([ADR 0007](../adr/0007-ayvago-arcade.md)) | ✅ live (`ayvago-games.vercel.app` deployed, `ARCADE_STATUS = 'live'`) |
+| 2.7 | Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)) | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -286,6 +287,37 @@ Status:
 Open:
 - ⏳ Check one run on ayvago.com reaches the leaderboard ([setup](../setup/phase-2.md#7-ayvago-arcade-slice-26)).
 - Calibrate the scoring limits per game after two weeks of sessions.
+
+## 2.7 Imported games parked ✅
+
+The owner decided to show only the Ayvago Arcade games for now. The ten imported games
+(crystal-runner-3d, orb-surge, pixel-cascade, chromashift, space-defender, gyroball-infinite,
+number-cracker, tavla, naval-strike, titos-tank) do not yet meet the platform standards. The
+multiplayer ones return after they are made compatible. See [ADR 0008](../adr/0008-park-imported-games.md).
+
+What shipped:
+- **Catalog:** `PARKED_GAMES` in `packages/shared/src/seed-catalog.ts` holds the ten entries
+  unchanged, and `SEED_GAMES` is the arcade catalog only. Their pages, the sitemap, score sessions
+  and voting no longer list them. No Firestore data is deleted.
+- **Navigation:** the Multiplayer link and its sitemap entry are hidden while no multiplayer game
+  is in the catalog.
+- **Arcade adjustments** (made in `selchook/ayvago-games` and regenerated into
+  `arcade-catalog.ts`):
+  - Brick Breaker, Gem Match and Space Blaster are featured, so the home spotlight has a lead game
+    and two side tiles.
+  - Tappy Plane, Sky Jumper, Hoop Shot, Penalty Kick and Mini Golf move to the Casual category,
+    which would otherwise be empty.
+  - The categories are now 11 retro action, 7 puzzle, 5 casual and 3 board.
+- **Tests:**
+  - Catalog tests now use arcade games for the override and ranking cases.
+  - A new test checks that no parked game is in the catalog, that there are no multiplayer games,
+    and that at least three games are featured.
+  - The emulator suites are unchanged and pass: they reference parked game ids only as unknown
+    games or as plain document ids.
+
+Open:
+- Bring the multiplayer games back with Phase 4 (import wave 3 in the
+  [import plan](game-import-plan.md)), against the standards in ADR 0008.
 
 ## Game fixes during the phase
 

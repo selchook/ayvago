@@ -90,3 +90,7 @@ as "coming soon" until their origin is deployed.
 To play them locally before the deploy: in `ayvago-games`, run
 `npm run build && npx vite preview --port 4173`. In this repository, run
 `AYVAGO_DEV_ARCADE_ORIGIN=http://localhost:4173 pnpm dev`.
+
+## 8. Imported games parked (slice 2.7)
+- 🤖 Nothing to set up. Merging redeploys the web app and the functions without the ten imported
+  games. Their own Vercel deployments keep running, and their Firestore data stays.

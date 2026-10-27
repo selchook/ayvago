@@ -1,4 +1,4 @@
-import { ARCADE_GAMES, resolveAssetUrl } from '@ayvago/shared';
+import { ARCADE_GAMES, PARKED_GAMES, resolveAssetUrl } from '@ayvago/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 async function loadCatalog() {
@@ -41,21 +41,31 @@ describe('seed catalog', () => {
   });
 
   it('applies local entry overrides only together with dev games', async () => {
-    vi.stubEnv('AYVAGO_DEV_ENTRY_OVERRIDES', 'tavla=http://localhost:4207/');
+    vi.stubEnv('AYVAGO_DEV_ENTRY_OVERRIDES', 'gem-match=http://localhost:4207/');
     let catalog = await loadCatalog();
     // Tests run with NODE_ENV=test, so overrides apply.
-    expect(catalog.getGameBySlug('tavla')).toMatchObject({
+    expect(catalog.getGameBySlug('gem-match')).toMatchObject({
       status: 'live',
       manifest: { entry: 'http://localhost:4207/' },
-      coverUrl: 'http://localhost:4207/ayvago/cover-1920x1080.jpg',
     });
 
     vi.stubEnv('NODE_ENV', 'production');
     catalog = await loadCatalog();
-    expect(catalog.getGameBySlug('tavla')).toMatchObject({
-      status: 'coming_soon',
-      manifest: { entry: 'https://backgammon-tito.vercel.app/' },
-    });
+    expect(catalog.getGameBySlug('gem-match')?.manifest.entry).toBe(
+      'https://ayvago-games.vercel.app/games/gem-match/',
+    );
+  });
+
+  it('leaves the parked imported games out of the catalog', async () => {
+    const { getAllGames, getGameBySlug, getMultiplayerGames, getFeaturedGames } =
+      await loadCatalog();
+    for (const parked of PARKED_GAMES) {
+      expect(getGameBySlug(parked.slug), parked.slug).toBeUndefined();
+    }
+    expect(getAllGames().every((game) => game.repo === 'selchook/ayvago-games')).toBe(true);
+    expect(getMultiplayerGames()).toEqual([]);
+    // The home spotlight needs a lead game and two side tiles.
+    expect(getFeaturedGames().length).toBeGreaterThanOrEqual(3);
   });
 
   it('lists every Ayvago Arcade game with its own entry and art', async () => {
@@ -118,7 +128,7 @@ describe('rankings', () => {
       games: {
         mapValue: {
           fields: {
-            chromashift: {
+            gemmatch: {
               mapValue: {
                 fields: {
                   likes: { integerValue: '19' },
@@ -132,9 +142,11 @@ describe('rankings', () => {
         },
       },
     });
-    const ranked = rankGames(games, rankings, 'qualityScore');
-    expect(ranked[0]!.slug).toBe('chromashift');
-    expect(ranked.at(-1)!.status).toBe('coming_soon');
+    // Every catalog game is live now; add a coming-soon one to check it is ranked last.
+    const comingSoon = { ...games[0]!, slug: 'coming-soon', status: 'coming_soon' as const };
+    const ranked = rankGames([comingSoon, ...games], rankings, 'qualityScore');
+    expect(ranked[0]!.slug).toBe('gem-match');
+    expect(ranked.at(-1)!.slug).toBe('coming-soon');
     expect(gameLikePercent(ranked[0]!, rankings)).toBe(95);
     expect(rankGames(games, null, 'qualityScore')).toEqual(games);
   });
