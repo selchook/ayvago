@@ -105,3 +105,10 @@ To play them locally before the deploy: in `ayvago-games`, run
 - 🤖 Nothing to set up. Merging deploys the web app. Players can install Ayvago from the banner,
   or from the browser menu: "Install app" on Android and desktop, Share → "Add to Home Screen"
   on iOS.
+
+## 11. Search, slogans, pixel logo and fixes (slice 2.10)
+- 🤖 Nothing to set up. Merging deploys the web app.
+- **Already installed with Edge on Android?** If the install button opened the App info screen:
+  1. Allow "Home screen shortcuts" (on Xiaomi: Other permissions).
+  2. Tap Install again.
+  Or install from Chrome, which adds Ayvago as a full app.

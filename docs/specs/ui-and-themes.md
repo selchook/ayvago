@@ -16,10 +16,12 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 
 | Region | Desktop (≥ 1024 px) | Tablet | Phone |
 |---|---|---|---|
-| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), search (⌘K / Ctrl+K), theme switch, language, coins (later), avatar menu | Same, search collapses to an icon | Logo, search icon, avatar |
+| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Logo, theme, language, avatar (search is in the BottomNav) |
 | **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon-only rail | Hidden |
-| **BottomNav** | — | — | Home, Search, Recent, Favorites, Profile |
+| **BottomNav** | — | — | Home, New, Recent, Favorites, Search |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
+
+The theme, language and account popovers close each other, and close on an outside click or tap and on Escape.
 
 All navigation labels are message keys; layout uses logical CSS properties (`margin-inline`, `inset-inline`) so a future RTL locale only needs a review.
 
@@ -53,6 +55,7 @@ Grid of `GameTile`s with sort (Popular, New, Top rated) and tag filters; infinit
 
 ### 3.4 Profile, Leaderboard, Settings, Search
 Profile and settings per the [accounts spec](accounts.md); full leaderboard page per the [leaderboards spec](leaderboards.md); search page with instant results (title, tags; localized titles in both locales).
+*Implementation (slice 2.10):* `/search?q=` filters the catalog as the player types. Matching ignores case and accents and folds the Turkish ı, so "yilan" finds "Yılan". A game matches on its titles in every locale, its slug and its category names. The top bar suggests up to six games and Enter opens the page. The page is `noindex`.
 
 ## 4. Components (`packages/ui`)
 
@@ -65,7 +68,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
-- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The Arcade theme shows the manifest's in-game `screenshot` instead of the cover.
+- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
@@ -91,7 +94,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | Theme | Modes | Personality |
 |---|---|---|
 | **minimal** (default) | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
-| **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons |
+| **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons. Tiles are the games portal's cards, as in arcade |
 | **cartoon** | light + dark | Saturated yellow/blue/pink, 20 px radius, 3 px dark outlines, springy hover, confetti on personal bests |
 | **arcade** (labelled "Arcade") | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
 
@@ -112,6 +115,7 @@ Fonts load through `next/font` with `latin` + `latin-ext` subsets. A glyph test 
 Optional layers that never change layout:
 - Retro: scanline overlay (`::after`, can be turned off in settings), `image-rendering: pixelated` for pixel art, 8-bit UI sounds (off by default).
 - Cartoon: spring hover on tiles, confetti on personal bests.
+- Retro and arcade: the logo's word and mark are pixelated by an SVG filter (3 px blocks); top-bar slogans step in like a marquee.
 - All effects are disabled under `prefers-reduced-motion`.
 
 ### 5.5 Persistence without flashing
@@ -138,7 +142,10 @@ Optional layers that never change layout:
 - **Install banner.** `InstallPrompt` sits above the phone bottom bar.
   - Chromium shows our "Install" button, which opens the browser's own prompt.
   - iOS shows a Share → Add to Home Screen hint.
-  - It is hidden when the app is installed, and for 14 days after "Not now".
+  - It is hidden when the app is installed and on game pages.
+  - "Not now" snoozes it for 14 days, then 30, then 90 for every later dismissal.
+  - Edge on Android gets a hint: some launchers need its "Home screen shortcuts" permission
+    before it can add the app, and Chrome installs in one tap.
 
 ## 6. Performance budgets
 

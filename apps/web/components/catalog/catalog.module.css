@@ -102,15 +102,15 @@
   box-shadow: var(--shadow-md);
 }
 
-/* In-game screenshot: only the Arcade theme shows it (hidden images are never loaded). */
+/* In-game screenshot: only the pixel themes show it (hidden images are never loaded). */
 .shot {
   display: none;
 }
 
-/* Arcade theme: the card of the Ayvago Arcade games portal (selchook/ayvago-games
+/* Pixel themes (retro, arcade): the card of the Ayvago Arcade games portal (selchook/ayvago-games
    portal/style.css) — the game's own screenshot at 9:12 (16:12 for landscape games), black
    outline with a hard drop shadow, a red outline on hover and colored genre tags. */
-[data-theme='arcade'] .tile {
+:is([data-theme='retro'], [data-theme='arcade']) .tile {
   align-content: start;
   border: 3px solid #000;
   box-shadow: 0 6px 0 #000;
@@ -119,40 +119,40 @@
     box-shadow 0.12s;
 }
 
-[data-theme='arcade'] .tile:hover,
-[data-theme='arcade'] .tile:focus-visible {
+:is([data-theme='retro'], [data-theme='arcade']) .tile:hover,
+:is([data-theme='retro'], [data-theme='arcade']) .tile:focus-visible {
   transform: translateY(-4px);
   border-color: #000;
   box-shadow: 0 10px 0 #000;
   outline: 3px solid var(--accent);
 }
 
-[data-theme='arcade'] .tile[data-shot] .cover {
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot] .cover {
   display: none;
 }
 
-[data-theme='arcade'] .tile[data-shot] .shot {
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot] .shot {
   display: block;
   aspect-ratio: 9 / 12;
   background: #111;
 }
 
-[data-theme='arcade'] .tile[data-shot='landscape'] .shot {
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot {
   aspect-ratio: 16 / 12;
 }
 
-[data-theme='arcade'] .shot img {
+:is([data-theme='retro'], [data-theme='arcade']) .shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-[data-theme='arcade'] .tileMeta {
+:is([data-theme='retro'], [data-theme='arcade']) .tileMeta {
   padding: 10px;
   gap: 6px;
 }
 
-[data-theme='arcade'] .tileTitle {
+:is([data-theme='retro'], [data-theme='arcade']) .tileTitle {
   font-family: var(--font-display);
   font-size: 11px;
   line-height: 1.5;
@@ -230,12 +230,9 @@
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
+/* Pixel themes: the portal's square cyan / yellow / pink tags with ink text. */
 :is([data-theme='retro'], [data-theme='arcade']) .tag {
   border-radius: 0;
-}
-
-/* Arcade: the portal's cyan / yellow / pink tags with ink text. */
-[data-theme='arcade'] .tag {
   padding: 1px 6px;
   font-size: 13px;
   font-weight: 400;
@@ -244,11 +241,11 @@
   background: #3ee6ff;
 }
 
-[data-theme='arcade'] .tag:nth-child(2) {
+:is([data-theme='retro'], [data-theme='arcade']) .tag:nth-child(2) {
   background: #ffd23f;
 }
 
-[data-theme='arcade'] .tag:nth-child(3) {
+:is([data-theme='retro'], [data-theme='arcade']) .tag:nth-child(3) {
   background: #ff4fa3;
 }
 
@@ -347,13 +344,13 @@
   }
 }
 
-/* Arcade grids and shelves use the portal's card widths. */
-[data-theme='arcade'] .grid {
+/* Pixel-theme grids and shelves use the portal's card widths. */
+:is([data-theme='retro'], [data-theme='arcade']) .grid {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 14px;
 }
 
-[data-theme='arcade'] .shelfList {
+:is([data-theme='retro'], [data-theme='arcade']) .shelfList {
   align-items: start;
   grid-auto-columns: clamp(220px, 22%, 260px);
   gap: 14px;
@@ -366,11 +363,11 @@
     gap: 12px;
   }
 
-  [data-theme='arcade'] .shelfList {
+  :is([data-theme='retro'], [data-theme='arcade']) .shelfList {
     grid-auto-columns: 44%;
   }
 
-  [data-theme='arcade'] .grid {
+  :is([data-theme='retro'], [data-theme='arcade']) .grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 

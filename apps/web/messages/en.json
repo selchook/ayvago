@@ -13,7 +13,8 @@
     "favorites": "Favorites",
     "multiplayer": "Multiplayer",
     "categories": "Categories",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "search": "Search"
   },
   "categories": {
     "arcade": "Arcade",
@@ -360,6 +361,25 @@
     "iosBody": "Tap Share, then “Add to Home Screen”.",
     "install": "Install",
     "later": "Not now",
-    "ok": "Got it"
+    "ok": "Got it",
+    "edgeHint": "Edge may open its App info screen first: allow “Home screen shortcuts”, come back and tap Install again. In Chrome it installs in one tap."
+  },
+  "search": {
+    "title": "Search games",
+    "label": "Search games",
+    "placeholder": "Search games…",
+    "all": "{count, plural, one {# game} other {# games}}",
+    "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "empty": "No games match “{query}”.",
+    "seeAll": "{count, plural, =0 {Open search} one {See # result} other {See all # results}}"
+  },
+  "slogans": {
+    "count": "{count} retro games, free to play",
+    "instant": "Play instantly in your browser",
+    "noDownload": "No downloads. Just press start.",
+    "highScore": "Beat the high score",
+    "genres": "Arcade, action, puzzle and more",
+    "leaderboard": "Climb the weekly leaderboard",
+    "oneMore": "One more round?"
   }
 }
