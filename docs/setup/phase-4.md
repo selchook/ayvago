@@ -61,3 +61,7 @@ gcloud projects add-iam-policy-binding ayvago-prod \
 ## 5. Try it
 - ⏳ On ayvago.com, open Connect Four → **Play with a friend** → **Create a room** → **Share** the
   link to a second phone (ideally on mobile data, the other on Wi-Fi). Play a round on both.
+
+## 6. Turn order rule and multiplayer tag (slice 4.4)
+- 🤖 Nothing to set up. The game changes deploy from selchook/ayvago-games; the `multiplayer` catalog
+  tags arrive through the automatic "Sync arcade catalog" PR.

@@ -7,6 +7,8 @@ import { AccountMenu } from '../account/account-menu';
 import { LocaleSwitcher } from '../locale-switcher';
 import { PopoverCloser } from '../popover-closer';
 import { TopSearch, type SearchEntry } from '../search/top-search';
+import { SearchIcon } from '../icons';
+import popover from '../popover.module.css';
 import { ThemeSwitcher } from '../theme-switcher';
 import { BrandLogo } from './brand-logo';
 import { SloganTicker } from './slogan-ticker';
@@ -24,8 +26,9 @@ const SLOGAN_KEYS = [
 ] as const;
 
 export async function TopBar() {
-  const [t, ts, tc, locale] = await Promise.all([
+  const [t, tn, ts, tc, locale] = await Promise.all([
     getTranslations('metadata'),
+    getTranslations('nav'),
     getTranslations('slogans'),
     getTranslations('categories'),
     getLocale() as Promise<Locale>,
@@ -50,6 +53,15 @@ export async function TopBar() {
       <SloganTicker slogans={slogans} />
       <TopSearch games={searchEntries} />
       <div className={styles.topActions}>
+        {/* Phones: search sits here as an icon (the field above is hidden below 640 px). */}
+        <Link
+          href="/search"
+          className={`${popover.trigger} ${styles.phoneSearch}`}
+          aria-label={tn('search')}
+          title={tn('search')}
+        >
+          <SearchIcon />
+        </Link>
         <ThemeSwitcher />
         <LocaleSwitcher />
         <AccountMenu />

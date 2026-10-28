@@ -16,9 +16,9 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 
 | Region | Desktop (≥ 1024 px) | Tablet | Phone |
 |---|---|---|---|
-| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Logo, theme, language, avatar (search is in the BottomNav) |
+| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Logo, search icon (opens `/search`), theme, language, avatar |
 | **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon-only rail | Hidden |
-| **BottomNav** | — | — | Home, New, Recent, Favorites, Search |
+| **BottomNav** | — | — | Home, New, Recent, Favorites |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
 
 The theme, language and account popovers close each other, and close on an outside click or tap and on Escape.

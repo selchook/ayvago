@@ -276,12 +276,23 @@
   background: #3ee6ff;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tag:nth-child(2) {
+:is([data-theme='retro'], [data-theme='arcade']) .tag[data-tone='1'] {
   background: #ffd23f;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tag:nth-child(3) {
+:is([data-theme='retro'], [data-theme='arcade']) .tag[data-tone='2'] {
   background: #ff4fa3;
+}
+
+/* Online two-player games: a tag of its own color, before the category tags. */
+.tag[data-kind='mp'] {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) .tag[data-kind='mp'] {
+  color: #201e1d;
+  background: #5dff7a;
 }
 
 .shelf {

@@ -19,7 +19,9 @@
    "Opponent: {name}" and the connection type above it.
 4. The host starts each round; the guest's game follows. After a round the host chooses
    **Rematch** or **Menu**.
-5. If a player leaves (closes the tab, loses the network for more than 4 seconds, or reloads the
+5. The host takes the first turn of the first round; after that the winner of the previous round
+   starts (after a draw, the other player). The result screen says who starts next.
+6. If a player leaves (closes the tab, loses the network for more than 4 seconds, or reloads the
    page), the other sees a notice and the round ends. When the player comes back through the same link, they take
    their seat again and the host can start a new round.
 
@@ -64,8 +66,15 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 - Online rounds send no score sessions; leaderboards stay solo only.
 
 ## 6. Ayvago Arcade runtime
-- Messages are `{ t, d }`; types starting with `__` belong to the runtime (`__start { seed }`,
-  `__menu`).
+- Messages are `{ t, d }`; types starting with `__` belong to the runtime
+  (`__start { seed, starter }`, `__menu`).
+- **Turn order rule** (every online game):
+  - The room's host takes the first turn (or serve) of the first round.
+  - After that, the previous round's winner starts.
+  - After a draw, the player who did not start the last round starts.
+  - The host computes the starter and sends it with `__start`; games read `net.starter` /
+    `net.myTurnFirst`.
+  - The result screen shows who starts the next round.
 - The host starts each round with a shared seed. A round start that arrives before the guest's
   menu is listening (the guest still in the boot intro) is kept and applied when the menu opens.
 - Real-time games (Neon Pong, Air Hockey): the host simulates; the guest sends its input and

@@ -30,6 +30,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.17 | Studio and platform ([ADR 0011](../adr/0011-studio-and-platform.md)): automatic arcade catalog PRs, adapter check, internal games portal | ✅ code, ⏳ allow Actions to open PRs |
 | 2.18 | Arcade is the default theme for new visitors | ✅ code |
 | 2.19 | Platform skill and agents for Claude Code (`ayvago-platform-slice`, `ayvago-platform-dev`, `ayvago-platform-qa`) | ✅ code |
+| 2.20 | Phones: search moves from the bottom bar to an icon next to the theme button | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -659,6 +660,17 @@ The studio's clear workflow (a build guide skill plus dev and QA agents) now exi
   It covers i18n keys, rules with emulator tests, functions, phase docs, ADRs and checks.
 - `.claude/agents/ayvago-platform-dev.md` builds a slice inside the files it is given.
 - `.claude/agents/ayvago-platform-qa.md` reviews and tests a slice, including the docs checklist.
+
+## 2.20 Phone search in the top bar ✅
+
+The owner asked for search on phones to be an icon next to the theme button rather than a tab in
+the bottom bar.
+- The bottom bar keeps four tabs: Home, New, Recent, Favorites.
+- Below 640 px the top bar shows a search icon (the popover trigger look) that opens `/search`. On
+  wider screens the search field with suggestions stays as before.
+- **Tests:** web unit tests. Production build at 320 px (arcade) and 360 px (two themes): no
+  horizontal overflow, the icon visible on phones and hidden on a 1280 px desktop, four bottom
+  tabs.
 
 ## Game fixes during the phase
 
