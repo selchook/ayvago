@@ -145,6 +145,10 @@ Optional layers that never change layout:
   - It shows on the first visit. An inline script keeps an early `beforeinstallprompt` for it.
   - It is hidden when the app is installed and on game pages.
   - "Not now" snoozes it for 7 days, then 14, then 30 for every later dismissal.
+- **System bars.** `theme-color` and the manifest's `theme_color`/`background_color` follow the
+  active theme's bar color: the page retargets its manifest link to
+  `/manifest.webmanifest?theme=&mode=`. The installed app's status and navigation bars then match
+  the top and bottom bars.
 - **Install link.** "Install the app" sits at the bottom of the side menu, and at the end of
   every page on phones. It shows until the app is installed.
   - It opens the browser's prompt when there is one.

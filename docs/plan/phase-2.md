@@ -24,7 +24,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.11 | Install banner on the first visit, "Install the app" menu link, equal-height cards in the pixel themes | ✅ live |
 | 2.12 | Ayvago Arcade wave 2: 28 more games (54 in total); the Word category gets its first game | ✅ live |
 | 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ live |
-| 2.14 | Edge-to-edge bars: system bar color follows the theme, top bar clears the status bar | ✅ code |
+| 2.14 | Edge-to-edge bars: system bar color follows the theme, top bar clears the status bar | ✅ live |
+| 2.15 | Installed app: theme-aware manifest, so the Android navigation bar matches the bottom bar | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -571,6 +572,30 @@ The owner reported that on the phone the top and bottom bars did not reach the s
 - **Tests:** a production build in Pixel 7 emulation shows `theme-color` matching the top bar in
   minimal light and dark, arcade, retro and cartoon, and following a theme switch. The top bar
   stays 60 px tall where there is no safe area.
+
+## 2.15 Theme-aware manifest ✅
+
+The owner still saw a band of a different color under the bottom bar in the installed app.
+- **Cause:** Android paints the installed app's navigation bar (and its status bar and splash
+  screen) from the manifest, not from the page. The manifest used the brand ink `#201e1d` for
+  every theme, while the bottom bar takes the theme's surface color.
+- **What shipped:**
+  - **Manifest route:** `/manifest.webmanifest` is now a route handler. With `?theme=&mode=` it
+    returns `theme_color` and `background_color` in that theme's bar color. Without them it returns
+    the brand ink. The shared logic is in `lib/pwa/manifest.ts`, and the layout links the manifest
+    through metadata.
+  - **Manifest link:** `syncThemeColor()` points the page's manifest link at the player's current
+    theme and mode. A manifest is fetched without cookies, so it could not read the theme cookie
+    itself. Chrome reads the new URL; the app identity stays the same (`id: '/'`).
+- **Owner note:** an app installed before this change keeps its old colors until Chrome refreshes
+  it (Chrome checks the manifest when the app starts, at most about once a day). To see the fix at
+  once, remove the app from the home screen and install it again. An app installed through Edge is
+  a home screen shortcut that is never refreshed, so it must be reinstalled.
+- **Tests:**
+  - Unit tests check the manifest's install fields, its icons, the per-theme colors and the
+    fallbacks.
+  - Chrome's own manifest parser (`Page.getAppManifest`) reports no errors and returns each
+    theme's bar color for arcade, minimal light and dark, and retro. Each matches the bottom bar.
 
 ## Game fixes during the phase
 
