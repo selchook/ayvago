@@ -9,19 +9,19 @@ describe('install banner snooze', () => {
     expect(isSnoozed(parseDismissal(null), NOW)).toBe(false);
   });
 
-  it('grows with every dismissal: 14, 30, then 90 days', () => {
+  it('grows with every dismissal: 7, 14, then 30 days', () => {
     const first = nextDismissal(null, NOW);
-    expect(isSnoozed(first, NOW + 13 * DAY)).toBe(true);
-    expect(isSnoozed(first, NOW + 14 * DAY)).toBe(false);
+    expect(isSnoozed(first, NOW + 6 * DAY)).toBe(true);
+    expect(isSnoozed(first, NOW + 7 * DAY)).toBe(false);
 
     const second = nextDismissal(first, NOW);
     expect(second.count).toBe(2);
-    expect(isSnoozed(second, NOW + 29 * DAY)).toBe(true);
-    expect(isSnoozed(second, NOW + 30 * DAY)).toBe(false);
+    expect(isSnoozed(second, NOW + 13 * DAY)).toBe(true);
+    expect(isSnoozed(second, NOW + 14 * DAY)).toBe(false);
 
     const fifth = { at: NOW, count: 5 };
-    expect(isSnoozed(fifth, NOW + 89 * DAY)).toBe(true);
-    expect(isSnoozed(fifth, NOW + 90 * DAY)).toBe(false);
+    expect(isSnoozed(fifth, NOW + 29 * DAY)).toBe(true);
+    expect(isSnoozed(fifth, NOW + 30 * DAY)).toBe(false);
   });
 
   it('reads what it stores and the bare timestamp of slice 2.9', () => {

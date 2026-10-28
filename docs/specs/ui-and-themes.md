@@ -68,7 +68,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
-- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card.
+- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
@@ -142,8 +142,13 @@ Optional layers that never change layout:
 - **Install banner.** `InstallPrompt` sits above the phone bottom bar.
   - Chromium shows our "Install" button, which opens the browser's own prompt.
   - iOS shows a Share → Add to Home Screen hint.
+  - It shows on the first visit. An inline script keeps an early `beforeinstallprompt` for it.
   - It is hidden when the app is installed and on game pages.
-  - "Not now" snoozes it for 14 days, then 30, then 90 for every later dismissal.
+  - "Not now" snoozes it for 7 days, then 14, then 30 for every later dismissal.
+- **Install link.** "Install the app" sits at the bottom of the side menu, and at the end of
+  every page on phones. It shows until the app is installed.
+  - It opens the browser's prompt when there is one.
+  - Otherwise it opens the banner with the iOS hint, or with manual steps for other browsers.
   - Edge on Android gets a hint: some launchers need its "Home screen shortcuts" permission
     before it can add the app, and Chrome installs in one tap.
 

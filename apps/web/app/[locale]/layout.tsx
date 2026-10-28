@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AppShell } from '@/components/shell/app-shell';
 import { ThemeRestorer } from '@/components/theme-restorer';
 import { routing } from '@/i18n/routing';
+import { INSTALL_CAPTURE_SCRIPT } from '@/lib/pwa/install-capture';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 // Self-hosted fonts (Latin + Latin Extended for Turkish); each face downloads only when used.
 import '@fontsource-variable/inter';
@@ -62,6 +63,8 @@ export default async function LocaleLayout({ children, params }: Props) {
       <head>
         <style id="ayvago-themes" dangerouslySetInnerHTML={{ __html: themeCss }} />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        {/* Keeps an early beforeinstallprompt for the install banner (lib/pwa/install-store.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: INSTALL_CAPTURE_SCRIPT }} />
       </head>
       <body>
         <ThemeRestorer />

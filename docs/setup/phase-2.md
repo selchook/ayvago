@@ -112,3 +112,6 @@ To play them locally before the deploy: in `ayvago-games`, run
   1. Allow "Home screen shortcuts" (on Xiaomi: Other permissions).
   2. Tap Install again.
   Or install from Chrome, which adds Ayvago as a full app.
+
+## 12. Install link and equal-height cards (slice 2.11)
+- 🤖 Nothing to set up. Merging deploys the web app.

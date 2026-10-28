@@ -43,7 +43,11 @@ export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels 
     >
       <CoverArt id={tile.id} title={tile.title} category={tile.category} image={tile.cover} />
       {shot ? (
-        <span className={styles.shot}>
+        <span
+          className={styles.shot}
+          // Landscape cards fill the 9:12 frame with a blurred copy of the screenshot.
+          style={{ '--shot': `url("${shot}")` } as React.CSSProperties}
+        >
           {/* Hidden (and so never loaded) outside the pixel themes. */}
           <img src={shot} alt="" loading="lazy" decoding="async" />
         </span>
