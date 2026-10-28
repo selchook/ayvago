@@ -474,6 +474,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] **Ayvago Arcade** (26 in-house games from `selchook/ayvago-games`, [ADR 0007](../adr/0007-ayvago-arcade.md)) — SDK v2 integration, generated catalog entries with covers and icons, deployed and live in the catalog
 - [x] Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)); the multiplayer ones return with import wave 3
 - [x] Ayvago Arcade look: categories follow the arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo
+- [x] Game search (`/search`, top-bar suggestions, phone bottom-bar tab), top-bar slogans, pixel logo and portal cards in the pixel themes — slice 2.10
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)

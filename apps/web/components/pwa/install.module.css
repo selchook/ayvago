@@ -86,3 +86,9 @@
     bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+.hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

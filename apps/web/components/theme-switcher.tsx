@@ -8,7 +8,7 @@ import { ThemeControls } from './theme-controls';
 export function ThemeSwitcher() {
   const t = useTranslations('theme');
   return (
-    <details className={styles.popover}>
+    <details className={styles.popover} data-popover>
       <summary className={styles.trigger} aria-label={t('label')}>
         <PaletteIcon />
       </summary>

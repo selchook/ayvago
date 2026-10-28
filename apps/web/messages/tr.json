@@ -13,7 +13,8 @@
     "favorites": "Favoriler",
     "multiplayer": "Çok oyunculu",
     "categories": "Kategoriler",
-    "skipToContent": "İçeriğe geç"
+    "skipToContent": "İçeriğe geç",
+    "search": "Ara"
   },
   "categories": {
     "arcade": "Arcade",
@@ -360,6 +361,25 @@
     "iosBody": "Paylaş simgesine dokun, ardından “Ana Ekrana Ekle”yi seç.",
     "install": "Yükle",
     "later": "Şimdi değil",
-    "ok": "Tamam"
+    "ok": "Tamam",
+    "edgeHint": "Edge önce Uygulama bilgisi ekranını açabilir: “Ana ekran kısayolları” iznini ver, geri dönüp Yükle’ye tekrar dokun. Chrome’da tek dokunuşla yüklenir."
+  },
+  "search": {
+    "title": "Oyun ara",
+    "label": "Oyun ara",
+    "placeholder": "Oyun ara…",
+    "all": "{count} oyun",
+    "results": "{count, plural, =0 {Sonuç yok} other {# sonuç}}",
+    "empty": "“{query}” ile eşleşen oyun yok.",
+    "seeAll": "{count, plural, =0 {Aramayı aç} other {# sonucun tümünü gör}}"
+  },
+  "slogans": {
+    "count": "{count} retro oyun, ücretsiz",
+    "instant": "Tarayıcında anında oyna",
+    "noDownload": "İndirme yok. START’a bas, oyna.",
+    "highScore": "Rekoru kır",
+    "genres": "Arcade, aksiyon, bulmaca ve daha fazlası",
+    "leaderboard": "Haftalık sıralamada zirveye tırman",
+    "oneMore": "Bir el daha?"
   }
 }

@@ -4,6 +4,7 @@ import { CoverArt } from '@/components/catalog/cover-art';
 import { GameTile } from '@/components/catalog/game-tile';
 import { ContinueShelf } from '@/components/catalog/continue-shelf';
 import { Shelf } from '@/components/catalog/shelf';
+import catalog from '@/components/catalog/catalog.module.css';
 import styles from '@/components/page.module.css';
 import { Link } from '@/i18n/navigation';
 import {
@@ -26,12 +27,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
   const t = await getTranslations();
 
   const [lead, ...others] = getFeaturedGames();
-  const [sideTiles, allTiles, labels, rankings] = await Promise.all([
-    toTiles(others.slice(0, 2), locale),
+  const [spotlightTiles, allTiles, labels, rankings] = await Promise.all([
+    toTiles(lead ? [lead, ...others.slice(0, 2)] : [], locale),
     toTiles(getAllGames(), locale),
     getTileLabels(),
     getRankings(),
   ]);
+  const [leadTile, ...sideTiles] = spotlightTiles;
   // "Popular this week" needs play data; it stays hidden until the ranking job has scores.
   const popular = rankGames(getAllGames(), rankings, 'trendScore').filter(
     (game) => (rankings?.games[game.manifest.id]?.trendScore ?? 0) > 0,
@@ -46,7 +48,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
         tiles={allTiles}
         labels={labels}
       />
-      {lead ? (
+      {lead && leadTile ? (
         <section aria-labelledby="spotlight-heading">
           <h2 id="spotlight-heading" className={styles.eyebrow}>
             {t('home.spotlight')}
@@ -63,12 +65,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
               <span className={styles.spotlightBody}>
                 <strong>{gameTitle(lead, locale)}</strong>
                 <p>{gameDescription(lead, locale)}</p>
+                <span className={`${catalog.tags} ${styles.spotlightTags}`}>
+                  {leadTile.categoryLabels.map((label) => (
+                    <span key={label} className={catalog.tag}>
+                      {label}
+                    </span>
+                  ))}
+                </span>
               </span>
             </Link>
             <ul className={styles.spotlightSide}>
               {sideTiles.map((tile) => (
                 <li key={tile.slug}>
-                  <GameTile tile={tile} labels={labels} wide />
+                  <GameTile tile={tile} labels={labels} />
                 </li>
               ))}
             </ul>

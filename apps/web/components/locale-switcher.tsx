@@ -14,7 +14,7 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
 
   return (
-    <details className={styles.popover}>
+    <details className={styles.popover} data-popover>
       <summary className={styles.trigger} aria-label={t('label')}>
         <GlobeIcon />
         <span className={styles.triggerText}>{active.toUpperCase()}</span>

@@ -20,6 +20,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.7 | Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)) | ✅ code |
 | 2.8 | Ayvago Arcade look: categories = arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo | ✅ code |
 | 2.9 | Category tags on game tiles, the games portal's cards in the Arcade theme, installable PWA | ✅ code |
+| 2.10 | Portal cards in the retro theme too, pixel logo, game search, top-bar slogans, popover and install-banner fixes | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -417,6 +418,58 @@ What shipped:
     - the install banner works on desktop (Chromium) and iPhone (iOS hint);
     - Arcade cards render on desktop and phone;
     - tags render in the minimal theme.
+
+## 2.10 Search, slogans, pixel logo and fixes ✅
+
+What shipped:
+- **Install banner:**
+  - **Snooze fix:** "Not now" now holds. Chromium fires `beforeinstallprompt` again on later
+    navigations, and slice 2.9 showed the banner each time. The snooze is now checked on every
+    event.
+  - **Growing snooze:** 14 days after the first "Not now", 30 after the second, 90 after every
+    later one (`lib/pwa/install-snooze.ts`). The old bare timestamp still reads as one dismissal.
+  - **Game pages:** the banner never shows there, where it would cover the game.
+  - **Edge on Android:** Edge installs a home-screen shortcut, not a full app. Some launchers
+    (Xiaomi, Oppo and others) need the "Home screen shortcuts" permission for that, so Edge opens
+    its App info screen first. The banner explains this for `EdgA` user agents and points to
+    Chrome, which installs in one tap. The platform cannot grant the permission itself.
+- **Retro theme cards:** the retro theme now uses the games portal's cards too. That covers
+  screenshots, black outlines, hard shadows, colored tags and the portal's card widths. All the
+  card rules use `:is([data-theme='retro'], [data-theme='arcade'])`.
+- **Spotlight in the pixel themes:**
+  - **Lead game:** a portal card, with its cover, a hard shadow, the title in Press Start 2P and
+    category tags.
+  - **Other two games:** screenshot cards side by side.
+  - **All themes:** the lead game now shows its category tags.
+  - `GameTile wide` is gone.
+- **Pixel logo:** in the pixel themes, the "AYVAG" word and the mark of the logo go through an
+  SVG pixelation filter in 3 px blocks. GAMES stays crisp, because at top-bar size it would only
+  be a few blocks tall.
+- **Game search:**
+  - **Page:** `/search?q=` filters the whole catalog while the player types, like the games
+    portal's search box. The query stays in the URL, and the page is `noindex`.
+  - **Matching:** case and accents are ignored, so "yilan" finds "Yılan". A game matches on its
+    titles in every language, its slug and its category names (`lib/catalog/search.ts`).
+  - **Top bar (tablet and desktop):** a search field with up to six suggestions. Enter opens the
+    full results. Without JavaScript it is a plain GET form.
+  - **Phones:** search is the fifth tab of the bottom bar.
+- **Slogans:** the empty top-bar space next to the logo shows rotating slogans every 4 s.
+  - The texts are in `messages/*/slogans`.
+  - In the pixel themes they use the portal's arcade lettering.
+  - They are hidden below 900 px.
+  - They pause on hover and stay still under `prefers-reduced-motion`.
+- **Popovers:** the theme, language and account menus close each other. A click or tap outside,
+  or Escape, closes them (`PopoverCloser`).
+- **Tests:**
+  - Unit tests for search matching and the install snooze schedule.
+  - Checked on a production build:
+    - opening one popover closes the other, and an outside click or Escape closes it;
+    - slogans rotate;
+    - "yilan" suggests Retro Yılan, and Enter opens `/search?q=` with the result;
+    - the bottom-bar Search tab works on a phone;
+    - the install banner shows the Edge hint, and stays hidden after "Not now" when
+      `beforeinstallprompt` fires again;
+    - retro and arcade cards and the spotlight render on desktop and phone.
 
 ## Game fixes during the phase
 

@@ -17,30 +17,24 @@ export type TileData = {
   isNew: boolean;
   multiplayer: boolean;
   cover: string | null;
-  /** In-game screenshot; the Arcade theme shows it instead of the cover. */
+  /** In-game screenshot; the pixel themes show it instead of the cover. */
   screenshot: string | null;
   landscape: boolean;
   /** Shown from 20 votes (docs/specs/voting.md §2). */
   likePercent: number | null;
+  /** Normalized text the game search matches against. */
+  search: string;
 };
 
 /** `likes` is an ICU message with a {percent} placeholder, already formatted by the caller. */
 export type TileLabels = { comingSoon: string; new: string; multiplayer: string; likes: string };
 
 /**
- * `wide` keeps the 16:9 cover in every theme (spotlight side tiles); otherwise the Arcade theme
- * shows the game's screenshot in its own orientation, like the Ayvago Arcade games portal.
+ * The pixel themes (retro, arcade) show the game's screenshot in its own orientation instead
+ * of the cover, like the Ayvago Arcade games portal.
  */
-export function GameTile({
-  tile,
-  labels,
-  wide = false,
-}: {
-  tile: TileData;
-  labels: TileLabels;
-  wide?: boolean;
-}) {
-  const shot = !wide && tile.screenshot;
+export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {
+  const shot = tile.screenshot;
   return (
     <Link
       href={`/games/${tile.slug}`}
@@ -50,7 +44,7 @@ export function GameTile({
       <CoverArt id={tile.id} title={tile.title} category={tile.category} image={tile.cover} />
       {shot ? (
         <span className={styles.shot}>
-          {/* Hidden (and so never loaded) outside the Arcade theme. */}
+          {/* Hidden (and so never loaded) outside the pixel themes. */}
           <img src={shot} alt="" loading="lazy" decoding="async" />
         </span>
       ) : null}

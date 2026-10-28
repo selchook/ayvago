@@ -65,7 +65,7 @@ export function AccountMenu() {
   if (account.status === 'signedOut') {
     return (
       // Keyed by state so the menu closes when the player signs out.
-      <details key="signedOut" className={popover.popover}>
+      <details key="signedOut" className={popover.popover} data-popover>
         <summary className={popover.trigger} aria-label={t('menuLabel')}>
           <UserIcon />
           <span className={`${popover.triggerText} ${styles.wideOnly}`}>{t('signIn')}</span>
@@ -85,7 +85,7 @@ export function AccountMenu() {
   const avatarId = account.profile?.avatarId ?? null;
   return (
     // Stays open across a guest upgrade so the player sees the result.
-    <details key="signedIn" className={popover.popover}>
+    <details key="signedIn" className={popover.popover} data-popover>
       <summary
         className={popover.trigger}
         aria-label={t('menuLabel')}
