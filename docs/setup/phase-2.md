@@ -139,3 +139,17 @@ To play them locally before the deploy: in `ayvago-games`, run
 ## 17. System bar colors survive page changes (slice 2.16)
 - 🤖 Nothing to set up. Merging deploys the web app. If the installed app was reinstalled while the
   colors were still being reset, reinstall it once more.
+
+## 18. Automatic arcade catalog (slice 2.17)
+1. ⏳ GitHub → `selchook/ayvago` → **Settings → Actions → General** → *Workflow permissions*: tick
+   **Allow GitHub Actions to create and approve pull requests** → Save. Without it the "Sync arcade
+   catalog" workflow fails at "Open or update the PR".
+2. ⏳ After merging, run **Actions → Sync arcade catalog → Run workflow** once. With both repos in
+   step it ends with "The catalog matches selchook/ayvago-games@…" and opens no PR.
+3. From then on, merging new games in ayvago-games is enough: within an hour a PR "Sync the arcade
+   catalog from ayvago-games" appears here. Merge it when its checks are green.
+- 🤖 `ayvago-games.vercel.app` now redirects to ayvago.com; the developer portal is at
+  `ayvago-games.vercel.app/portal/`.
+
+## 19. Arcade default theme and platform agents (slices 2.18, 2.19)
+- 🤖 Nothing to set up. New visitors see the Arcade theme; your own saved theme stays as it is.

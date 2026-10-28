@@ -26,7 +26,10 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ live |
 | 2.14 | Edge-to-edge bars: system bar color follows the theme, top bar clears the status bar | ✅ live |
 | 2.15 | Installed app: theme-aware manifest, so the Android navigation bar matches the bottom bar | ✅ live |
-| 2.16 | System bar colors survive page changes | ✅ code |
+| 2.16 | System bar colors survive page changes | ✅ live |
+| 2.17 | Studio and platform ([ADR 0011](../adr/0011-studio-and-platform.md)): automatic arcade catalog PRs, adapter check, internal games portal | ✅ code, ⏳ allow Actions to open PRs |
+| 2.18 | Arcade is the default theme for new visitors | ✅ code |
+| 2.19 | Platform skill and agents for Claude Code (`ayvago-platform-slice`, `ayvago-platform-dev`, `ayvago-platform-qa`) | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -616,6 +619,46 @@ page.
   language switch and a theme switch, in arcade, minimal light, retro and cartoon dark. Each
   page has exactly one `theme-color` tag and one manifest link. Both keep the theme's bar color,
   and Chrome's manifest parser returns that color.
+
+## 2.17 Studio and platform ✅
+
+The owner asked whether ayvago-games or ayvago should lead. Decision: ayvago-games is the studio,
+ayvago is the platform ([ADR 0011](../adr/0011-studio-and-platform.md)). The friction seen while
+shipping online play is removed:
+- **Catalog sync** (`.github/workflows/sync-arcade-catalog.yml`):
+  - Runs hourly and from the Actions tab.
+  - Copies `platform/arcade-catalog.ts` from ayvago-games `main` into
+    `packages/shared/src/arcade-catalog.ts` and opens or updates one PR (`arcade-catalog-sync`).
+  - Then starts CI on it, because PRs opened by `GITHUB_TOKEN` do not trigger `pull_request` runs.
+    CI accepts `workflow_dispatch` for that.
+  - Merging deploys the web app and, through `packages/shared`, the Cloud Functions.
+- **Studio CI** (selchook/ayvago-games): fails when its catalog or manifests are stale, or when its
+  vendored adapter differs from `packages/platform-adapter` here.
+- **Games portal:**
+  - `ayvago-games.vercel.app/` now redirects to ayvago.com.
+  - The portal stays at `/portal/` as a `noindex` internal tool.
+  - Game pages on that origin are `noindex`.
+- **Tests:** both sync checks were dry-run against the current `main` of both repositories (in
+  sync). The workflow's first real run happens after merge (owner step in the setup file).
+
+## 2.18 Arcade is the default theme ✅
+
+New visitors (no theme cookie, no account preference) now get the Arcade theme:
+- `DEFAULT_THEME` is now `arcade`; `:root` carries its tokens.
+- The system bar color, the manifest and the theme pickers' first render follow it.
+
+Saved choices are untouched.
+- **Tests:** unit tests (the manifest fallback now expects the arcade bar color). A production
+  build in desktop and Pixel 7 emulation renders `data-theme="arcade"`, the arcade bar color
+  `#2a2726` and `manifest.webmanifest?theme=arcade&mode=dark` on a first visit.
+
+## 2.19 Platform skill and agents ✅
+
+The studio's clear workflow (a build guide skill plus dev and QA agents) now exists here too:
+- `.claude/skills/ayvago-platform-slice/SKILL.md`: how a platform slice is built and documented.
+  It covers i18n keys, rules with emulator tests, functions, phase docs, ADRs and checks.
+- `.claude/agents/ayvago-platform-dev.md` builds a slice inside the files it is given.
+- `.claude/agents/ayvago-platform-qa.md` reviews and tests a slice, including the docs checklist.
 
 ## Game fixes during the phase
 

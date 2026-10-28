@@ -18,7 +18,7 @@ export const BRAND_INK = '#201e1d';
  * its tags on every client navigation (back to the defaults), and React re-adds head tags it
  * rendered whose attributes changed. syncThemeColor (lib/theme-client.ts) updates them later.
  */
-export const BAR_COLOR_SCRIPT = `(function(){var h=document.head,m=document.createElement('meta'),l=document.createElement('link');m.name='theme-color';m.content='${BRAND_INK}';l.rel='manifest';l.href='/manifest.webmanifest';try{var d=document.documentElement,c=getComputedStyle(d).getPropertyValue('--surface').trim(),t=d.getAttribute('data-theme')||'minimal',o=d.getAttribute('data-mode')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(c)m.content=c;l.href='/manifest.webmanifest?theme='+t+'&mode='+o;}catch(e){}h.appendChild(m);h.appendChild(l);})();`;
+export const BAR_COLOR_SCRIPT = `(function(){var h=document.head,m=document.createElement('meta'),l=document.createElement('link');m.name='theme-color';m.content='${BRAND_INK}';l.rel='manifest';l.href='/manifest.webmanifest';try{var d=document.documentElement,c=getComputedStyle(d).getPropertyValue('--surface').trim(),t=d.getAttribute('data-theme')||'${DEFAULT_THEME}',o=d.getAttribute('data-mode')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(c)m.content=c;l.href='/manifest.webmanifest?theme='+t+'&mode='+o;}catch(e){}h.appendChild(m);h.appendChild(l);})();`;
 
 export function manifestHref(theme: ThemeId, mode: 'light' | 'dark'): string {
   return `/manifest.webmanifest?theme=${theme}&mode=${mode}`;

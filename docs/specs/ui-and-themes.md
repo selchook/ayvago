@@ -93,10 +93,10 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 
 | Theme | Modes | Personality |
 |---|---|---|
-| **minimal** (default) | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
+| **minimal** | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
 | **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons. Tiles are the games portal's cards, as in arcade |
 | **cartoon** | light + dark | Saturated yellow/blue/pink, 20 px radius, 3 px dark outlines, springy hover, confetti on personal bests |
-| **arcade** (labelled "Arcade") | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
+| **arcade** (labelled "Arcade", default since slice 2.18) | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
 
 Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
 
@@ -121,6 +121,7 @@ Optional layers that never change layout:
 ### 5.5 Persistence without flashing
 - The choice is stored in a cookie (`ayvago-theme`, `ayvago-mode`) and, for signed-in users, in `users/{uid}.theme/mode`.
 - Pages stay statically rendered: a tiny inline script in `<head>` (`themeBootstrapScript` in `packages/themes`) reads the cookies and sets `data-theme`/`data-mode` before first paint, so there is no flash of the wrong theme. When the mode is "system", no `data-mode` is set and the CSS follows `prefers-color-scheme`.
+- Without a saved choice (no cookie, no account preference) the page renders `DEFAULT_THEME`, which is **arcade** since slice 2.18: new visitors meet the Ayvago Arcade look. Players who chose minimal, retro or cartoon keep their choice.
 - *Implementation note:* reading the cookie on the server was the original plan, but it would make every page dynamic; the inline script keeps static generation and ISR.
 
 ### 5.6 Games and themes

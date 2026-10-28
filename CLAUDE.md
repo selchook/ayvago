@@ -36,6 +36,15 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
   Firebase Secret Manager.
 - Firestore/RTDB/Storage rules start from deny-all; every rule change ships with emulator tests.
 
+## Studio and platform (ADR 0011)
+- Games are made in `selchook/ayvago-games` (the studio: runtime, games, game skills and agents).
+  This repo is the platform players see. Never edit `packages/shared/src/arcade-catalog.ts` by
+  hand: the "Sync arcade catalog" workflow pulls it from the studio's `main` and opens a PR.
+- `packages/platform-adapter` is the protocol's original; the studio's CI fails until its copy
+  matches.
+- Platform work: follow `.claude/skills/ayvago-platform-slice/SKILL.md`; use the
+  `ayvago-platform-dev` and `ayvago-platform-qa` agents for larger slices.
+
 ## Commands
 - `pnpm install` · `pnpm dev` · `pnpm build` · `pnpm typecheck` · `pnpm test` · `pnpm format`
 - Node 22 (`.nvmrc`), pnpm 10 (`packageManager` field).
