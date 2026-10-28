@@ -476,6 +476,7 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] Ayvago Arcade look: categories follow the arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo
 - [x] Game search (`/search`, top-bar suggestions, phone bottom-bar tab), top-bar slogans, pixel logo and portal cards in the pixel themes — slice 2.10
 - [x] "Install the app" menu link, install banner on the first visit, equal-height cards — slice 2.11
+- [x] **Ayvago Arcade wave 2** — 28 more in-house games (54 in total), Word category live — slice 2.12
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
 ### Phase 3 — Monetization (3 weeks)

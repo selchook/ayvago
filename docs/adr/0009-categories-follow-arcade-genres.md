@@ -21,7 +21,7 @@ be the same.
     list a game under each of them.
   - For arcade games, the generator maps `game.json` genres directly: the first genre is primary.
 - **Empty categories are hidden.** They stay out of the navigation and the sitemap, so no link
-  leads to an empty page. Today that is `word`.
+  leads to an empty page. At launch that was `word`; Word Hunt filled it in slice 2.12.
 - **Old category URLs redirect permanently.** `/c/retro-action` goes to `/c/arcade` and `/c/board`
   goes to `/c/strategy`.
 - **Parked games are remapped** so their manifests stay valid: `retro_action` becomes `arcade` and
