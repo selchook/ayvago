@@ -22,7 +22,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.9 | Category tags on game tiles, the games portal's cards in the Arcade theme, installable PWA | ✅ code |
 | 2.10 | Portal cards in the retro theme too, pixel logo, game search, top-bar slogans, popover and install-banner fixes | ✅ live |
 | 2.11 | Install banner on the first visit, "Install the app" menu link, equal-height cards in the pixel themes | ✅ live |
-| 2.12 | Ayvago Arcade wave 2: 28 more games (54 in total); the Word category gets its first game | ✅ code |
+| 2.12 | Ayvago Arcade wave 2: 28 more games (54 in total); the Word category gets its first game | ✅ live |
+| 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -529,6 +530,27 @@ What shipped:
   - In `selchook/ayvago-games`, all 54 games pass the smoke test, the platform protocol check and
     manifest validation.
   - Here, the catalog test now expects at least 54 arcade games and a non-empty Word category.
+
+## 2.13 Phone layout fix ✅
+
+The owner reported that on phones the main menu ran off the screen.
+
+What was wrong:
+- **Home shelves:** each shelf is a CSS grid whose single track grew to fit its content. The
+  scroll list's percentage columns then widened the shelf to 640–760 px. A phone browser zooms
+  the page out to fit the widest element, so the fixed bottom bar and the top bar looked like they
+  ran off the screen.
+- **Top bar:** below about 360 px, the logo and the three action buttons were about 10–40 px
+  wider than the screen in some themes.
+
+What shipped:
+- `.shelf` uses `grid-template-columns: minmax(0, 1fr)`, so the shelf keeps the page width and its
+  list scrolls inside it.
+- **Phone top bar:** the lockup is 30 px tall, the gaps and trigger padding are tighter, and the
+  language trigger shows only its code (TR/EN) without the globe icon.
+- **Tests:** a production build was checked with Playwright on every combination of 4 themes, 4
+  phone widths (320, 360, 390, 412 px) and 10 pages (home in both locales, new, category, game,
+  leaderboard, search, favorites, recent, profile). No page is wider than the screen.
 
 ## Game fixes during the phase
 

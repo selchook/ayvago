@@ -122,3 +122,6 @@ To play them locally before the deploy: in `ayvago-games`, run
   - the web app;
   - the Cloud Functions, because `packages/shared` changed. Score sessions accept the new games
     from then on.
+
+## 14. Phone layout fix (slice 2.13)
+- 🤖 Nothing to set up. Merging deploys the web app.

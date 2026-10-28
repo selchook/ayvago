@@ -41,6 +41,7 @@
 }
 
 .logo {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   color: var(--text);
@@ -262,8 +263,19 @@ button.navItem {
   }
 
   .topBar {
-    padding-inline: max(16px, env(safe-area-inset-left, 0px))
-      max(16px, env(safe-area-inset-right, 0px));
+    gap: 8px;
+    padding-inline: max(12px, env(safe-area-inset-left, 0px))
+      max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  /* A smaller lockup and tighter actions, so the bar fits 320 px screens. */
+  .logo svg {
+    width: auto;
+    height: 30px;
+  }
+
+  .topActions {
+    gap: 6px;
   }
 
   .content {

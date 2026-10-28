@@ -286,6 +286,9 @@
 
 .shelf {
   display: grid;
+  /* minmax(0, …): a grid track otherwise grows to its content, and the scroll list's
+     percentage columns would widen the shelf (and the whole page on phones). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   margin-bottom: 36px;
 }
