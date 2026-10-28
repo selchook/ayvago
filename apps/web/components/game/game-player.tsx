@@ -9,6 +9,8 @@ import {
   isTrustedGameMessage,
   originOf,
   parseGameMessage,
+  relayableMove,
+  type MatchSeat,
   type PlatformMessage,
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
@@ -36,6 +38,16 @@ const NON_SDK_GRACE_MS = 1500;
 // When a game takes this long, offer a reload.
 const SLOW_LOAD_MS = 12_000;
 
+/**
+ * An online match (the room page): the seat goes into GHA_START, moves from this game go to
+ * `send`, and `attach` receives the poster for moves and presence once the game is ready.
+ */
+export type MatchBinding = {
+  seat: MatchSeat;
+  send(json: string): void;
+  attach(post: (message: PlatformMessage) => void): () => void;
+};
+
 export type GamePlayerProps = {
   slug: string;
   /** Manifest id: the game's key for score sessions and leaderboards. */
@@ -47,11 +59,14 @@ export type GamePlayerProps = {
   scoreOrder: 'asc' | 'desc';
   scoreFormat: ScoreFormat;
   cover: React.ReactNode;
+  /** Online match: no cover (the room page already asked), no score runs, moves relayed. */
+  match?: MatchBinding;
 };
 
 export function GamePlayer(props: GamePlayerProps) {
   const { slug, gameId, title, entry, comingSoon, orientation, scoreOrder, scoreFormat, cover } =
     props;
+  const match = props.match;
   const t = useTranslations();
   const locale = useLocale();
   const gameOrigin = useMemo(() => originOf(entry), [entry]);
@@ -65,7 +80,7 @@ export function GamePlayer(props: GamePlayerProps) {
   const runRef = useRef<Run | null>(null);
   const runStartedRef = useRef(0);
 
-  const [phase, setPhase] = useState<Phase>('cover');
+  const [phase, setPhase] = useState<Phase>(match ? 'loading' : 'cover');
   const [frameKey, setFrameKey] = useState(0);
   const [slow, setSlow] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
@@ -95,15 +110,18 @@ export function GamePlayer(props: GamePlayerProps) {
     const theme = readThemeState();
     post({
       type: 'GHA_START',
-      config: buildStartConfig({
-        theme: theme.theme,
-        colorMode: theme.mode,
-        tokens: gameTokens(theme.theme, theme.mode),
-        locale,
-        adsEnabled: false,
-      }),
+      config: buildStartConfig(
+        {
+          theme: theme.theme,
+          colorMode: theme.mode,
+          tokens: gameTokens(theme.theme, theme.mode),
+          locale,
+          adsEnabled: false,
+        },
+        match?.seat,
+      ),
     });
-  }, [locale, post]);
+  }, [locale, post, match?.seat]);
 
   // Bridge: only trusted, well-formed messages from this game's frame are handled.
   useEffect(() => {
@@ -121,12 +139,20 @@ export function GamePlayer(props: GamePlayerProps) {
         case 'loading':
           setProgress(message.progress);
           break;
+        case 'moveOut': {
+          const json = match ? relayableMove(message.data) : null;
+          if (json) match?.send(json);
+          break;
+        }
         case 'sessionStart':
+          // Online rounds are not ranked: the leaderboards are for solo runs.
+          if (match) break;
           runRef.current = beginRun(gameId, identityRef.current);
           runStartedRef.current = Date.now();
           setRunResult(null);
           break;
         case 'end': {
+          if (match) break;
           const run = runRef.current;
           runRef.current = null;
           if (message.score !== null) {
@@ -145,23 +171,34 @@ export function GamePlayer(props: GamePlayerProps) {
           document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' });
           break;
         default:
-          // Mid-run scores and multiplayer moves are handled once accounts and netcode land.
+          // Mid-run scores are not used by the platform yet.
           break;
       }
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder]);
+  }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder, match]);
 
-  // Pause the game while the tab is hidden.
+  // An online match opens the game straight away; it still counts as a play.
   useEffect(() => {
-    if (phase !== 'playing') return;
+    if (match) recordPlay(slug);
+  }, [match, slug]);
+
+  // Online match: moves and presence reach the game once it has its seat (GHA_START).
+  useEffect(() => {
+    if (!match || !connected) return;
+    return match.attach(post);
+  }, [match, connected, post]);
+
+  // Pause the game while the tab is hidden (solo only: an online round runs for both players).
+  useEffect(() => {
+    if (phase !== 'playing' || match) return;
     function onVisibility() {
       post({ type: document.hidden ? 'GHA_PAUSE' : 'GHA_RESUME' });
     }
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [phase, post]);
+  }, [phase, post, match]);
 
   // Forward theme switches to the running game.
   useEffect(() => {

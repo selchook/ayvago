@@ -68,7 +68,7 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 
 ## 5. Cloudflare
 - ⏳ Cloudflare account → **Realtime → TURN** → create a TURN key
-- ⏳ **Do not paste** the Key ID and API token into chat; in Phase 4 enter them yourself with `firebase functions:secrets:set CF_TURN_KEY_ID` and `CF_TURN_TOKEN`
+- ⏳ **Do not paste** the Key ID and API token into chat. They go into Vercel as `CF_TURN_KEY_ID` and `CF_TURN_API_TOKEN` (not Firebase secrets, see [ADR 0010](../adr/0010-online-matches.md)); steps in [Phase 4 setup](phase-4.md#1-cloudflare-turn)
 
 ## 6. Revenue applications (long approval times — start early)
 - ⏳ Google AdSense account + `ayvago.com` site verification

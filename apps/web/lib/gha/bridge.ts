@@ -20,6 +20,8 @@ export type StartConfig = {
   isHost: boolean;
   playerIndex: number;
   playerCount: number;
+  /** Multiplayer only: the other player's display name. */
+  peerName?: string;
   theme: ThemeId;
   colorMode: ColorMode;
   tokens: Record<string, string>;
@@ -40,6 +42,10 @@ export type PlatformMessage =
       tokens: Record<string, string>;
     }
   | { type: 'GHA_LOCALE_CHANGE'; locale: string }
+  // Online two-player matches (adapter 2.1): moves from the other player, presence changes.
+  | { type: 'GHA_MOVE_IN'; data: unknown }
+  | { type: 'GHA_PEER_LEAVE' }
+  | { type: 'GHA_PEER_JOIN'; name: string }
   | { type: 'GHA_AD_RESULT'; id: number; shown: boolean; rewarded: boolean };
 
 // Highest score accepted from a game message; larger values are treated as malformed.
@@ -120,19 +126,40 @@ export function parseGameMessage(data: unknown): GameMessage | null {
   }
 }
 
-export function buildStartConfig(options: {
-  theme: ThemeId;
-  colorMode: ColorMode;
-  tokens: Record<string, string>;
-  locale: string;
-  adsEnabled: boolean;
-}): StartConfig {
-  return {
-    mode: 'solo',
-    isHost: true,
-    playerIndex: 0,
-    playerCount: 1,
-    protocol: PROTOCOL_VERSION,
-    ...options,
-  };
+export type MatchSeat = { isHost: boolean; peerName: string };
+
+export function buildStartConfig(
+  options: {
+    theme: ThemeId;
+    colorMode: ColorMode;
+    tokens: Record<string, string>;
+    locale: string;
+    adsEnabled: boolean;
+  },
+  /** An online match: the seat in the room (host = player 0) and the opponent's name. */
+  match?: MatchSeat,
+): StartConfig {
+  const seat = match
+    ? {
+        mode: 'multiplayer' as const,
+        isHost: match.isHost,
+        playerIndex: match.isHost ? 0 : 1,
+        playerCount: 2,
+        peerName: match.peerName,
+      }
+    : { mode: 'solo' as const, isHost: true, playerIndex: 0, playerCount: 1 };
+  return { ...seat, protocol: PROTOCOL_VERSION, ...options };
+}
+
+/** Largest move a game may send (serialized JSON, characters), as in the adapter. */
+export const MAX_MOVE_SIZE = 16_000;
+
+/** A move is relayed only when it serializes to JSON within the size limit. */
+export function relayableMove(data: unknown): string | null {
+  try {
+    const json = JSON.stringify(data);
+    return json !== undefined && json.length <= MAX_MOVE_SIZE ? json : null;
+  } catch {
+    return null;
+  }
 }

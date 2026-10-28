@@ -23,6 +23,8 @@ const EMULATOR_CONFIG: FirebaseWebConfig = {
   authDomain: 'demo-ayvago.firebaseapp.com',
   projectId: 'demo-ayvago',
   appId: 'demo-app',
+  // connectDatabaseEmulator keeps the namespace from this URL and swaps the host.
+  databaseURL: 'https://demo-ayvago-default-rtdb.firebaseio.com',
 };
 
 export function readFirebaseConfig(): FirebaseWebConfig | null {

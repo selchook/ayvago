@@ -383,5 +383,42 @@
     "genres": "Arcade, aksiyon, bulmaca ve daha fazlası",
     "leaderboard": "Haftalık sıralamada zirveye tırman",
     "oneMore": "Bir el daha?"
+  },
+  "online": {
+    "title": "{title} · Arkadaşınla",
+    "pageTitle": "{title} oyununu arkadaşınla çevrimiçi oyna",
+    "playWithFriend": "Arkadaşınla oyna",
+    "playWithFriendHint": "Bir oda kur ve linki arkadaşına gönder. Her biriniz kendi cihazından, karşılıklı oynarsınız.",
+    "createRoom": "Oda kur",
+    "preparing": "Oda hazırlanıyor…",
+    "inviteTitle": "Arkadaşını davet et",
+    "inviteBody": "Bu linki arkadaşına gönder. Linki açtığı anda maç başlar.",
+    "inviteLabel": "Davet linki",
+    "copy": "Linki kopyala",
+    "copied": "Link kopyalandı",
+    "share": "Paylaş",
+    "shareText": "Ayvago'da benimle {title} oyna!",
+    "roomCode": "Oda kodu: {code}",
+    "waitingFriend": "Arkadaşın bekleniyor…",
+    "waitingFor": "{name} bekleniyor…",
+    "opponent": "Rakip: {name}",
+    "peerAway": "{name} odadan ayrıldı. Geri döndüğünde maç devam eder.",
+    "defaultName": "Oyuncu",
+    "newRoom": "Yeni oda kur",
+    "backToGame": "{title} sayfasına dön",
+    "route": {
+      "connecting": "Bağlanıyor…",
+      "direct": "Doğrudan bağlantı",
+      "turn": "TURN üzerinden bağlı",
+      "relay": "Sunucu üzerinden bağlı"
+    },
+    "error": {
+      "full": "Bu odada zaten iki oyuncu var.",
+      "missing": "Böyle bir oda yok. Linki kontrol et ya da yeni bir oda kur.",
+      "closed": "Bu oda kapandı.",
+      "expired": "Bu odanın süresi doldu. Odalar iki saat açık kalır.",
+      "failed": "Oda açılamadı. Bağlantını kontrol edip tekrar dene.",
+      "unavailable": "Çevrimiçi oyun şu anda kullanılamıyor."
+    }
   }
 }

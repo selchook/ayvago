@@ -7,7 +7,7 @@ import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
 import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
 import styles from '@/components/game/game.module.css';
-import { TrophyIcon } from '@/components/icons';
+import { TrophyIcon, UsersIcon } from '@/components/icons';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import {
@@ -127,6 +127,23 @@ export default async function GamePage({ params }: Props) {
                 <span>{t('game.players', { count: manifest.players.max })}</span>
               </p>
             </div>
+
+            {game.multiplayer && game.status === 'live' ? (
+              <section className={styles.card} aria-labelledby="online-heading">
+                <h2 id="online-heading">
+                  <UsersIcon />
+                  {t('online.playWithFriend')}
+                </h2>
+                <p>{t('online.playWithFriendHint')}</p>
+                <Link
+                  href={`${gamePath(game)}/room`}
+                  className={styles.friendButton}
+                  prefetch={false}
+                >
+                  {t('online.createRoom')}
+                </Link>
+              </section>
+            ) : null}
 
             <section className={styles.section} aria-labelledby="about-heading">
               <h2 id="about-heading">{t('game.description')}</h2>

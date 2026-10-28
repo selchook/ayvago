@@ -459,3 +459,107 @@
   padding: 0;
   font-weight: 700;
 }
+
+/* Online room page (/games/{slug}/room/{code}): lobby with the invite link, then the game. */
+.room {
+  display: grid;
+  gap: 16px;
+  max-width: 960px;
+}
+
+.room .card {
+  justify-items: start;
+}
+
+.inviteRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.inviteInput {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.inviteButton,
+.friendButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.friendButton {
+  justify-self: start;
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) :is(.inviteButton, .friendButton, .inviteInput) {
+  border-radius: 0;
+}
+
+[data-theme='cartoon'] :is(.inviteButton, .friendButton) {
+  border-color: var(--border);
+}
+
+.waiting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.waiting .spinner {
+  width: 22px;
+  height: 22px;
+  border-width: 3px;
+  border-color: color-mix(in srgb, var(--text) 20%, transparent);
+  border-top-color: var(--accent);
+}
+
+.matchStatus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.matchStatus strong {
+  color: var(--text);
+}
+
+.routeBadge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
+  font-size: 0.8rem;
+}
+
+.routeBadge[data-route='direct'],
+.routeBadge[data-route='turn'] {
+  color: var(--success);
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) .routeBadge {
+  border-radius: 0;
+}
