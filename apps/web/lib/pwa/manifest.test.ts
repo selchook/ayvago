@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { THEMES } from '@ayvago/themes';
+import { DEFAULT_THEME, THEMES } from '@ayvago/themes';
 import { describe, expect, it } from 'vitest';
 import { BRAND_INK, barColor, buildManifest, manifestHref } from './manifest';
 
@@ -46,7 +46,7 @@ describe('web app manifest', () => {
   it('falls back safely on unknown input', () => {
     // Dark-only themes ignore a light request; unknown themes use the default theme.
     expect(barColor('retro', 'light')).toBe(THEMES.retro.colors.dark?.surface);
-    expect(barColor('nope', 'light')).toBe(THEMES.minimal.colors.light?.surface);
+    expect(barColor('nope', 'light')).toBe(THEMES[DEFAULT_THEME].colors.dark?.surface);
     expect(manifestHref('arcade', 'dark')).toBe('/manifest.webmanifest?theme=arcade&mode=dark');
   });
 });

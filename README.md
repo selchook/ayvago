@@ -14,14 +14,16 @@ invite link (slice 4.1).
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Plan](docs/plan/phase-0.md) · [Setup](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore and sdk-playground carried forward; PWA shipped in 2.9) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
-| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.16), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.19), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 code complete (8 games online), owner steps open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
 
-Live games: the 54 in-house Ayvago Arcade games (`selchook/ayvago-games`, slices 2.6 and 2.12). The ten
+Live games: the 54 in-house Ayvago Arcade games, made in the studio repo `selchook/ayvago-games`
+([ADR 0011](docs/adr/0011-studio-and-platform.md); slices 2.6 and 2.12). Their catalog reaches this
+repo through the automatic "Sync arcade catalog" PR. The ten
 imported games are parked until they meet the platform standards (slice 2.7,
 [ADR 0008](docs/adr/0008-park-imported-games.md)).
 

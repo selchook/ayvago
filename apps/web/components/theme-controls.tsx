@@ -1,6 +1,13 @@
 'use client';
 
-import { THEMES, THEME_IDS, colorsFor, type ModePreference, type ThemeId } from '@ayvago/themes';
+import {
+  DEFAULT_THEME,
+  THEMES,
+  THEME_IDS,
+  colorsFor,
+  type ModePreference,
+  type ThemeId,
+} from '@ayvago/themes';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import {
@@ -19,9 +26,9 @@ export function ThemeControls({ name }: { name: string }) {
   const t = useTranslations('theme');
   // Matches the server render; the real value is read from <html> after mount.
   const [state, setState] = useState<ThemeState>({
-    theme: 'minimal',
+    theme: DEFAULT_THEME,
     preference: 'system',
-    mode: 'light',
+    mode: THEMES[DEFAULT_THEME].modes[0] ?? 'dark',
   });
 
   useEffect(() => {

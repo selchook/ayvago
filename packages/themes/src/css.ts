@@ -1,4 +1,5 @@
 import {
+  DEFAULT_THEME,
   THEMES,
   THEME_IDS,
   colorsFor,
@@ -47,7 +48,7 @@ export function buildThemeCss(): string {
     const def = THEMES[id];
     const sel = `[data-theme="${id}"]`;
     const first = def.modes[0] as ColorMode;
-    const base = id === 'minimal' ? `:root,${sel}` : sel;
+    const base = id === DEFAULT_THEME ? `:root,${sel}` : sel;
 
     rules.push(`${base}{${staticBlock(def)}${colorBlock(colorsFor(id, first), first)}}`);
 

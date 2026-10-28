@@ -10,7 +10,8 @@ export type ColorMode = (typeof COLOR_MODES)[number];
 // "system" follows prefers-color-scheme; it is a preference, not a rendered mode.
 export type ModePreference = ColorMode | 'system';
 
-export const DEFAULT_THEME: ThemeId = 'minimal';
+// New visitors get the Ayvago Arcade look (slice 2.18); a saved choice always wins.
+export const DEFAULT_THEME: ThemeId = 'arcade';
 
 export type ColorTokens = {
   bg: string;
