@@ -12,6 +12,7 @@ import {
   type ModePreference,
   type ThemeId,
 } from '@ayvago/themes';
+import { manifestHref } from './pwa/manifest';
 
 // Client-side theme state. The <html> attributes are the source of truth (set before first
 // paint by the bootstrap script); this module reads and updates them and the cookies.
@@ -39,7 +40,8 @@ export function readThemeState(): ThemeState {
 
 /**
  * Paints the browser and system bars (Android status bar, the installed app's title bar, the
- * address bar) in the top bar's color, so the app's bars run to the screen edges in every theme.
+ * address bar) in the top bar's color, so the app's bars run to the screen edges in every theme,
+ * and points the manifest at the same colors for the installed app's navigation bar.
  */
 export function syncThemeColor(): void {
   const color = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
@@ -51,6 +53,11 @@ export function syncThemeColor(): void {
     document.head.append(meta);
   }
   meta.content = color;
+  // The installed app's system bars come from the manifest: point it at this theme's colors.
+  const { theme, mode } = readThemeState();
+  document
+    .querySelector<HTMLLinkElement>('link[rel="manifest"]')
+    ?.setAttribute('href', manifestHref(theme, mode));
 }
 
 function setCookie(name: string, value: string): void {

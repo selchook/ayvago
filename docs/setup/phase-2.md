@@ -129,3 +129,9 @@ To play them locally before the deploy: in `ayvago-games`, run
 ## 15. Edge-to-edge bars (slice 2.14)
 - 🤖 Nothing to set up. Merging deploys the web app. An installed app may need to be closed and
   reopened once to pick up the new bar color.
+
+## 16. Theme-aware manifest (slice 2.15)
+- ⏳ **Reinstall the app once.** On the phone, remove Ayvago from the home screen, open ayvago.com
+  in the theme you use and install it again. The navigation bar then takes that theme's color.
+  Chrome would also refresh an installed app by itself within about a day. An app installed
+  through Edge must be reinstalled.

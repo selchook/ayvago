@@ -49,6 +49,9 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
     alternates: localizedAlternates(locale, ''),
     openGraph: { siteName: t('title'), locale, type: 'website' },
     appleWebApp: { capable: true, title: t('title'), statusBarStyle: 'black-translucent' },
+    // A route handler (theme-aware colors), so it is linked here; the page retargets it to the
+    // player's theme.
+    manifest: '/manifest.webmanifest',
   };
 }
 
