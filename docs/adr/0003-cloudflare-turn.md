@@ -1,6 +1,7 @@
 # ADR 0003 — Cloudflare Realtime TURN for WebRTC relay
 
-- Status: Accepted (2026-10-16)
+- Status: Accepted (2026-10-16); amended by [ADR 0010](0010-online-matches.md): the credentials come from a
+  Next.js route with Vercel env vars instead of a Cloud Function
 
 ## Context
 The multiplayer games (Tavla, Naval Strike, Number Detective, Tito) currently use Ably, with Ably keys exposed in the client. The platform will build its own multiplayer layer; players behind NAT/CGNAT need TURN.

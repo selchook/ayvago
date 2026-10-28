@@ -76,7 +76,17 @@ describe('seed catalog', () => {
       expect(getGameBySlug(parked.slug), parked.slug).toBeUndefined();
     }
     expect(getAllGames().every((game) => game.repo === 'selchook/ayvago-games')).toBe(true);
-    expect(getMultiplayerGames()).toEqual([]);
+    // The online two-player games of slice 4.1; the parked Ably games are not among them.
+    expect(getMultiplayerGames().map((game) => game.slug)).toEqual([
+      'air-hockey',
+      'bowling-strike',
+      'connect-four',
+      'memory-match',
+      'mini-golf',
+      'neon-pong',
+      'penalty-kick',
+      'reversi',
+    ]);
     // The home spotlight needs a lead game and two side tiles.
     expect(getFeaturedGames().length).toBeGreaterThanOrEqual(3);
   });

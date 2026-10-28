@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildStartConfig, isTrustedGameMessage, originOf, parseGameMessage } from './bridge';
+import {
+  buildStartConfig,
+  isTrustedGameMessage,
+  originOf,
+  parseGameMessage,
+  relayableMove,
+} from './bridge';
 
 describe('isTrustedGameMessage', () => {
   const frame = {};
@@ -86,6 +92,39 @@ describe('buildStartConfig', () => {
     });
     expect(config).toMatchObject({ mode: 'solo', isHost: true, playerIndex: 0, playerCount: 1 });
     expect(config).toMatchObject({ protocol: 2, theme: 'retro', locale: 'tr' });
+  });
+
+  it('seats both players of an online match', () => {
+    const base = {
+      theme: 'arcade',
+      colorMode: 'dark',
+      tokens: {},
+      locale: 'en',
+      adsEnabled: false,
+    } as const;
+    expect(buildStartConfig(base, { isHost: true, peerName: 'Ayşe' })).toMatchObject({
+      mode: 'multiplayer',
+      isHost: true,
+      playerIndex: 0,
+      playerCount: 2,
+      peerName: 'Ayşe',
+    });
+    expect(buildStartConfig(base, { isHost: false, peerName: 'Mert' })).toMatchObject({
+      mode: 'multiplayer',
+      isHost: false,
+      playerIndex: 1,
+    });
+  });
+});
+
+describe('relayableMove', () => {
+  it('accepts small JSON moves and rejects the rest', () => {
+    expect(relayableMove({ t: 'move', d: { col: 3 } })).toBe('{"t":"move","d":{"col":3}}');
+    expect(relayableMove({ blob: 'x'.repeat(20_000) })).toBeNull();
+    expect(relayableMove(undefined)).toBeNull();
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    expect(relayableMove(cyclic)).toBeNull();
   });
 });
 

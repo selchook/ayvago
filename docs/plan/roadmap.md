@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [ADRs](../adr/)
+> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [Phase 4](phase-4.md) ([setup](../setup/phase-4.md)) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -180,14 +180,14 @@ Season key: `s-2026-W42` (weekly seasons, Monday 09:00 UTC). Old season entries 
 ### 2.3 Realtime Database layout
 
 ```
-presence/{uid}                         { state: 'online', gameId, lastChanged }   ← onDisconnect → offline
-lobbies/{gameId}/{roomCode}            { hostUid, players{}, status, createdAt }  ← room code + invite link
-matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match
-signaling/{roomId}/{fromUid}_{toUid}   { offer, answer, candidates{} }            ← WebRTC handshake
-relay/{roomId}/moves/{pushId}          { from, data, ts }                         ← fallback when WebRTC fails
+rooms/{code}                           { gameId, slug, hostUid, hostName, guestUid, guestName, createdAt, status, online/{uid} }  ✅ ← room code + invite link
+signals/{code}/{toUid}/{id}            { from, kind: hello|offer|answer|ice, data }  ✅ ← WebRTC handshake inbox
+relay/{code}/{pushId}                  { from, data }                                ✅ ← fallback when WebRTC is not open
+presence/{uid}                         { state: 'online', gameId, lastChanged }   ← onDisconnect → offline (later)
+matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only players in a room can read/write it; rooms are deleted after two hours by a scheduled function.
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -200,14 +200,14 @@ RTDB rules: only players in a room can read/write it; rooms are deleted after tw
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
 | `deleteMyData` ✅ | Callable | Account deletion, server part: profile, library, username, board rows, votes, stats |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
-| `getIceServers` | Callable (auth + rate limit) | Short-lived TURN credentials from Cloudflare (§10) |
+| `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
 | `grantAdReward` | Callable | Grants rewarded-ad rewards (daily cap) |
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
 | `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge; guest cleanup (30 days); score session cleanup (14 days) |
-| `cleanupLobbies` | Scheduled (hourly) | Removes stale rooms and signaling data |
+| `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms older than two hours with their signaling and relay data |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
@@ -392,10 +392,10 @@ Player A (platform)                     Firebase                           Playe
 
 ### 10.3 Cloudflare setup
 1. In the Cloudflare dashboard, **Realtime → TURN**, create a TURN key (Key ID + API token).
-2. Store the token in Firebase Secret Manager: `firebase functions:secrets:set CF_TURN_TOKEN`.
-3. `getIceServers` POSTs to
+2. Store both in Vercel as server-only env vars `CF_TURN_KEY_ID` and `CF_TURN_API_TOKEN` ([ADR 0010](../adr/0010-online-matches.md); owner steps in [Phase 4 setup](../setup/phase-4.md)).
+3. `GET /api/ice-servers` POSTs to
    `https://rtc.live.cloudflare.com/v1/turn/keys/{KEY_ID}/credentials/generate-ice-servers`
-   with `Authorization: Bearer <token>` and body `{ "ttl": 7200 }` → response: an `iceServers` array (STUN + TURN URLs, `username`, `credential`).
+   with `Authorization: Bearer <token>` and body `{ "ttl": 14400 }` → response: an `iceServers` array (STUN + TURN URLs, `username`, `credential`).
 4. **Filter out port 53 URLs** before returning them (browsers can time out on that port).
 5. Guards: signed-in users only + App Check + N requests per user per minute; TTL kept short.
 
@@ -487,10 +487,12 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [ ] Google Analytics revenue funnel (BigQuery export later)
 - **Done when:** a `remove_ads` buyer never sees an interstitial; rewarded rewards arrive only after server confirmation.
 
-### Phase 4 — Multiplayer (2–3 weeks)
-- [ ] `packages/netcode`: RTDB signaling + WebRTC DataChannel + RTDB relay fallback
-- [ ] `getIceServers` function + Cloudflare TURN
-- [ ] Lobbies, room codes / invite links, quick match, presence, rematch
+### Phase 4 — Multiplayer (2–3 weeks) — in progress
+Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup](../setup/phase-4.md)
+- [x] Netcode (`apps/web/lib/netcode`, not a separate package): RTDB signaling + WebRTC DataChannel + RTDB relay fallback — slice 4.1
+- [x] ICE servers + Cloudflare TURN (`GET /api/ice-servers`, [ADR 0010](../adr/0010-online-matches.md)) — TURN switches on with the owner's key
+- [x] Room codes / invite links, presence, rematch — slice 4.1; quick match still open (slice 4.2)
+- [x] Eight Ayvago Arcade games playable online (Connect Four, Reversi, Memory Match, Neon Pong, Air Hockey, Penalty Kick, Bowling Strike, Mini Golf) — slice 4.1
 - [ ] **Import wave 3** (backgammon, battleships, guess-number, tito) — migration off Ably
 - **Done when:** players on two different mobile carriers (with TURN forced in tests) can finish a match.
 

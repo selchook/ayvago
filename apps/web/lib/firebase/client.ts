@@ -2,6 +2,7 @@
 // features are first needed, so catalog pages stay light.
 import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
+import type { Database } from 'firebase/database';
 import type { Firestore } from 'firebase/firestore';
 import type { Functions } from 'firebase/functions';
 import { APP_CHECK_SITE_KEY, readFirebaseConfig, USE_EMULATORS } from './config';
@@ -10,6 +11,7 @@ let appPromise: Promise<FirebaseApp> | null = null;
 let authPromise: Promise<Auth> | null = null;
 let firestorePromise: Promise<Firestore> | null = null;
 let functionsPromise: Promise<Functions> | null = null;
+let databasePromise: Promise<Database> | null = null;
 
 export function firebaseEnabled(): boolean {
   return readFirebaseConfig() !== null;
@@ -77,4 +79,17 @@ export function loadFunctions(): Promise<Functions> {
     },
   );
   return functionsPromise;
+}
+
+// Realtime Database: online match rooms, WebRTC signaling and the fallback relay
+// (lib/netcode). Loaded only when a player opens a room.
+export function loadDatabase(): Promise<Database> {
+  databasePromise ??= Promise.all([loadApp(), import('firebase/database')]).then(
+    ([app, { getDatabase, connectDatabaseEmulator }]) => {
+      const db = getDatabase(app);
+      if (USE_EMULATORS) connectDatabaseEmulator(db, '127.0.0.1', 9000);
+      return db;
+    },
+  );
+  return databasePromise;
 }

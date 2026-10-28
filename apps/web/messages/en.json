@@ -383,5 +383,42 @@
     "genres": "Arcade, action, puzzle and more",
     "leaderboard": "Climb the weekly leaderboard",
     "oneMore": "One more round?"
+  },
+  "online": {
+    "title": "{title} with a friend",
+    "pageTitle": "Play {title} online with a friend",
+    "playWithFriend": "Play with a friend",
+    "playWithFriendHint": "Create a room and send the link to a friend. You play against each other, each on your own device.",
+    "createRoom": "Create a room",
+    "preparing": "Preparing the room…",
+    "inviteTitle": "Invite a friend",
+    "inviteBody": "Send this link to your friend. The match starts as soon as they open it.",
+    "inviteLabel": "Invite link",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "share": "Share",
+    "shareText": "Play {title} with me on Ayvago!",
+    "roomCode": "Room code: {code}",
+    "waitingFriend": "Waiting for your friend…",
+    "waitingFor": "Waiting for {name}…",
+    "opponent": "Opponent: {name}",
+    "peerAway": "{name} left the room. The match continues when they come back.",
+    "defaultName": "Player",
+    "newRoom": "Create a new room",
+    "backToGame": "Back to {title}",
+    "route": {
+      "connecting": "Connecting…",
+      "direct": "Direct connection",
+      "turn": "Connected through TURN",
+      "relay": "Connected through the server"
+    },
+    "error": {
+      "full": "This room already has two players.",
+      "missing": "This room does not exist. Check the link or create a new room.",
+      "closed": "This room is closed.",
+      "expired": "This room has expired. Rooms stay open for two hours.",
+      "failed": "The room could not be opened. Check your connection and try again.",
+      "unavailable": "Online play is not available right now."
+    }
   }
 }

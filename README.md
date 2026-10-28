@@ -7,7 +7,8 @@ A web game platform that brings retro action, casual and puzzle games together i
 **Phase 2 — Competition and community (in progress).** Server-validated scores with weekly and
 all-time leaderboards, voting with catalog ranking, the admin panel and the App Check rollout switch
 and touch controls for Space Defender are live. App Check is turned on once its site key is set
-up.
+up. **Phase 4 — Multiplayer** has started: eight games can be played online against a friend from an
+invite link (slice 4.1).
 
 | Phase | Scope | Status | Docs |
 |---|---|---|---|
@@ -15,7 +16,7 @@ up.
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore and sdk-playground carried forward; PWA shipped in 2.9) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
 | 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.16), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
-| 4 | Multiplayer: WebRTC + Cloudflare TURN, import wave 3 | Not started | |
+| 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 code complete (8 games online), owner steps open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
@@ -26,7 +27,7 @@ imported games are parked until they meet the platform standards (slice 2.7,
 
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
 - Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)
-- Feature specs: [`docs/specs/`](docs/specs/) (accounts, leaderboards, voting, UI and themes)
+- Feature specs: [`docs/specs/`](docs/specs/) (accounts, leaderboards, voting, UI and themes, multiplayer)
 - Architecture decisions: [`docs/adr/`](docs/adr/)
 
 ## Layout

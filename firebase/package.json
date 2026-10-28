@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "firebase emulators:exec --only auth,firestore,functions --project demo-ayvago \"vitest run\"",
-    "emulators": "firebase emulators:start --only auth,firestore,functions --project demo-ayvago"
+    "test": "firebase emulators:exec --only auth,firestore,functions,database --project demo-ayvago \"vitest run\"",
+    "emulators": "firebase emulators:start --only auth,firestore,functions,database --project demo-ayvago"
   },
   "devDependencies": {
     "@ayvago/shared": "workspace:*",

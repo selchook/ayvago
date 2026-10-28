@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.0.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.1.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -205,5 +205,66 @@ describe('ayvago adapter', () => {
     const { adapter, styles } = await connected();
     adapter.applyThemeTokens();
     expect(styles).toEqual({ '--accent': '#39ff88', '--bg-card': '#0f141a' });
+  });
+});
+
+describe('multiplayer', () => {
+  const MATCH: StartConfig = {
+    ...START,
+    mode: 'multiplayer',
+    isHost: false,
+    playerIndex: 1,
+    playerCount: 2,
+    peerName: 'Ayşe',
+  };
+
+  it('is inactive in solo runs and standalone', async () => {
+    const { adapter, posted } = await connected();
+    expect(adapter.multiplayer.active).toBe(false);
+    adapter.multiplayer.send({ col: 3 });
+    expect(posted.some((p) => p.message.type === 'GHA_MOVE_OUT')).toBe(false);
+
+    const { env } = fakeEnv({ embedded: false, parentOrigin: null });
+    const standalone = await createPlatformAdapter({ gameId: 'connectfour', env });
+    expect(standalone.multiplayer.active).toBe(false);
+  });
+
+  it('exposes the seat and the opponent', async () => {
+    const { adapter } = await connected(MATCH);
+    expect(adapter.multiplayer).toMatchObject({
+      active: true,
+      isHost: false,
+      playerIndex: 1,
+      peerName: 'Ayşe',
+    });
+  });
+
+  it('sends moves to the platform origin and drops oversized ones', async () => {
+    const { adapter, posted } = await connected(MATCH);
+    adapter.multiplayer.send({ col: 3 });
+    expect(posted.at(-1)).toEqual({
+      message: { type: 'GHA_MOVE_OUT', data: { col: 3 } },
+      origin: PLATFORM,
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const before = posted.length;
+    adapter.multiplayer.send({ blob: 'x'.repeat(20_000) });
+    expect(posted.length).toBe(before);
+    warn.mockRestore();
+  });
+
+  it('delivers moves and peer events from the platform only', async () => {
+    const { adapter, deliver } = await connected(MATCH);
+    const moves: unknown[] = [];
+    const events: string[] = [];
+    adapter.multiplayer.onMove((data) => moves.push(data));
+    adapter.multiplayer.onPeerLeave(() => events.push('leave'));
+    adapter.multiplayer.onPeerJoin((name) => events.push('join:' + name));
+    deliver({ type: 'GHA_MOVE_IN', data: { col: 4 } });
+    deliver({ type: 'GHA_MOVE_IN', data: { col: 5 } }, 'https://evil.example');
+    deliver({ type: 'GHA_PEER_LEAVE' });
+    deliver({ type: 'GHA_PEER_JOIN', name: 'Ayşe' });
+    expect(moves).toEqual([{ col: 4 }]);
+    expect(events).toEqual(['leave', 'join:Ayşe']);
   });
 });
