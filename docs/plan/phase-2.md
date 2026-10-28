@@ -25,7 +25,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.12 | Ayvago Arcade wave 2: 28 more games (54 in total); the Word category gets its first game | ✅ live |
 | 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ live |
 | 2.14 | Edge-to-edge bars: system bar color follows the theme, top bar clears the status bar | ✅ live |
-| 2.15 | Installed app: theme-aware manifest, so the Android navigation bar matches the bottom bar | ✅ code |
+| 2.15 | Installed app: theme-aware manifest, so the Android navigation bar matches the bottom bar | ✅ live |
+| 2.16 | System bar colors survive page changes | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -596,6 +597,25 @@ The owner still saw a band of a different color under the bottom bar in the inst
     fallbacks.
   - Chrome's own manifest parser (`Page.getAppManifest`) reports no errors and returns each
     theme's bar color for arcade, minimal light and dark, and retro. Each matches the bottom bar.
+
+## 2.16 System bar colors survive page changes ✅
+
+The owner saw the top and bottom bar colors fall back to the old ink after moving to another
+page.
+- **Cause:** `theme-color` and the manifest link came from Next metadata. Next rewrites its head
+  tags on every client navigation, which reset both to the defaults. When the tags were rendered
+  by the layout instead, React re-added them on hydration because their attributes had changed.
+  The page then had two of each.
+- **What shipped:**
+  - An inline head script (`BAR_COLOR_SCRIPT` in `lib/pwa/manifest.ts`) now creates both tags.
+    It runs right after the theme bootstrap, so they carry the saved theme's colors before the
+    first paint.
+  - Neither Next nor React manages these tags any more. `syncThemeColor()` keeps updating them on
+    theme and language switches.
+- **Tests:** a production build in Pixel 7 emulation was checked across four page changes, a
+  language switch and a theme switch, in arcade, minimal light, retro and cartoon dark. Each
+  page has exactly one `theme-color` tag and one manifest link. Both keep the theme's bar color,
+  and Chrome's manifest parser returns that color.
 
 ## Game fixes during the phase
 

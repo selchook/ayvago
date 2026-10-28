@@ -7,6 +7,7 @@ import { AppShell } from '@/components/shell/app-shell';
 import { ThemeRestorer } from '@/components/theme-restorer';
 import { routing } from '@/i18n/routing';
 import { INSTALL_CAPTURE_SCRIPT } from '@/lib/pwa/install-capture';
+import { BAR_COLOR_SCRIPT } from '@/lib/pwa/manifest';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 // Self-hosted fonts (Latin + Latin Extended for Turkish); each face downloads only when used.
 import '@fontsource-variable/inter';
@@ -34,8 +35,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  // Browser chrome and the installed app's status bar use the brand ink.
-  themeColor: '#201e1d',
+  // theme-color is rendered in the layout's <head> instead (BAR_COLOR_SCRIPT).
 };
 
 export async function generateMetadata({ params }: Omit<Props, 'children'>): Promise<Metadata> {
@@ -49,9 +49,6 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
     alternates: localizedAlternates(locale, ''),
     openGraph: { siteName: t('title'), locale, type: 'website' },
     appleWebApp: { capable: true, title: t('title'), statusBarStyle: 'black-translucent' },
-    // A route handler (theme-aware colors), so it is linked here; the page retargets it to the
-    // player's theme.
-    manifest: '/manifest.webmanifest',
   };
 }
 
@@ -66,6 +63,8 @@ export default async function LocaleLayout({ children, params }: Props) {
       <head>
         <style id="ayvago-themes" dangerouslySetInnerHTML={{ __html: themeCss }} />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        {/* Theme-aware system bars (theme-color, manifest), set before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: BAR_COLOR_SCRIPT }} />
         {/* Keeps an early beforeinstallprompt for the install banner (lib/pwa/install-store.ts). */}
         <script dangerouslySetInnerHTML={{ __html: INSTALL_CAPTURE_SCRIPT }} />
       </head>
