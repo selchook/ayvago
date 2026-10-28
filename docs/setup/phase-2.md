@@ -153,3 +153,6 @@ To play them locally before the deploy: in `ayvago-games`, run
 
 ## 19. Arcade default theme and platform agents (slices 2.18, 2.19)
 - 🤖 Nothing to set up. New visitors see the Arcade theme; your own saved theme stays as it is.
+
+## 20. Phone search icon (slice 2.20)
+- 🤖 Nothing to set up. Merging deploys the web app.

@@ -14,9 +14,9 @@ invite link (slice 4.1).
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Plan](docs/plan/phase-0.md) · [Setup](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore and sdk-playground carried forward; PWA shipped in 2.9) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
-| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.19), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.20), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
-| 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 code complete (8 games online), owner steps open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
+| 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 live (8 games online), 4.4 code complete; TURN key open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |

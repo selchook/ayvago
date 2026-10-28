@@ -224,6 +224,11 @@ button.navItem {
   display: none;
 }
 
+/* Wins over the popover trigger look it borrows. */
+.topActions .phoneSearch {
+  display: none;
+}
+
 /* Tablet: icon-only rail. */
 @media (max-width: 1023px) {
   .shell {
@@ -282,6 +287,10 @@ button.navItem {
     gap: 6px;
   }
 
+  .topActions .phoneSearch {
+    display: inline-flex;
+  }
+
   .content {
     padding: 16px max(16px, env(safe-area-inset-right, 0px))
       calc(88px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
@@ -292,7 +301,7 @@ button.navItem {
     inset: auto 0 0;
     z-index: 20;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     background: var(--surface);
     border-top: var(--border-width) solid var(--border);

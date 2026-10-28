@@ -62,18 +62,19 @@ export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels 
             {labels.new}
           </span>
         ) : null}
-        {tile.multiplayer ? (
-          <span className={styles.badge} data-kind="mp">
-            {labels.multiplayer}
-          </span>
-        ) : null}
       </span>
       <span className={styles.tileMeta}>
         <span className={styles.tileTitle}>{tile.title}</span>
         <span className={styles.tileCategory}>
           <span className={styles.tags}>
-            {tile.categoryLabels.map((label) => (
-              <span key={label} className={styles.tag}>
+            {/* First, so the two-row tag area never cuts it off. */}
+            {tile.multiplayer ? (
+              <span className={styles.tag} data-kind="mp">
+                {labels.multiplayer}
+              </span>
+            ) : null}
+            {tile.categoryLabels.map((label, index) => (
+              <span key={label} className={styles.tag} data-tone={index}>
                 {label}
               </span>
             ))}

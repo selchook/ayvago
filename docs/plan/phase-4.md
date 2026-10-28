@@ -18,9 +18,10 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 
 | # | Slice | Status |
 |---|---|---|
-| 4.1 | Online rooms with invite links, WebRTC + Cloudflare TURN + relay fallback, 8 Ayvago Arcade games playable online | ✅ code, ⏳ TURN key and database role |
+| 4.1 | Online rooms with invite links, WebRTC + Cloudflare TURN + relay fallback, 8 Ayvago Arcade games playable online | ✅ live, ⏳ TURN key |
 | 4.2 | Quick match (matchmaker), presence across the site | ⬜ |
 | 4.3 | Import wave 3 (backgammon, battleships, guess-number, tito) off Ably | ⬜ |
+| 4.4 | Turn order rule: the host starts the first round, then the winner (after a draw, the other player); "Multiplayer" tag on cards and in the catalog tags | ✅ code |
 
 ## 4.1 Online rooms ✅
 
@@ -117,3 +118,29 @@ of the eight games: 8/8.
 - ⏳ "Firebase Realtime Database Admin" role for the rules deploy account
   ([setup](../setup/phase-4.md#2-realtime-database-rules)).
 - The done-when check on two mobile carriers needs the TURN key and two phones.
+
+## 4.4 Turn order rule and the multiplayer tag ✅
+
+The owner set a rule for every online game: the player who created the room takes the first turn;
+after that the winner of the previous round starts.
+- **Runtime** (selchook/ayvago-games `src/core/net.ts`):
+  - The host computes the starter: seat 0 for the first round, then the previous round's winner.
+    After a draw it is the player who did not start the last round.
+  - The starter travels with `__start { seed, starter }`.
+  - Games read `net.starter` / `net.myTurnFirst` and pass `draw: true` to `endGame` on a level
+    result.
+  - The result screen shows "Next round starts with: {name}".
+- **Games:**
+  - Connect Four and Reversi: the starter moves first (Reversi: the starter plays black).
+  - Memory Match: the starter flips first.
+  - Penalty Kick: the starter shoots first.
+  - Bowling: the starter rolls first in every frame.
+  - Mini Golf: the starter tees off on every hole.
+  - Neon Pong and Air Hockey: the starter gets the first serve.
+- **Tag:**
+  - Multiplayer games show a "Multiplayer" tag first in the tag row of every card (green in the
+    pixel themes), replacing the badge on the cover.
+  - Their catalog tags gain `multiplayer`, so search finds them by it.
+- **Tests:** the two-player bench (`npm run test:mp`) and the solo smoke tests of the eight games
+  in ayvago-games, plus web unit tests and screenshots of the cards here.
+

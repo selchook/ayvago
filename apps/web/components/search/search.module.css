@@ -136,7 +136,7 @@
   box-shadow: 0 6px 0 #000;
 }
 
-/* Phones search from the bottom bar. */
+/* Phones search from the icon in the top bar. */
 @media (max-width: 639px) {
   .top {
     display: none;
