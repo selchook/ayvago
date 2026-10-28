@@ -1,4 +1,4 @@
-import { ARCADE_GAMES, PARKED_GAMES, resolveAssetUrl } from '@ayvago/shared';
+import { ARCADE_GAMES, GAME_CATEGORIES, PARKED_GAMES, resolveAssetUrl } from '@ayvago/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 async function loadCatalog() {
@@ -81,11 +81,18 @@ describe('seed catalog', () => {
     expect(getFeaturedGames().length).toBeGreaterThanOrEqual(3);
   });
 
+  it('has a game in every category (Word Hunt fills Word since slice 2.12)', async () => {
+    const { getGamesByCategory } = await loadCatalog();
+    for (const category of GAME_CATEGORIES) {
+      expect(getGamesByCategory(category).length, category).toBeGreaterThan(0);
+    }
+  });
+
   it('lists every Ayvago Arcade game with its own entry and art', async () => {
     const { getAllGames } = await loadCatalog();
     const arcade = getAllGames().filter((game) => game.repo === 'selchook/ayvago-games');
     expect(arcade).toHaveLength(ARCADE_GAMES.length);
-    expect(arcade.length).toBeGreaterThanOrEqual(26);
+    expect(arcade.length).toBeGreaterThanOrEqual(54);
     for (const game of arcade) {
       expect(game.manifest.id, game.slug).toBe(game.slug.replace(/-/g, ''));
       expect(game.manifest.entry, game.slug).toMatch(new RegExp(`/games/${game.slug}/$`));

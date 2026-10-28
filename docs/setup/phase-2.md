@@ -115,3 +115,10 @@ To play them locally before the deploy: in `ayvago-games`, run
 
 ## 12. Install link and equal-height cards (slice 2.11)
 - 🤖 Nothing to set up. Merging deploys the web app.
+
+## 13. Ayvago Arcade wave 2 (slice 2.12)
+- 🤖 Nothing to set up. The 28 new games are already deployed on `ayvago-games.vercel.app`.
+  Merging deploys:
+  - the web app;
+  - the Cloud Functions, because `packages/shared` changed. Score sessions accept the new games
+    from then on.
