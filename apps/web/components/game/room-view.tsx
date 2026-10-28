@@ -62,7 +62,8 @@ export function RoomView(props: RoomViewProps) {
   const isHost = view.kind === 'room' && view.isHost;
   const peerUid = room ? (isHost ? room.guestUid : room.hostUid) : null;
   const peerName = room ? ((isHost ? room.guestName : room.hostName) ?? '') : '';
-  const peerOnline = !!(peerUid && room?.online[peerUid]);
+  const peerSession = (peerUid && room?.online[peerUid]) || null;
+  const peerOnline = peerSession !== null;
 
   // Messages for the game wait until it has its seat (GHA_START).
   const deliver = useCallback((message: PlatformMessage) => {
@@ -167,12 +168,20 @@ export function RoomView(props: RoomViewProps) {
     if (peerOnline && peerName) setGameOn(true);
   }, [peerOnline, peerName]);
 
-  // Tell the game when the other player leaves (after a grace period) and comes back.
+  // Tell the game when the other player leaves (after a grace period) and comes back. A new
+  // page session means a reload: their game restarted, even if they were back within the grace.
   const awayRef = useRef(false);
+  const sessionRef = useRef<string | null>(null);
   useEffect(() => {
     if (!gameOn) return;
-    if (peerOnline) {
+    if (peerSession) {
+      const previous = sessionRef.current;
+      sessionRef.current = peerSession;
       if (awayRef.current) deliver({ type: 'GHA_PEER_JOIN', name: peerName });
+      else if (previous && previous !== peerSession) {
+        deliver({ type: 'GHA_PEER_LEAVE' });
+        deliver({ type: 'GHA_PEER_JOIN', name: peerName });
+      }
       awayRef.current = false;
       setPeerAway(false);
       return;
@@ -183,7 +192,7 @@ export function RoomView(props: RoomViewProps) {
       deliver({ type: 'GHA_PEER_LEAVE' });
     }, LEAVE_GRACE_MS);
     return () => window.clearTimeout(timer);
-  }, [gameOn, peerOnline, peerName, deliver]);
+  }, [gameOn, peerSession, peerName, deliver]);
 
   const seatName = gameOn ? peerName : '';
   const match = useMemo<MatchBinding>(

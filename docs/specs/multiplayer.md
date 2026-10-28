@@ -19,8 +19,8 @@
    "Opponent: {name}" and the connection type above it.
 4. The host starts each round; the guest's game follows. After a round the host chooses
    **Rematch** or **Menu**.
-5. If a player leaves (closes the tab, loses the network for more than 4 seconds), the other sees
-   a notice and the round ends. When the player comes back through the same link, they take
+5. If a player leaves (closes the tab, loses the network for more than 4 seconds, or reloads the
+   page), the other sees a notice and the round ends. When the player comes back through the same link, they take
    their seat again and the host can start a new round.
 
 Error states: the room is full, does not exist, is closed or has expired (two hours). Each offers
@@ -29,7 +29,7 @@ Error states: the room is full, does not exist, is closed or has expired (two ho
 ## 3. Data (Realtime Database)
 
 ```
-rooms/{code}            { gameId, slug, hostUid, hostName, guestUid?, guestName?, createdAt, status, online/{uid} }
+rooms/{code}            { gameId, slug, hostUid, hostName, guestUid?, guestName?, createdAt, status, online/{uid}: sessionId }
 signals/{code}/{toUid}  { from, kind: hello|offer|answer|ice, data }   ← WebRTC handshake inbox, consumed by the recipient
 relay/{code}/{pushId}   { from, data }                                 ← fallback channel, consumed by the recipient
 ```
@@ -37,7 +37,8 @@ relay/{code}/{pushId}   { from, data }                                 ← fallb
 Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/database.test.ts`):
 - Signed-in players read a room by its code; nobody can list rooms.
 - The host creates the room with an empty guest seat; the first other player claims it. Seats
-  never change afterwards. Members update the status and their own `online` flag.
+  never change afterwards. Members update the status and their own `online` entry: a 12-hex
+  page session id, removed by `onDisconnect`. A new id means the player reloaded.
 - Signals go only to the other member's inbox, written as yourself; only the recipient reads and
   deletes them.
 - Relay messages are written by members as themselves (at most 16,000 characters) and deleted

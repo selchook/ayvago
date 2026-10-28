@@ -19,7 +19,8 @@ export type Room = {
   guestName: string | null;
   status: RoomStatus;
   createdAt: number;
-  online: Record<string, boolean>;
+  /** uid → the page session that holds the seat right now (a reload makes a new one). */
+  online: Record<string, string>;
 };
 
 /** How long a room stays usable; cleanupRooms deletes older ones. */
@@ -36,10 +37,12 @@ function toRoom(code: string, value: unknown): Room | null {
   if (typeof value !== 'object' || value === null) return null;
   const v = value as Record<string, unknown>;
   if (typeof v.hostUid !== 'string' || typeof v.slug !== 'string') return null;
-  const online = (typeof v.online === 'object' && v.online !== null ? v.online : {}) as Record<
-    string,
-    boolean
-  >;
+  const online: Record<string, string> = {};
+  if (typeof v.online === 'object' && v.online !== null) {
+    for (const [uid, session] of Object.entries(v.online)) {
+      if (typeof session === 'string') online[uid] = session;
+    }
+  }
   return {
     code,
     gameId: String(v.gameId ?? ''),
@@ -130,18 +133,22 @@ export async function watchRoom(
 
 /**
  * Marks the player online in the room while this page is connected; the server clears the
- * flag when the connection drops, which is how the other player learns about a leave.
+ * entry when the connection drops, which is how the other player learns about a leave. The
+ * value is this page's session id, so a quick reload (a fresh game) is noticed as well.
  */
 export async function trackPresence(code: string, uid: string): Promise<() => void> {
   const db = await loadDatabase();
   const { ref, onValue, onDisconnect, set, remove } = await import('firebase/database');
   const mine = ref(db, `${roomPath(code)}/online/${uid}`);
+  const session = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) =>
+    b.toString(16).padStart(2, '0'),
+  ).join('');
   const stop = onValue(ref(db, '.info/connected'), (snapshot) => {
     if (snapshot.val() !== true) return;
     // Register the cleanup first, so a drop right after the write still clears the flag.
     onDisconnect(mine)
       .remove()
-      .then(() => set(mine, true))
+      .then(() => set(mine, session))
       .catch((error) => console.warn('[netcode] presence failed', error));
   });
   return () => {

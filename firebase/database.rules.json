@@ -25,7 +25,9 @@
           ".validate": "newData.isString() && newData.val().matches(/^(open|full|closed)$/)"
         },
         "online": {
-          "$uid": { ".validate": "newData.isBoolean() && $uid === auth.uid" }
+          "$uid": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9a-f]{12}$/) && $uid === auth.uid"
+          }
         },
         "$other": { ".validate": false }
       }

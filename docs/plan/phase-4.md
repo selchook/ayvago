@@ -87,7 +87,29 @@ Tests:
 - `npm run test:mp` in `ayvago-games` for the eight games.
 
 ### Verification
-Filled in with the end-to-end results before the PR is merged.
+End to end on `next dev` with the Firebase emulators and the games' production build, two
+separate browser contexts (host and guest) and a third one:
+
+| Check | Connect Four, direct | Connect Four, `?turn=1` (no TURN key: relay only) | Neon Pong, direct |
+|---|---|---|---|
+| Host creates a room, gets the invite link | ✅ | ✅ | ✅ |
+| Guest opens the link, both games open with the seats | ✅ | ✅ | ✅ |
+| Host starts, guest follows, moves both ways | ✅ | ✅ | ✅ |
+| Route badge | direct | server (relay) | direct |
+| Guest reloads: host's round ends, guest back in its seat | ✅ | ✅ | ✅ |
+| Host rematch starts the guest's round | ✅ | ✅ | ✅ |
+| A third player gets "room full" | ✅ | ✅ | ✅ |
+
+Found and fixed along the way:
+- **Quick reload.** A guest who reloaded within the 4-second grace period was never reported as
+  gone, so the host's round went on while the guest's game was back at its menu. Presence now
+  stores a per-page session id; a new id is reported as a leave and a rejoin at once.
+- **First move lost.** The host could move before the guest's game screen listened, so the
+  first move was dropped and the turns never lined up. The games' runtime now keeps early
+  messages for the first listener and clears them when a round starts.
+
+`npm run test:mp` (both games embedded side by side, 60 and 150 ms latency): 8/8. Solo smoke tests
+of the eight games: 8/8.
 
 ### Still open
 - ⏳ Cloudflare TURN key and the two Vercel env vars ([setup](../setup/phase-4.md#1-cloudflare-turn)).

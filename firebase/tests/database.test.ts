@@ -116,9 +116,10 @@ describe('rooms', () => {
 
   it('lets members update the status and their own presence', async () => {
     await seedRoom({ guestUid: 'guest', status: 'full' });
-    await assertSucceeds(set(ref(as('guest'), `rooms/${CODE}/online/guest`), true));
-    await assertFails(set(ref(as('guest'), `rooms/${CODE}/online/host`), true));
-    await assertFails(set(ref(as('stranger'), `rooms/${CODE}/online/stranger`), true));
+    await assertSucceeds(set(ref(as('guest'), `rooms/${CODE}/online/guest`), '0a1b2c3d4e5f'));
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/online/guest`), true));
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/online/host`), '0a1b2c3d4e5f'));
+    await assertFails(set(ref(as('stranger'), `rooms/${CODE}/online/stranger`), '0a1b2c3d4e5f'));
     await assertSucceeds(update(ref(as('host'), `rooms/${CODE}`), { status: 'closed' }));
     await assertFails(update(ref(as('stranger'), `rooms/${CODE}`), { status: 'open' }));
   });
