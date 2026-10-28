@@ -189,3 +189,14 @@
   font-weight: 700;
   color: var(--accent);
 }
+
+/* Phones: icons that only decorate a labelled trigger are dropped to save width. */
+@media (max-width: 639px) {
+  .wideOnly {
+    display: none;
+  }
+
+  .trigger {
+    padding: 0 8px;
+  }
+}

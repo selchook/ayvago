@@ -13,7 +13,7 @@ up.
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Plan](docs/plan/phase-0.md) · [Setup](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore and sdk-playground carried forward; PWA shipped in 2.9) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
-| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.12), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
+| 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.13), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: WebRTC + Cloudflare TURN, import wave 3 | Not started | |
 | 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |

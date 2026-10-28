@@ -16,7 +16,7 @@ export function LocaleSwitcher() {
   return (
     <details className={styles.popover} data-popover>
       <summary className={styles.trigger} aria-label={t('label')}>
-        <GlobeIcon />
+        <GlobeIcon className={styles.wideOnly} />
         <span className={styles.triggerText}>{active.toUpperCase()}</span>
       </summary>
       <div className={styles.panel}>
