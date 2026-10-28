@@ -138,6 +138,8 @@
   align-self: start;
   height: calc(100dvh - var(--topbar-h));
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   padding: 16px 12px;
   border-inline-end: var(--border-width) solid var(--border);
   background: var(--surface);
@@ -189,6 +191,24 @@
   color: var(--accent);
 }
 
+/* "Install the app" (a button styled as a menu item), pinned to the bottom of the side menu. */
+.installItem {
+  margin-top: auto;
+}
+
+button.navItem {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.phoneInstall {
+  display: none;
+}
+
 .content {
   grid-area: main;
   min-width: 0;
@@ -234,6 +254,13 @@
     display: none;
   }
 
+  .phoneInstall {
+    display: block;
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: var(--border-width) solid var(--border);
+  }
+
   .topBar {
     padding-inline: max(16px, env(safe-area-inset-left, 0px))
       max(16px, env(safe-area-inset-right, 0px));
@@ -262,6 +289,8 @@
     min-height: 48px;
     padding-top: 6px;
     font-size: 0.7rem;
+    line-height: 1.2;
+    text-align: center;
     color: var(--text-muted);
     text-decoration: none;
   }

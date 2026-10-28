@@ -108,8 +108,10 @@
 }
 
 /* Pixel themes (retro, arcade): the card of the Ayvago Arcade games portal (selchook/ayvago-games
-   portal/style.css) — the game's own screenshot at 9:12 (16:12 for landscape games), black
-   outline with a hard drop shadow, a red outline on hover and colored genre tags. */
+   portal/style.css) — the game's own screenshot, black outline with a hard drop shadow, a red
+   outline on hover and colored genre tags. Every card has the same height: the screenshot is
+   always 9:12 (landscape games are fitted on a blurred copy of their own frame), the title takes
+   two lines and the tags two rows. */
 :is([data-theme='retro'], [data-theme='arcade']) .tile {
   align-content: start;
   border: 3px solid #000;
@@ -131,14 +133,15 @@
   display: none;
 }
 
+/* Games without a screenshot keep their cover, in the same 9:12 frame. */
+:is([data-theme='retro'], [data-theme='arcade']) .tile:not([data-shot]) .cover {
+  aspect-ratio: 9 / 12;
+}
+
 :is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot] .shot {
   display: block;
   aspect-ratio: 9 / 12;
   background: #111;
-}
-
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot {
-  aspect-ratio: 16 / 12;
 }
 
 :is([data-theme='retro'], [data-theme='arcade']) .shot img {
@@ -147,17 +150,48 @@
   object-fit: cover;
 }
 
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The backdrop only exists (and so only loads) while the screenshot is shown. */
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background: var(--shot) center / cover;
+  filter: blur(12px) brightness(0.5);
+}
+
+:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot img {
+  position: relative;
+  object-fit: contain;
+}
+
 :is([data-theme='retro'], [data-theme='arcade']) .tileMeta {
   padding: 10px;
   gap: 6px;
 }
 
 :is([data-theme='retro'], [data-theme='arcade']) .tileTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  height: 3em;
   font-family: var(--font-display);
   font-size: 11px;
   line-height: 1.5;
   font-weight: 400;
   white-space: normal;
+}
+
+/* Two rows of tags (20 px each), whatever the number of tags or the card width. */
+:is([data-theme='retro'], [data-theme='arcade']) .tileCategory {
+  height: 44px;
+  overflow: hidden;
+  align-content: flex-start;
 }
 
 [data-theme='cartoon'] .tile:hover {
@@ -235,6 +269,7 @@
   border-radius: 0;
   padding: 1px 6px;
   font-size: 13px;
+  line-height: 18px;
   font-weight: 400;
   text-transform: uppercase;
   color: #201e1d;

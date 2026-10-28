@@ -362,7 +362,9 @@
     "install": "Yükle",
     "later": "Şimdi değil",
     "ok": "Tamam",
-    "edgeHint": "Edge önce Uygulama bilgisi ekranını açabilir: “Ana ekran kısayolları” iznini ver, geri dönüp Yükle’ye tekrar dokun. Chrome’da tek dokunuşla yüklenir."
+    "edgeHint": "Edge önce Uygulama bilgisi ekranını açabilir: “Ana ekran kısayolları” iznini ver, geri dönüp Yükle’ye tekrar dokun. Chrome’da tek dokunuşla yüklenir.",
+    "link": "Uygulamayı yükle",
+    "manualBody": "Tarayıcı menüsünü aç ve “Uygulamayı yükle” ya da “Ana ekrana ekle”yi seç. Ayvago zaten yüklüyse ana ekranından aç."
   },
   "search": {
     "title": "Oyun ara",

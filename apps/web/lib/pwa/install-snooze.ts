@@ -1,9 +1,10 @@
 // How long the install banner stays away after "Not now". Each dismissal snoozes it longer:
-// 14 days, then 30, then 90 for every later one. Stored in localStorage as JSON.
+// a week, then two, then a month for every later one; the menu's "Install the app" link stays
+// available meanwhile. Stored in localStorage as JSON.
 
 export const DISMISSED_KEY = 'ayvago-install-dismissed';
 const DAY_MS = 24 * 60 * 60 * 1000;
-export const SNOOZE_DAYS = [14, 30, 90] as const;
+export const SNOOZE_DAYS = [7, 14, 30] as const;
 
 export type Dismissal = { at: number; count: number };
 

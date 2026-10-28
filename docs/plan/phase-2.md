@@ -20,7 +20,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.7 | Imported games parked until they meet the platform standards ([ADR 0008](../adr/0008-park-imported-games.md)) | ✅ code |
 | 2.8 | Ayvago Arcade look: categories = arcade genres ([ADR 0009](../adr/0009-categories-follow-arcade-genres.md)), Ayvago Arcade theme, Ayvago Games logo | ✅ code |
 | 2.9 | Category tags on game tiles, the games portal's cards in the Arcade theme, installable PWA | ✅ code |
-| 2.10 | Portal cards in the retro theme too, pixel logo, game search, top-bar slogans, popover and install-banner fixes | ✅ code |
+| 2.10 | Portal cards in the retro theme too, pixel logo, game search, top-bar slogans, popover and install-banner fixes | ✅ live |
+| 2.11 | Install banner on the first visit, "Install the app" menu link, equal-height cards in the pixel themes | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -470,6 +471,38 @@ What shipped:
     - the install banner shows the Edge hint, and stays hidden after "Not now" when
       `beforeinstallprompt` fires again;
     - retro and arcade cards and the spotlight render on desktop and phone.
+
+## 2.11 Install link and equal-height cards ✅
+
+What shipped:
+- **Install banner on the first visit:**
+  - `beforeinstallprompt` can fire before React hydrates, and the banner then never saw it. An
+    inline `<head>` script (`lib/pwa/install-capture.ts`) now keeps the event, and the install
+    store (`lib/pwa/install-store.ts`) picks it up.
+  - The banner shows one second after the first page loads.
+  - The snooze after "Not now" is now a week, then two weeks, then a month, because the menu
+    link stays available in between.
+- **"Install the app" link:** shown until Ayvago runs as an installed app.
+  - **Where:** at the bottom of the side menu on tablet and desktop, and at the end of every page
+    on phones, which have no side menu.
+  - **What it does:**
+    - it opens the browser's install prompt when there is one;
+    - otherwise it opens the banner with the iOS hint, or with manual steps ("browser menu →
+      Install app / Add to Home screen") for other browsers;
+    - when the player opens the banner from the link, it also shows on game pages.
+- **Equal-height cards (retro, arcade):** every card has the same height.
+  - The image is always 9:12. Landscape screenshots are fitted on a blurred copy of their own
+    frame, and games without a screenshot show their cover in the same frame.
+  - Titles take two lines, and tags take two rows.
+  - Phone bottom-bar labels are centered when they wrap.
+- **Tests:**
+  - The snooze schedule unit test is updated.
+  - Checked on a production build:
+    - every card in `/new` and on the home shelves has the same height, in both themes;
+    - a prompt event fired before hydration shows the banner on the first visit;
+    - "Not now" survives a reload;
+    - the side-menu link opens the browser prompt;
+    - without a prompt, the phone link opens the manual steps.
 
 ## Game fixes during the phase
 

@@ -1,3 +1,4 @@
+import { InstallLink } from '../pwa/install-link';
 import styles from './shell.module.css';
 import { NavLink } from './nav-link';
 import { getNavItems } from './nav-items';
@@ -27,6 +28,10 @@ export async function SideNav() {
           </li>
         ))}
       </ul>
+      <InstallLink
+        className={`${styles.navItem} ${styles.installItem}`}
+        labelClassName={styles.navLabel}
+      />
     </nav>
   );
 }

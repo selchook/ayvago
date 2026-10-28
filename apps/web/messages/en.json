@@ -362,7 +362,9 @@
     "install": "Install",
     "later": "Not now",
     "ok": "Got it",
-    "edgeHint": "Edge may open its App info screen first: allow “Home screen shortcuts”, come back and tap Install again. In Chrome it installs in one tap."
+    "edgeHint": "Edge may open its App info screen first: allow “Home screen shortcuts”, come back and tap Install again. In Chrome it installs in one tap.",
+    "link": "Install the app",
+    "manualBody": "Open your browser menu and choose “Install app” or “Add to Home screen”. If Ayvago is already installed, open it from your home screen."
   },
   "search": {
     "title": "Search games",
