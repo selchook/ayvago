@@ -23,7 +23,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.10 | Portal cards in the retro theme too, pixel logo, game search, top-bar slogans, popover and install-banner fixes | ✅ live |
 | 2.11 | Install banner on the first visit, "Install the app" menu link, equal-height cards in the pixel themes | ✅ live |
 | 2.12 | Ayvago Arcade wave 2: 28 more games (54 in total); the Word category gets its first game | ✅ live |
-| 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ code |
+| 2.13 | Phone layout: the home page no longer overflows the screen, and the top bar fits 320 px | ✅ live |
+| 2.14 | Edge-to-edge bars: system bar color follows the theme, top bar clears the status bar | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -551,6 +552,25 @@ What shipped:
 - **Tests:** a production build was checked with Playwright on every combination of 4 themes, 4
   phone widths (320, 360, 390, 412 px) and 10 pages (home in both locales, new, category, game,
   leaderboard, search, favorites, recent, profile). No page is wider than the screen.
+
+## 2.14 Edge-to-edge bars ✅
+
+The owner reported that on the phone the top and bottom bars did not reach the screen edges.
+- **Cause:** in a browser emulator the bars are flush. On a real phone, two things got in the way:
+  - **Bar color:** the browser and system bars, including the installed app's status bar, always
+    used the brand ink `#201e1d`. In light themes this showed as a dark strip above the white top
+    bar.
+  - **iPhone status bar:** the installed iPhone app uses a `black-translucent` status bar, so the
+    page draws behind it, but the top bar did not leave room for it.
+- **What shipped:**
+  - **Bar color:** `syncThemeColor()` sets `<meta name="theme-color">` to the active theme's top-bar
+    surface color. It runs on load, on every theme or language switch, and when the system's
+    light/dark setting changes.
+  - **Top bar:** it adds `env(safe-area-inset-top)` to its height and padding, and the side
+    insets to its padding. The bottom bar already covered the bottom inset.
+- **Tests:** a production build in Pixel 7 emulation shows `theme-color` matching the top bar in
+  minimal light and dark, arcade, retro and cartoon, and following a theme switch. The top bar
+  stays 60 px tall where there is no safe area.
 
 ## Game fixes during the phase
 
