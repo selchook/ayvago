@@ -1,7 +1,9 @@
 /* App shell: top bar across the page, side rail on tablet/desktop, bottom bar on phones. */
 
 .shell {
-  --topbar-h: 60px;
+  /* The top bar grows by the top safe area: the iPhone status bar in the installed app
+     (black-translucent) and Android edge-to-edge both draw the page behind the system bar. */
+  --topbar-h: calc(60px + env(safe-area-inset-top, 0px));
   --rail-w: 232px;
   display: grid;
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
@@ -35,7 +37,9 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding-inline: 20px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-inline: max(20px, env(safe-area-inset-left, 0px))
+    max(20px, env(safe-area-inset-right, 0px));
   background: var(--surface);
   border-bottom: var(--border-width) solid var(--border);
 }

@@ -37,6 +37,22 @@ export function readThemeState(): ThemeState {
   };
 }
 
+/**
+ * Paints the browser and system bars (Android status bar, the installed app's title bar, the
+ * address bar) in the top bar's color, so the app's bars run to the screen edges in every theme.
+ */
+export function syncThemeColor(): void {
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
+  if (!color) return;
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.append(meta);
+  }
+  meta.content = color;
+}
+
 function setCookie(name: string, value: string): void {
   document.cookie = `${name}=${value}; Path=/; Max-Age=${PREFERENCE_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
@@ -56,6 +72,7 @@ export function restoreThemeFromCookies(): void {
   root.setAttribute('data-theme', isThemeId(theme) ? theme : DEFAULT_THEME);
   if (mode === 'light' || mode === 'dark') root.setAttribute('data-mode', mode);
   else root.removeAttribute('data-mode');
+  syncThemeColor();
 }
 
 export function applyTheme(theme: ThemeId, preference: ModePreference): ThemeState {
@@ -66,6 +83,7 @@ export function applyTheme(theme: ThemeId, preference: ModePreference): ThemeSta
 
   setCookie(THEME_COOKIE, theme);
   setCookie(MODE_COOKIE, preference);
+  syncThemeColor();
 
   const state = readThemeState();
   window.dispatchEvent(new CustomEvent<ThemeState>(THEME_CHANGE_EVENT, { detail: state }));
