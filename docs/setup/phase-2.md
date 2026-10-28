@@ -135,3 +135,7 @@ To play them locally before the deploy: in `ayvago-games`, run
   in the theme you use and install it again. The navigation bar then takes that theme's color.
   Chrome would also refresh an installed app by itself within about a day. An app installed
   through Edge must be reinstalled.
+
+## 17. System bar colors survive page changes (slice 2.16)
+- 🤖 Nothing to set up. Merging deploys the web app. If the installed app was reinstalled while the
+  colors were still being reset, reinstall it once more.
