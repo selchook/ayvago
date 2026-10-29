@@ -4,6 +4,7 @@ import { buildThemeCss, cssVarName, gameTokens } from './css';
 import { themeBootstrapScript } from './preference';
 import {
   COLOR_MODES,
+  DEFAULT_THEME,
   THEMES,
   THEME_IDS,
   colorsFor,
@@ -87,5 +88,15 @@ describe('gameTokens', () => {
 describe('themeBootstrapScript', () => {
   it('is small enough to inline in <head>', () => {
     expect(themeBootstrapScript.length).toBeLessThan(600);
+  });
+
+  it('lets every theme override the default theme on :root', () => {
+    const css = buildThemeCss();
+    const rootRule = css.indexOf(':root,[data-theme="' + DEFAULT_THEME + '"]');
+    expect(rootRule).toBeGreaterThan(-1);
+    for (const id of THEME_IDS) {
+      if (id === DEFAULT_THEME) continue;
+      expect(css.indexOf('[data-theme="' + id + '"]{'), id).toBeGreaterThan(rootRule);
+    }
   });
 });

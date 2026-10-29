@@ -66,8 +66,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
                 <strong>{gameTitle(lead, locale)}</strong>
                 <p>{gameDescription(lead, locale)}</p>
                 <span className={`${catalog.tags} ${styles.spotlightTags}`}>
-                  {leadTile.categoryLabels.map((label) => (
-                    <span key={label} className={catalog.tag}>
+                  {leadTile.categoryLabels.map((label, index) => (
+                    <span key={label} className={catalog.tag} data-tone={index}>
                       {label}
                     </span>
                   ))}
