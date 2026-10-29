@@ -1,9 +1,16 @@
-// ICE servers for online matches (docs/adr/0010-online-matches.md). Players connect directly
-// when they can (STUN); behind strict NATs and mobile carriers the traffic goes through
-// Cloudflare Realtime TURN with short-lived credentials made per request.
+// ICE servers for online matches (docs/adr/0010-online-matches.md, 0012). Every match goes
+// through Cloudflare Realtime TURN with short-lived credentials made per request; without TURN
+// credentials players connect directly (STUN) instead.
 
 /** Public STUN server: enough for most home networks, no credentials. */
 export const STUN_ONLY: RTCIceServer[] = [{ urls: 'stun:stun.cloudflare.com:3478' }];
+
+/** True when the list has a TURN server, so the connection can be TURN-only. */
+export function hasTurn(servers: RTCIceServer[]): boolean {
+  return servers.some((server) =>
+    (Array.isArray(server.urls) ? server.urls : [server.urls]).some((url) => /^turns?:/.test(url)),
+  );
+}
 
 /** How long the TURN credentials stay valid: longer than any match. */
 export const TURN_TTL_SECONDS = 4 * 60 * 60;

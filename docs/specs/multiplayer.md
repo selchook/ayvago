@@ -50,12 +50,14 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 ## 4. Connection
 - `GET /api/ice-servers` → STUN, plus Cloudflare TURN credentials when configured (ID token
   required, 20 requests per 10 minutes per player, 4-hour credentials, no port 53 URLs).
+- **Always through TURN** ([ADR 0012](../adr/0012-online-matches-always-use-turn.md)): with TURN
+  credentials the connection is TURN-only (`iceTransportPolicy: 'relay'`), so players never see
+  each other's IP address. Without them it connects directly with STUN.
 - One reliable, ordered DataChannel (`moves`). The host offers; the guest sends `hello` to ask for
   a fresh offer after a reload. A dropped channel is renegotiated up to 4 times.
 - Until the channel opens (12 s at most before the page says "through the server") and whenever
   it is down, moves go through the relay. The page keeps listening to both.
-- The page shows the route: direct, TURN or server. `?turn=1` on a room link forces TURN only,
-  to test the TURN path.
+- The page shows the route: TURN, direct (only without TURN credentials) or server.
 
 ## 5. Game protocol (adapter 2.1)
 - `GHA_START.config`: `mode: 'multiplayer'`, `isHost`, `playerIndex` (host 0, guest 1),
@@ -89,4 +91,5 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
   20–30 updates per second).
 
 ## 8. Implementation status
-Shipped in Phase 4 slice 4.1 ([plan](../plan/phase-4.md)): everything in §2–§6.
+Shipped in Phase 4 ([plan](../plan/phase-4.md)): everything in §2–§6. Slice 4.1 built rooms and
+the connection, 4.4 the turn order rule, and 4.5 made every match go through TURN.

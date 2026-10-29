@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ensureGuest, useAccount } from '@/lib/account/store';
 import { firebaseEnabled } from '@/lib/firebase/client';
 import type { PlatformMessage } from '@/lib/gha/bridge';
+import { hasTurn } from '@/lib/netcode/ice';
 import { loadIceServers, openPeerLink, type LinkRoute, type PeerLink } from '@/lib/netcode/link';
 import { parseRoomCode } from '@/lib/netcode/room-code';
 import { createRoom, joinRoom, trackPresence, watchRoom, type Room } from '@/lib/netcode/rooms';
@@ -131,7 +132,6 @@ export function RoomView(props: RoomViewProps) {
   useEffect(() => {
     if (view.kind !== 'room' || !roomCode || !uid || !peerUid) return;
     let cancelled = false;
-    const forceTurn = new URLSearchParams(window.location.search).get('turn') === '1';
     loadIceServers()
       .then((iceServers) =>
         openPeerLink({
@@ -140,7 +140,9 @@ export function RoomView(props: RoomViewProps) {
           peer: peerUid,
           isHost,
           iceServers,
-          forceTurn,
+          // Always through TURN (ADR 0012): the players never see each other's IP address.
+          // Without TURN credentials, connect directly rather than fall back to the slow relay.
+          forceTurn: hasTurn(iceServers),
           onMessage(json) {
             try {
               deliver({ type: 'GHA_MOVE_IN', data: JSON.parse(json) as unknown });

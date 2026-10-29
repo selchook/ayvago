@@ -5,9 +5,9 @@ Legend: ✅ done · ⏳ owner action · 🤖 Claude
 Plan and status: [Phase 4 plan](../plan/phase-4.md).
 
 ## 1. Cloudflare TURN
-Without TURN, players on the same kind of home network still connect directly, and everyone else
-plays through the database relay, which is fine for turn-based games but laggy for Neon Pong and
-Air Hockey. TURN fixes that for mobile carriers and office networks.
+Every online match goes through TURN once the key is set, so players never see each other's IP
+address. Until then players connect directly when they can, and everyone else plays through the
+database relay, which is fine for turn-based games but laggy for Neon Pong and Air Hockey.
 
 1. ⏳ Cloudflare dashboard → **Realtime** → **TURN Server** → **Create** (any name, e.g.
    `ayvago`). Copy the **Turn Token ID** and the **API Token**. Do not paste them into chat.
@@ -18,10 +18,12 @@ Air Hockey. TURN fixes that for mobile carriers and office networks.
 
    Both are server-only (no `NEXT_PUBLIC_` prefix); they never reach the browser.
 3. ⏳ Redeploy (Deployments → the latest production deployment → Redeploy).
-4. ⏳ Check: open a room, then `https://ayvago.com/api/ice-servers` in the same browser shows
-   `"unauthenticated"` (the route wants a signed-in player; that is expected). In a room, the
-   badge above the game reads "Direct connection" or "Connected through TURN". Adding `?turn=1`
-   to a room link forces TURN; the badge then reads "Connected through TURN".
+4. ⏳ Check: open a room from two devices. Every match goes through TURN
+   ([ADR 0012](../adr/0012-online-matches-always-use-turn.md)), so the badge above the game reads
+   "Connected through TURN". If it reads "Direct connection", the page got no TURN credentials:
+   check the two names and values, then redeploy. Opening `https://ayvago.com/api/ice-servers`
+   directly shows `"unauthenticated"`; that is expected, the route only answers signed-in
+   players.
 
 Cost: the first 1,000 GB per month are free, then $0.05/GB. Two-player moves are a few KB per
 match.

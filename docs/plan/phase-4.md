@@ -7,7 +7,7 @@
   [Phase 4 setup](../setup/phase-4.md) · Decisions: [ADR 0003](../adr/0003-cloudflare-turn.md),
   [ADR 0010](../adr/0010-online-matches.md)
 
-**Done when:** players on two different mobile carriers (with TURN forced in tests) can finish a
+**Done when:** players on two different mobile carriers (every match through TURN) can finish a
 match.
 
 Phase 3 (monetization) has not started; the owner asked for online play first.
@@ -22,6 +22,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 4.2 | Quick match (matchmaker), presence across the site | ⬜ |
 | 4.3 | Import wave 3 (backgammon, battleships, guess-number, tito) off Ably; planned in the studio when importing outside games starts | ⬜ |
 | 4.4 | Turn order rule: the host starts the first round, then the winner (after a draw, the other player); "Multiplayer" tag on cards and in the catalog tags | ✅ code |
+| 4.5 | Every online match goes through TURN | ✅ code, ⏳ TURN key |
 
 ## 4.1 Online rooms ✅
 
@@ -143,4 +144,21 @@ after that the winner of the previous round starts.
   - Their catalog tags gain `multiplayer`, so search finds them by it.
 - **Tests:** the two-player bench (`npm run test:mp`) and the solo smoke tests of the eight games
   in ayvago-games, plus web unit tests and screenshots of the cards here.
+
+## 4.5 Every match goes through TURN ✅
+
+The owner asked for every connection to work like `?turn=1`
+([ADR 0012](../adr/0012-online-matches-always-use-turn.md)).
+- `hasTurn()` in `lib/netcode/ice.ts` tells whether the ICE servers include TURN. The room page
+  opens the connection TURN-only (`iceTransportPolicy: 'relay'`) whenever they do.
+- Without TURN credentials it connects directly with STUN, as before, instead of dropping to the
+  slow database relay.
+- `?turn=1` is removed; it is the default.
+- Why: players never see each other's IP address, and every match takes the same path.
+- **Tests:**
+  - unit test for `hasTurn`;
+  - the web app's typecheck, lint and unit tests.
+  - Not tried end to end with real TURN yet: the key is not set (owner step in
+    [setup §1](../setup/phase-4.md#1-cloudflare-turn)). With the key set, the badge reads
+    "Connected through TURN" in every room.
 

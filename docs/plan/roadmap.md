@@ -382,7 +382,7 @@ Player A (platform)                     Firebase                           Playe
   │ ◄── iceServers (TTL ≈ match length)                                       │
   │ createOffer → signaling/{room}/A_B ──► RTDB ──► onValue ────────────────►│ (B also calls getIceServers)
   │ ◄──────────────────────────────── RTDB ◄── answer + ICE candidates ──────│
-  │ ═══════════ RTCDataChannel (direct, else relayed via turn.cloudflare.com) ═══════════ │
+  │ ═══════ RTCDataChannel (always relayed via turn.cloudflare.com, ADR 0012) ═══════════ │
   │ iframe ⇄ platform: GHA_MOVE_OUT / GHA_MOVE_IN (postMessage)                            │
 ```
 
@@ -494,8 +494,9 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 - [x] ICE servers + Cloudflare TURN (`GET /api/ice-servers`, [ADR 0010](../adr/0010-online-matches.md)) — TURN switches on with the owner's key
 - [x] Room codes / invite links, presence, rematch — slice 4.1; quick match still open (slice 4.2)
 - [x] Eight Ayvago Arcade games playable online (Connect Four, Reversi, Memory Match, Neon Pong, Air Hockey, Penalty Kick, Bowling Strike, Mini Golf) — slice 4.1
+- [x] Every match goes through TURN ([ADR 0012](../adr/0012-online-matches-always-use-turn.md)) — slice 4.5
 - [ ] **Import wave 3** (backgammon, battleships, guess-number, tito) — migration off Ably; planned in the studio when importing starts
-- **Done when:** players on two different mobile carriers (with TURN forced in tests) can finish a match.
+- **Done when:** players on two different mobile carriers can finish a match (every match goes through TURN).
 
 ### Phase 5 — Retention (2 weeks)
 - [ ] Achievements, XP/levels, badges

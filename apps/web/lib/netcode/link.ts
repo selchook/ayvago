@@ -23,7 +23,7 @@ export type PeerLinkOptions = {
   peer: string;
   isHost: boolean;
   iceServers: RTCIceServer[];
-  /** TURN only (iceTransportPolicy "relay"), to test the TURN path. */
+  /** TURN only (iceTransportPolicy "relay"): every match when TURN credentials are available. */
   forceTurn?: boolean;
   onMessage(data: string): void;
   onRoute(route: LinkRoute): void;
