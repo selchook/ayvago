@@ -59,10 +59,15 @@ export function RoomView(props: RoomViewProps) {
   const uid = account.status === 'signedIn' ? account.uid : null;
   const profileName = account.status === 'signedIn' ? (account.profile?.username ?? null) : null;
   const name = profileName ?? (nameTimedOut ? t('defaultName') : null);
+  // The character chosen on the profile page goes with the seat (protocol 2.2).
+  const myCharacter = account.status === 'signedIn' ? (account.profile?.characterId ?? null) : null;
   const roomCode = code === null ? null : parseRoomCode(code);
   const isHost = view.kind === 'room' && view.isHost;
   const peerUid = room ? (isHost ? room.guestUid : room.hostUid) : null;
   const peerName = room ? ((isHost ? room.guestName : room.hostName) ?? '') : '';
+  const peerCharacter = room ? (isHost ? room.guestCharacter : room.hostCharacter) : null;
+  const seatCharacter =
+    (room ? (isHost ? room.hostCharacter : room.guestCharacter) : null) ?? myCharacter;
   const peerSession = (peerUid && room?.online[peerUid]) || null;
   const peerOnline = peerSession !== null;
 
@@ -86,7 +91,7 @@ export function RoomView(props: RoomViewProps) {
     if (!uid || !name || startedRef.current || view.kind !== 'loading') return;
     startedRef.current = true;
     if (code === null) {
-      createRoom({ uid, name, gameId, slug })
+      createRoom({ uid, name, gameId, slug, character: myCharacter })
         .then((created) => router.replace(`${gamePath}/room/${created}`))
         .catch(() => setView({ kind: 'error', reason: 'failed' }));
       return;
@@ -95,7 +100,7 @@ export function RoomView(props: RoomViewProps) {
       setView({ kind: 'error', reason: 'missing' });
       return;
     }
-    joinRoom(roomCode, uid, name)
+    joinRoom(roomCode, uid, name, myCharacter)
       .then((result) => {
         if (result.kind === 'host' || result.kind === 'guest') {
           if (result.room.slug !== slug) {
@@ -107,7 +112,7 @@ export function RoomView(props: RoomViewProps) {
         } else setView({ kind: 'error', reason: result.kind });
       })
       .catch(() => setView({ kind: 'error', reason: 'failed' }));
-  }, [uid, name, view.kind, code, roomCode, gameId, slug, gamePath, router]);
+  }, [uid, name, myCharacter, view.kind, code, roomCode, gameId, slug, gamePath, router]);
 
   // Live room state and this player's presence.
   useEffect(() => {
@@ -197,9 +202,12 @@ export function RoomView(props: RoomViewProps) {
   }, [gameOn, peerSession, peerName, deliver]);
 
   const seatName = gameOn ? peerName : '';
+  const seatPeerCharacter = gameOn ? peerCharacter : null;
+  const ownCharacter = gameOn ? seatCharacter : null;
   const match = useMemo<MatchBinding>(
     () => ({
-      seat: { isHost, peerName: seatName },
+      seat: { isHost, peerName: seatName, peerCharacter: seatPeerCharacter },
+      character: ownCharacter,
       send: (json) => linkRef.current?.send(json),
       attach(post) {
         posterRef.current = post;
@@ -209,7 +217,7 @@ export function RoomView(props: RoomViewProps) {
         };
       },
     }),
-    [isHost, seatName],
+    [isHost, seatName, seatPeerCharacter, ownCharacter],
   );
 
   useEffect(() => {

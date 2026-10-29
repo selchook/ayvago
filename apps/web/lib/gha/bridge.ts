@@ -1,3 +1,4 @@
+import { isCharacterId, type CharacterId } from '@ayvago/shared';
 import type { ColorMode, ThemeId } from '@ayvago/themes';
 
 // Platform side of the game SDK protocol (v1-compatible GHA_* messages, protocol 2).
@@ -22,6 +23,10 @@ export type StartConfig = {
   playerCount: number;
   /** Multiplayer only: the other player's display name. */
   peerName?: string;
+  /** Protocol 2.2: the player's chosen character; absent when they have not chosen one. */
+  character?: CharacterId;
+  /** Protocol 2.2, multiplayer only: the other player's chosen character, when they chose one. */
+  peerCharacter?: CharacterId;
   theme: ThemeId;
   colorMode: ColorMode;
   tokens: Record<string, string>;
@@ -126,7 +131,12 @@ export function parseGameMessage(data: unknown): GameMessage | null {
   }
 }
 
-export type MatchSeat = { isHost: boolean; peerName: string };
+export type MatchSeat = {
+  isHost: boolean;
+  peerName: string;
+  /** The other player's character as stored with their seat (null: none chosen). */
+  peerCharacter?: string | null;
+};
 
 export function buildStartConfig(
   options: {
@@ -135,10 +145,13 @@ export function buildStartConfig(
     tokens: Record<string, string>;
     locale: string;
     adsEnabled: boolean;
+    /** The player's chosen character (null or unknown ids are left out). */
+    character?: string | null;
   },
   /** An online match: the seat in the room (host = player 0) and the opponent's name. */
   match?: MatchSeat,
 ): StartConfig {
+  const { character, ...rest } = options;
   const seat = match
     ? {
         mode: 'multiplayer' as const,
@@ -146,9 +159,15 @@ export function buildStartConfig(
         playerIndex: match.isHost ? 0 : 1,
         playerCount: 2,
         peerName: match.peerName,
+        ...(isCharacterId(match.peerCharacter) ? { peerCharacter: match.peerCharacter } : {}),
       }
     : { mode: 'solo' as const, isHost: true, playerIndex: 0, playerCount: 1 };
-  return { ...seat, protocol: PROTOCOL_VERSION, ...options };
+  return {
+    ...seat,
+    ...(isCharacterId(character) ? { character } : {}),
+    protocol: PROTOCOL_VERSION,
+    ...rest,
+  };
 }
 
 /** Largest move a game may send (serialized JSON, characters), as in the adapter. */

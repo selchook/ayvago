@@ -3,6 +3,7 @@
 // Online match rooms in the Realtime Database (docs/adr/0010-online-matches.md):
 // rooms/{code} holds the two seats and their presence. The rules (firebase/database.rules.json)
 // let the first non-host claim the guest seat, so joining needs no transaction.
+import { isCharacterId, type CharacterId } from '@ayvago/shared';
 import type { Unsubscribe } from 'firebase/database';
 import { loadDatabase } from '@/lib/firebase/client';
 import { generateRoomCode } from './room-code';
@@ -17,6 +18,9 @@ export type Room = {
   hostName: string;
   guestUid: string | null;
   guestName: string | null;
+  /** Each seat's chosen character (protocol 2.2 `peerCharacter`); null when none was chosen. */
+  hostCharacter: CharacterId | null;
+  guestCharacter: CharacterId | null;
   status: RoomStatus;
   createdAt: number;
   /** uid → the page session that holds the seat right now (a reload makes a new one). */
@@ -51,6 +55,8 @@ function toRoom(code: string, value: unknown): Room | null {
     hostName: String(v.hostName ?? ''),
     guestUid: typeof v.guestUid === 'string' ? v.guestUid : null,
     guestName: typeof v.guestName === 'string' ? v.guestName : null,
+    hostCharacter: isCharacterId(v.hostCharacter) ? v.hostCharacter : null,
+    guestCharacter: isCharacterId(v.guestCharacter) ? v.guestCharacter : null,
     status: v.status === 'full' || v.status === 'closed' ? v.status : 'open',
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     online,
@@ -65,6 +71,8 @@ export async function createRoom(input: {
   name: string;
   gameId: string;
   slug: string;
+  /** The host's chosen character, stored with the seat. */
+  character: CharacterId | null;
 }): Promise<string> {
   const db = await loadDatabase();
   const { ref, set, serverTimestamp } = await import('firebase/database');
@@ -78,6 +86,7 @@ export async function createRoom(input: {
         slug: input.slug,
         hostUid: input.uid,
         hostName: input.name.slice(0, NAME_LIMIT),
+        ...(input.character ? { hostCharacter: input.character } : {}),
         createdAt: serverTimestamp(),
         status: 'open',
       });
@@ -89,16 +98,36 @@ export async function createRoom(input: {
   throw lastError;
 }
 
-/** Takes the player's seat in a room: the host's own room, the free guest seat, or a rejoin. */
-export async function joinRoom(code: string, uid: string, name: string): Promise<JoinResult> {
+/**
+ * Takes the player's seat in a room: the host's own room, the free guest seat, or a rejoin. The
+ * player's character goes with the seat; a rejoin after choosing another one updates it.
+ */
+export async function joinRoom(
+  code: string,
+  uid: string,
+  name: string,
+  character: CharacterId | null,
+): Promise<JoinResult> {
   const db = await loadDatabase();
-  const { ref, get, update } = await import('firebase/database');
+  const { ref, get, set, update } = await import('firebase/database');
   const read = async () => toRoom(code, (await get(ref(db, roomPath(code)))).val());
+  const rejoin = async (room: Room, seat: 'host' | 'guest'): Promise<Room> => {
+    const key = `${seat}Character` as const;
+    if (!character || room[key] === character) return room;
+    try {
+      await set(ref(db, `${roomPath(code)}/${key}`), character);
+      return { ...room, [key]: character };
+    } catch (error) {
+      // The seat keeps its earlier character; the match itself is not affected.
+      console.warn('[netcode] character not updated', error);
+      return room;
+    }
+  };
 
   const room = await read();
   if (!room) return { kind: 'missing' };
-  if (room.hostUid === uid) return { kind: 'host', room };
-  if (room.guestUid === uid) return { kind: 'guest', room };
+  if (room.hostUid === uid) return { kind: 'host', room: await rejoin(room, 'host') };
+  if (room.guestUid === uid) return { kind: 'guest', room: await rejoin(room, 'guest') };
   if (room.status === 'closed') return { kind: 'closed' };
   if (Date.now() - room.createdAt > ROOM_TTL_MS) return { kind: 'expired' };
   if (room.guestUid) return { kind: 'full' };
@@ -106,6 +135,7 @@ export async function joinRoom(code: string, uid: string, name: string): Promise
     await update(ref(db, roomPath(code)), {
       guestUid: uid,
       guestName: name.slice(0, NAME_LIMIT),
+      ...(character ? { guestCharacter: character } : {}),
       status: 'full',
     });
   } catch {

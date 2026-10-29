@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [Phase 4](phase-4.md) ([setup](../setup/phase-4.md)) · [ADRs](../adr/)
+> Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [Phase 4](phase-4.md) ([setup](../setup/phase-4.md)) · [Phase 5](phase-5.md) ([setup](../setup/phase-5.md)) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -149,7 +149,7 @@ Firestore has no joins and bills per document read, so frequently read data is *
 
 | Path | Content | Written by |
 |---|---|---|
-| `users/{uid}` | Public profile: `username`, `avatarId`, `theme`, `locale`, `xp`, `level`, `country`, `isGuest`, `createdAt` | Owner (restricted fields) |
+| `users/{uid}` | Public profile: `username`, `avatarId`, `characterId`, `theme`, `locale`, `xp`, `level`, `country`, `isGuest`, `createdAt` | Owner (restricted fields) |
 | `users/{uid}/private/account` | `birthYear`, notification preferences, consent record | Owner |
 | `users/{uid}/stats/{gameId}` | `bestScore`, `plays`, `playSeconds`, `lastPlayedAt` | **Functions only** |
 | `users/{uid}/favorites/{gameId}` | Favorite | Owner |
@@ -180,7 +180,7 @@ Season key: `s-2026-W42` (weekly seasons, Monday 09:00 UTC). Old season entries 
 ### 2.3 Realtime Database layout
 
 ```
-rooms/{code}                           { gameId, slug, hostUid, hostName, guestUid, guestName, createdAt, status, online/{uid} }  ✅ ← room code + invite link
+rooms/{code}                           { gameId, slug, hostUid, hostName, hostCharacter, guestUid, guestName, guestCharacter, createdAt, status, online/{uid} }  ✅ ← room code + invite link
 signals/{code}/{toUid}/{id}            { from, kind: hello|offer|answer|ice, data }  ✅ ← WebRTC handshake inbox
 relay/{code}/{pushId}                  { from, data }                                ✅ ← fallback when WebRTC is not open
 presence/{uid}                         { state: 'online', gameId, lastChanged }   ← onDisconnect → offline (later)
@@ -293,7 +293,8 @@ GHA.unlockAchievement(id)
 GHA.onThemeChange(cb) · GHA.onLocaleChange(cb) · GHA.onMute(cb)
 GHA.multiplayer.onPeerJoin(cb) · onPeerLeave(cb) · getRoom()
 GHA.track(event, props)                                   // forwarded to Google Analytics
-// GHA_START config: { mode, isHost, playerIndex, playerCount, theme, locale, adsEnabled, protocol: 2 }
+// GHA_START config: { mode, isHost, playerIndex, playerCount, peerName?, character?, peerCharacter?, theme, locale, adsEnabled, protocol: 2 }
+// character / peerCharacter: protocol 2.2, ids from packages/shared/src/characters.ts (ADR 0013)
 ```
 
 ### 5.3 Score validation flow
@@ -498,7 +499,9 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 - [ ] **Import wave 3** (backgammon, battleships, guess-number, tito) — migration off Ably; planned in the studio when importing starts
 - **Done when:** players on two different mobile carriers can finish a match (every match goes through TURN).
 
-### Phase 5 — Retention (2 weeks)
+### Phase 5 — Retention (2 weeks) — in progress
+Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup](../setup/phase-5.md)
+- [x] Player characters: ten free characters on the profile page, sent to games as `character` / `peerCharacter` in `GHA_START` (protocol 2.2, [ADR 0013](../adr/0013-player-characters.md)) — slice 5.1; game support is added in the studio
 - [ ] Achievements, XP/levels, badges
 - [ ] Daily quests, login streaks
 - [ ] FCM web push (localized)

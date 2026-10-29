@@ -124,6 +124,68 @@ describe('rooms', () => {
     await assertFails(update(ref(as('stranger'), `rooms/${CODE}`), { status: 'open' }));
   });
 
+  it("stores each seat's character, one of the ten ids, set by that seat only", async () => {
+    await assertSucceeds(
+      set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter: 'alien-pink' }),
+    );
+    await assertSucceeds(
+      update(ref(as('guest'), `rooms/${CODE}`), {
+        guestUid: 'guest',
+        guestName: 'Mert',
+        guestCharacter: 'zombie',
+        status: 'full',
+      }),
+    );
+    // Each player may change their own seat's character later (a rejoin after a new choice).
+    await assertSucceeds(set(ref(as('host'), `rooms/${CODE}/hostCharacter`), 'soldier'));
+    await assertSucceeds(set(ref(as('guest'), `rooms/${CODE}/guestCharacter`), 'rookie'));
+    // A seated player keeps the other seat's character untouched when updating the room.
+    await assertSucceeds(
+      update(ref(as('guest'), `rooms/${CODE}`), { status: 'full', guestCharacter: 'explorer' }),
+    );
+    const room = (await get(ref(as('host'), `rooms/${CODE}`))).val();
+    expect(room).toMatchObject({ hostCharacter: 'soldier', guestCharacter: 'explorer' });
+  });
+
+  it("rejects unknown characters and changes to the other seat's character", async () => {
+    for (const hostCharacter of ['alien-red', 'Zombie', '', 7, true, 'zombie; drop']) {
+      await assertFails(set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter }));
+    }
+    // No guest character before someone takes the guest seat.
+    await assertFails(
+      set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), guestCharacter: 'zombie' }),
+    );
+    await seedRoom({ hostCharacter: 'alien-blue' });
+    await assertFails(
+      update(ref(as('guest'), `rooms/${CODE}`), {
+        guestUid: 'guest',
+        guestCharacter: 'not-a-character',
+        status: 'full',
+      }),
+    );
+    await assertFails(
+      update(ref(as('guest'), `rooms/${CODE}`), {
+        guestUid: 'guest',
+        hostCharacter: 'zombie',
+        status: 'full',
+      }),
+    );
+    await seedRoom({
+      guestUid: 'guest',
+      status: 'full',
+      hostCharacter: 'alien-blue',
+      guestCharacter: 'rookie',
+    });
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/hostCharacter`), 'zombie'));
+    await assertFails(remove(ref(as('guest'), `rooms/${CODE}/hostCharacter`)));
+    await assertFails(set(ref(as('host'), `rooms/${CODE}/guestCharacter`), 'zombie'));
+    await assertFails(remove(ref(as('host'), `rooms/${CODE}/guestCharacter`)));
+    await assertFails(set(ref(as('stranger'), `rooms/${CODE}/hostCharacter`), 'zombie'));
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/guestCharacter`), 'alien-red'));
+    // Removing your own choice is allowed: games then use their default.
+    await assertSucceeds(remove(ref(as('guest'), `rooms/${CODE}/guestCharacter`)));
+  });
+
   it('lets only the host delete the room', async () => {
     await seedRoom({ guestUid: 'guest', status: 'full' });
     await assertFails(remove(ref(as('guest'), `rooms/${CODE}`)));

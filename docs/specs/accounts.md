@@ -37,6 +37,9 @@ Anonymous accounts unused for 30 days are deleted automatically (Firebase settin
 - No uploads at launch (avoids image moderation). A preset set of **48 avatars** drawn in the three theme styles (retro pixel, cartoon, minimal flat); the profile stores `avatarId`, each theme renders its own variant.
 - Unlockable avatars and **avatar frames** come from levels, achievements and season rewards (Phase 5); `frameId` on the profile.
 - Avatar files live in Cloud Storage behind a CDN; games receive a resolved `avatarUrl`.
+- **Characters** ([ADR 0013](../adr/0013-player-characters.md)): separate from the avatar, the
+  player picks one of ten game characters (`characterId`). Games with a hero receive it as
+  `GHA_START.config.character`. All ten are free for now; unlocks may come with XP and achievements.
 
 ## 5. When to ask guests to register
 
@@ -100,7 +103,7 @@ Level curve: `xpForLevel(n) = 50 · n^1.5` (rounded). Levels unlock cosmetics on
 
 | Path | Fields | Writer |
 |---|---|---|
-| `users/{uid}` | `username`, `avatarId`, `frameId`, `level`, `xp`, `country`, `locale`, `theme`, `mode`, `isGuest`, `privacy`, `createdAt`, `usernameChangedAt` | Owner for `avatarId/theme/mode/locale/privacy`; Functions for the rest |
+| `users/{uid}` | `username`, `avatarId`, `characterId`, `frameId`, `level`, `xp`, `country`, `locale`, `theme`, `mode`, `isGuest`, `privacy`, `createdAt`, `usernameChangedAt` | Owner for `avatarId/characterId/theme/mode/locale/privacy`; Functions for the rest |
 | `users/{uid}/private/account` | `birthYear`, `ageBand`, consent records, notification settings | Owner (birth year write-once) |
 | `users/{uid}/saves/{gameId}` | `data`, `updatedAt`, `version` | Owner (size checked by rules) |
 | `usernames/{lowercase}` | `uid` | Functions |
@@ -133,5 +136,6 @@ The first slices ran on the Spark plan without Cloud Functions; usernames, guest
 - **Guest cleanup:** `cleanupGuests` runs every night at 03:30 (Europe/Istanbul) and deletes anonymous accounts inactive for 30 days, with their documents and leaderboard rows.
 - **Leaderboards (Phase 2):** board rows show the username, avatar and a guest badge. Username changes and avatar changes are copied into the rows by the server; a guest merge moves the guest's better scores to the account; **Delete account** calls `deleteMyData`, which removes the profile, library, username, leaderboard rows and entries, votes and play stats on the server before the client deletes the sign-in.
 - **Bans (Phase 2):** admins (custom claim `admin`) ban and unban players from `/admin`. A ban sets the `banned` claim, which rules and functions check, and revokes the player's sessions. It also removes their leaderboard rows, votes and play stats. The profile records `banned`, `bannedAt` and `bannedBy` for the panel.
+- **Characters (Phase 5, slice 5.1, [ADR 0013](../adr/0013-player-characters.md)):** the profile page has a **Character** section: the ten characters of `packages/shared/src/characters.ts` as a radio group of previews (`apps/web/public/characters/<id>.png`), saved on select. The choice is `characterId` on `users/{uid}`. Firestore rules accept only the ten ids, or no field at all; the owner may set or remove it, guests included, and banned players may not. The game player sends it as `GHA_START.config.character` (left out without a choice). In online rooms each seat stores its character, and the other player's game gets it as `peerCharacter` ([multiplayer spec §3, §5](multiplayer.md#5-game-protocol-adapter-22)). A guest merged into an existing account keeps that account's character. All ten are free.
 - **Not yet:** Apple and email-link sign-in, public profile pages, privacy and notification settings.
 - **Testing:** rules tests in `firebase/tests` (emulator, run in CI). The web app can run against the emulators with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`; emulator builds expose a test hook for the Google flow because the real popup needs Google's servers.

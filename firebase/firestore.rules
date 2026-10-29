@@ -38,10 +38,18 @@ service cloud.firestore {
       return locale in ['en', 'tr'];
     }
 
+    // Same list as CHARACTER_IDS in packages/shared/src/characters.ts (docs/adr/0013).
+    function validCharacter(id) {
+      return id in ['alien-green', 'alien-blue', 'alien-pink', 'alien-yellow', 'alien-beige',
+        'adventurer', 'explorer', 'rookie', 'soldier', 'zombie'];
+    }
+
     // Optional preference fields: absent, or one of the allowed values. Avatar ids are
-    // "<glyph>-<color>" from apps/web/lib/account/avatars.ts.
+    // "<glyph>-<color>" from apps/web/lib/account/avatars.ts; character ids come from the shared
+    // character list (removing the field means "no choice": games use their default).
     function validPreferences(data) {
       return (!('avatarId' in data) || (data.avatarId is string && data.avatarId.matches('^[a-z]{2,12}-[a-z]{2,12}$')))
+        && (!('characterId' in data) || validCharacter(data.characterId))
         && (!('theme' in data) || data.theme in ['retro', 'cartoon', 'minimal', 'arcade'])
         && (!('mode' in data) || data.mode in ['system', 'light', 'dark']);
     }
@@ -64,7 +72,7 @@ service cloud.firestore {
 
       allow update: if isOwner(uid) && notBanned()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['isGuest', 'locale', 'avatarId', 'theme', 'mode', 'updatedAt'])
+          .hasOnly(['isGuest', 'locale', 'avatarId', 'characterId', 'theme', 'mode', 'updatedAt'])
         && request.resource.data.isGuest == isAnonymous()
         && validLocale(request.resource.data.locale)
         && validPreferences(request.resource.data)
