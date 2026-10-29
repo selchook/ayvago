@@ -14,7 +14,7 @@ import {
   type PlatformMessage,
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
-import { ensureGuest } from '@/lib/account/store';
+import { chosenCharacter, ensureGuest } from '@/lib/account/store';
 import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
@@ -44,6 +44,8 @@ const SLOW_LOAD_MS = 12_000;
  */
 export type MatchBinding = {
   seat: MatchSeat;
+  /** This player's character as stored with their seat (null: none chosen). */
+  character: string | null;
   send(json: string): void;
   attach(post: (message: PlatformMessage) => void): () => void;
 };
@@ -73,7 +75,8 @@ export function GamePlayer(props: GamePlayerProps) {
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const startedRef = useRef(false);
+  // GHA_START for the current game window: resolves to true once it was posted.
+  const startRef = useRef<Promise<boolean> | null>(null);
   // Resolves once the player has an identity (a guest at least); runs register after that.
   const identityRef = useRef<Promise<unknown>>(Promise.resolve());
   // The run in progress, registered with the server for the leaderboards.
@@ -104,24 +107,33 @@ export function GamePlayer(props: GamePlayerProps) {
     [gameOrigin],
   );
 
-  const sendStart = useCallback(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    const theme = readThemeState();
-    post({
-      type: 'GHA_START',
-      config: buildStartConfig(
-        {
-          theme: theme.theme,
-          colorMode: theme.mode,
-          tokens: gameTokens(theme.theme, theme.mode),
-          locale,
-          adsEnabled: false,
-        },
-        match?.seat,
-      ),
+  const sendStart = useCallback((): Promise<boolean> => {
+    if (startRef.current) return startRef.current;
+    const target = frameRef.current?.contentWindow;
+    // The player's character (protocol 2.2): the seat's in a match, else the profile's choice.
+    const character = match ? Promise.resolve(match.character) : chosenCharacter();
+    startRef.current = character.then((chosen) => {
+      // A reload in the meantime opened a new game window, which asks again.
+      if (frameRef.current?.contentWindow !== target) return false;
+      const theme = readThemeState();
+      post({
+        type: 'GHA_START',
+        config: buildStartConfig(
+          {
+            theme: theme.theme,
+            colorMode: theme.mode,
+            tokens: gameTokens(theme.theme, theme.mode),
+            locale,
+            adsEnabled: false,
+            character: chosen,
+          },
+          match?.seat,
+        ),
+      });
+      return true;
     });
-  }, [locale, post, match?.seat]);
+    return startRef.current;
+  }, [locale, post, match]);
 
   // Bridge: only trusted, well-formed messages from this game's frame are handled.
   useEffect(() => {
@@ -132,8 +144,10 @@ export function GamePlayer(props: GamePlayerProps) {
       if (!message) return;
       switch (message.type) {
         case 'ready':
-          sendStart();
-          setConnected(true);
+          // Connected (moves and presence flow) only once the game has its GHA_START.
+          sendStart().then((sent) => {
+            if (sent) setConnected(true);
+          });
           setPhase('playing');
           break;
         case 'loading':
@@ -246,7 +260,7 @@ export function GamePlayer(props: GamePlayerProps) {
   }, [toast]);
 
   function play() {
-    startedRef.current = false;
+    startRef.current = null;
     setConnected(false);
     setResult(null);
     setRunResult(null);
@@ -260,7 +274,7 @@ export function GamePlayer(props: GamePlayerProps) {
   }
 
   function reload() {
-    startedRef.current = false;
+    startRef.current = null;
     setConnected(false);
     setProgress(null);
     setPhase('loading');

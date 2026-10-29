@@ -7,7 +7,7 @@
       "$code": {
         ".read": "auth != null",
         ".write": "auth != null && $code.matches(/^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{6}$/) && ((!data.exists() && newData.child('hostUid').val() === auth.uid && !newData.child('guestUid').exists() && newData.child('status').val() === 'open') || (data.exists() && newData.exists() && !data.child('guestUid').exists() && data.child('status').val() === 'open' && newData.child('guestUid').val() === auth.uid && newData.child('hostUid').val() === data.child('hostUid').val() && data.child('hostUid').val() !== auth.uid) || (data.exists() && newData.exists() && (data.child('hostUid').val() === auth.uid || data.child('guestUid').val() === auth.uid) && newData.child('hostUid').val() === data.child('hostUid').val() && newData.child('guestUid').val() === data.child('guestUid').val()) || (data.exists() && !newData.exists() && data.child('hostUid').val() === auth.uid))",
-        ".validate": "newData.hasChildren(['gameId', 'slug', 'hostUid', 'hostName', 'createdAt', 'status'])",
+        ".validate": "newData.hasChildren(['gameId', 'slug', 'hostUid', 'hostName', 'createdAt', 'status']) && (newData.child('hostCharacter').exists() || !data.child('hostCharacter').exists() || data.child('hostUid').val() === auth.uid) && (newData.child('guestCharacter').exists() || !data.child('guestCharacter').exists() || data.child('guestUid').val() === auth.uid)",
         "gameId": {
           ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,32}$/) && (!data.exists() || newData.val() === data.val())"
         },
@@ -18,6 +18,12 @@
         "hostName": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "guestUid": { ".validate": "newData.isString()" },
         "guestName": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "hostCharacter": {
+          ".validate": "newData.isString() && newData.val().matches(/^(alien-green|alien-blue|alien-pink|alien-yellow|alien-beige|adventurer|explorer|rookie|soldier|zombie)$/) && (newData.val() === data.val() || newData.parent().child('hostUid').val() === auth.uid)"
+        },
+        "guestCharacter": {
+          ".validate": "newData.isString() && newData.val().matches(/^(alien-green|alien-blue|alien-pink|alien-yellow|alien-beige|adventurer|explorer|rookie|soldier|zombie)$/) && (newData.val() === data.val() || newData.parent().child('guestUid').val() === auth.uid)"
+        },
         "createdAt": {
           ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() <= now && newData.val() > now - 60000)"
         },

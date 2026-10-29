@@ -117,6 +117,61 @@ describe('buildStartConfig', () => {
   });
 });
 
+describe('buildStartConfig characters (protocol 2.2)', () => {
+  const base = {
+    theme: 'arcade',
+    colorMode: 'dark',
+    tokens: {},
+    locale: 'en',
+    adsEnabled: false,
+  } as const;
+
+  it("sends the player's chosen character in solo runs", () => {
+    expect(buildStartConfig({ ...base, character: 'zombie' })).toMatchObject({
+      mode: 'solo',
+      character: 'zombie',
+    });
+  });
+
+  it('omits the character when none is chosen or the id is unknown', () => {
+    for (const character of [undefined, null, '', 'alien-red', 'Zombie']) {
+      const config = buildStartConfig({ ...base, character });
+      expect(config, String(character)).not.toHaveProperty('character');
+      expect(config).not.toHaveProperty('peerCharacter');
+    }
+  });
+
+  it("sends both players' characters in an online match", () => {
+    expect(
+      buildStartConfig(
+        { ...base, character: 'alien-blue' },
+        { isHost: false, peerName: 'Ayşe', peerCharacter: 'soldier' },
+      ),
+    ).toMatchObject({
+      mode: 'multiplayer',
+      character: 'alien-blue',
+      peerCharacter: 'soldier',
+    });
+  });
+
+  it("omits the opponent's character when they have none or it is unknown", () => {
+    for (const peerCharacter of [undefined, null, 'robot']) {
+      const config = buildStartConfig(
+        { ...base, character: 'rookie' },
+        { isHost: true, peerName: 'Mert', peerCharacter },
+      );
+      expect(config).not.toHaveProperty('peerCharacter');
+      expect(config).toMatchObject({ character: 'rookie', peerName: 'Mert' });
+    }
+  });
+
+  it('never sends a peer character in solo runs', () => {
+    expect(buildStartConfig({ ...base, character: 'explorer' })).not.toHaveProperty(
+      'peerCharacter',
+    );
+  });
+});
+
 describe('relayableMove', () => {
   it('accepts small JSON moves and rejects the rest', () => {
     expect(relayableMove({ t: 'move', d: { col: 3 } })).toBe('{"t":"move","d":{"col":3}}');

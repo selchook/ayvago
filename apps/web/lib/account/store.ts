@@ -5,8 +5,10 @@
 // the first game launch; signing in with Google links to the same uid (docs/specs/accounts.md).
 import {
   generateGuestName,
+  isCharacterId,
   isSupportedLocale,
   usernameKey,
+  type CharacterId,
   type Locale,
   type UserProfile,
 } from '@ayvago/shared';
@@ -20,6 +22,8 @@ import { attachLibrary, cancelLibrarySync, detachLibrary, flushLibrary } from '.
 
 export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
   avatarId: string | null;
+  /** The chosen player character (docs/adr/0013); null: none chosen, games use their default. */
+  characterId: CharacterId | null;
   theme: ThemeId | null;
   mode: ModePreference | null;
   // Milliseconds since epoch; null until the server timestamp of a new profile is known.
@@ -29,7 +33,9 @@ export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
 };
 
 /** Fields the player can change from the settings page. */
-export type ProfileChanges = Partial<Pick<Profile, 'avatarId' | 'theme' | 'mode' | 'locale'>>;
+export type ProfileChanges = Partial<
+  Pick<Profile, 'avatarId' | 'characterId' | 'theme' | 'mode' | 'locale'>
+>;
 
 export type AccountState =
   | { status: 'disabled' }
@@ -325,6 +331,7 @@ async function syncProfile(user: User): Promise<void> {
       return {
         ...created,
         avatarId: null,
+        characterId: null,
         theme: null,
         mode: null,
         createdAt: Date.now(),
@@ -340,6 +347,7 @@ async function syncProfile(user: User): Promise<void> {
       isGuest: user.isAnonymous,
       locale: isSupportedLocale(data.locale) ? data.locale : preferredLocale,
       avatarId: typeof data.avatarId === 'string' ? data.avatarId : null,
+      characterId: isCharacterId(data.characterId) ? data.characterId : null,
       theme: isThemeId(data.theme) ? data.theme : null,
       mode: isModePreference(data.mode) ? data.mode : null,
       createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : null,
@@ -360,14 +368,47 @@ export async function updateProfile(changes: ProfileChanges): Promise<void> {
   const { uid } = state;
   setState({ ...state, profile: { ...state.profile, ...changes } });
   const db = await loadFirestore();
-  const { doc, serverTimestamp, updateDoc } = await import('firebase/firestore');
-  await updateDoc(doc(db, 'users', uid), { ...changes, updatedAt: serverTimestamp() });
+  const { deleteField, doc, serverTimestamp, updateDoc } = await import('firebase/firestore');
+  const { characterId, ...rest } = changes;
+  await updateDoc(doc(db, 'users', uid), {
+    ...rest,
+    // No character means the field is absent (the rules accept only the ten ids).
+    ...(characterId === undefined ? {} : { characterId: characterId ?? deleteField() }),
+    updatedAt: serverTimestamp(),
+  });
   // Leaderboard rows show the avatar; the server copies the new one into them.
   if (changes.avatarId !== undefined) {
     callFunction('syncLeaderboardProfile').catch((error) =>
       console.warn('[account] leaderboard rows not updated', error),
     );
   }
+}
+
+/**
+ * The signed-in player's chosen character for GHA_START, once their profile is known. Resolves
+ * to null when nobody is signed in, the player has not chosen, or the profile does not arrive
+ * within `timeoutMs` (the game never waits longer than that).
+ */
+export function chosenCharacter(timeoutMs = 2500): Promise<CharacterId | null> {
+  const settled = (current: AccountState): CharacterId | null | undefined => {
+    if (current.status === 'disabled' || current.status === 'signedOut') return null;
+    if (current.status === 'signedIn' && current.profile) return current.profile.characterId;
+    return undefined;
+  };
+  const now = settled(state);
+  if (now !== undefined) return Promise.resolve(now);
+  return new Promise((resolve) => {
+    const finish = (value: CharacterId | null) => {
+      window.clearTimeout(timer);
+      unsubscribe();
+      resolve(value);
+    };
+    const timer = window.setTimeout(() => finish(null), timeoutMs);
+    const unsubscribe = subscribe(() => {
+      const value = settled(state);
+      if (value !== undefined) finish(value);
+    });
+  });
 }
 
 async function callFunction(name: string, data: unknown = {}): Promise<void> {

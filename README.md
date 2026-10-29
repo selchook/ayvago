@@ -8,7 +8,8 @@ A web game platform that brings retro action, casual and puzzle games together i
 all-time leaderboards, voting with catalog ranking, the admin panel and the App Check rollout switch
 and touch controls for Space Defender are live. App Check is turned on once its site key is set
 up. **Phase 4 — Multiplayer** has started: eight games can be played online against a friend from an
-invite link (slice 4.1).
+invite link (slice 4.1). **Phase 5 — Retention** has started: players pick one of ten characters on
+their profile, and games with a hero play with it (slice 5.1).
 
 | Phase | Scope | Status | Docs |
 |---|---|---|---|
@@ -17,7 +18,7 @@ invite link (slice 4.1).
 | 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.20), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 live (8 games online), 4.4 and 4.5 (always TURN) code complete; TURN key open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
-| 5 | Retention: achievements, XP, quests, push, cloud saves | Not started | |
+| 5 | Retention: player characters, achievements, XP, quests, push, cloud saves | In progress: 5.1 (player characters) code complete, nothing to set up | [Plan](docs/plan/phase-5.md) · [Setup](docs/setup/phase-5.md) |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
 

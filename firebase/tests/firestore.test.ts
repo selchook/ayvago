@@ -7,6 +7,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   serverTimestamp,
@@ -14,7 +15,7 @@ import {
   Timestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { generateGuestName } from '@ayvago/shared';
+import { CHARACTER_IDS, generateGuestName } from '@ayvago/shared';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
 let env: RulesTestEnvironment;
@@ -214,6 +215,75 @@ describe('users/{uid} update', () => {
         }),
       );
     }
+  });
+
+  it('lets guests and registered players choose any of the ten characters', async () => {
+    await seed('alice');
+    for (const characterId of CHARACTER_IDS) {
+      await assertSucceeds(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), {
+          characterId,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    }
+    await seed('bob', { isGuest: false });
+    await assertSucceeds(
+      updateDoc(doc(google('bob'), 'users', 'bob'), {
+        characterId: 'zombie',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('lets the owner remove their character choice', async () => {
+    await seed('alice', { characterId: 'rookie' });
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        characterId: deleteField(),
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('rejects unknown characters, other players and banned players', async () => {
+    await seed('alice');
+    for (const characterId of [
+      'alien-red',
+      'Alien-Green',
+      'alien_green',
+      '',
+      null,
+      42,
+      ['zombie'],
+      '/characters/zombie.png',
+    ]) {
+      await assertFails(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), {
+          characterId,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    }
+    await assertFails(
+      updateDoc(doc(guest('mallory'), 'users', 'alice'), {
+        characterId: 'zombie',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await seed('bob', { isGuest: false });
+    await assertFails(
+      updateDoc(doc(google('bob', { banned: true }), 'users', 'bob'), {
+        characterId: 'zombie',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('does not accept a character on profile creation (it is a later choice)', async () => {
+    await assertFails(
+      setDoc(doc(guest('alice'), 'users', 'alice'), newProfile({ characterId: 'zombie' })),
+    );
   });
 
   it('does not allow changing the username yet', async () => {

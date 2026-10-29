@@ -36,6 +36,7 @@ import pageStyles from '../page.module.css';
 import { ThemeControls } from '../theme-controls';
 import { Avatar } from './avatar';
 import { AvatarGlyphIcon } from './avatar-glyph';
+import { CharacterPicker } from './character-picker';
 import menuStyles from './account.module.css';
 import styles from './profile.module.css';
 
@@ -215,6 +216,7 @@ function SignedIn({
       <section className={styles.card} aria-labelledby="settings-heading">
         <h2 id="settings-heading">{t('settingsTitle')}</h2>
         <AvatarPicker current={parseAvatarId(profile.avatarId)} />
+        <CharacterPicker current={profile.characterId} />
         <div className={styles.setting}>
           <h3>{t('appearance')}</h3>
           <div className={styles.themeBox}>

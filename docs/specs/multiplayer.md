@@ -31,7 +31,7 @@ Error states: the room is full, does not exist, is closed or has expired (two ho
 ## 3. Data (Realtime Database)
 
 ```
-rooms/{code}            { gameId, slug, hostUid, hostName, guestUid?, guestName?, createdAt, status, online/{uid}: sessionId }
+rooms/{code}            { gameId, slug, hostUid, hostName, hostCharacter?, guestUid?, guestName?, guestCharacter?, createdAt, status, online/{uid}: sessionId }
 signals/{code}/{toUid}  { from, kind: hello|offer|answer|ice, data }   ← WebRTC handshake inbox, consumed by the recipient
 relay/{code}/{pushId}   { from, data }                                 ← fallback channel, consumed by the recipient
 ```
@@ -41,6 +41,9 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 - The host creates the room with an empty guest seat; the first other player claims it. Seats
   never change afterwards. Members update the status and their own `online` entry: a 12-hex
   page session id, removed by `onDisconnect`. A new id means the player reloaded.
+- Each seat's character (`hostCharacter`, `guestCharacter`) is one of the ten ids of
+  `packages/shared/src/characters.ts`. Only that seat's player may set, change or remove it; the
+  guest character needs a claimed guest seat.
 - Signals go only to the other member's inbox, written as yourself; only the recipient reads and
   deletes them.
 - Relay messages are written by members as themselves (at most 16,000 characters) and deleted
@@ -59,9 +62,16 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
   it is down, moves go through the relay. The page keeps listening to both.
 - The page shows the route: TURN, direct (only without TURN credentials) or server.
 
-## 5. Game protocol (adapter 2.1)
+## 5. Game protocol (adapter 2.2)
 - `GHA_START.config`: `mode: 'multiplayer'`, `isHost`, `playerIndex` (host 0, guest 1),
   `playerCount: 2`, `peerName`.
+- Protocol 2.2 ([ADR 0013](../adr/0013-player-characters.md)):
+  - `character`: this player's chosen character, taken from their seat. It is left out when they
+    have none.
+  - `peerCharacter`: the other player's character, from the other seat. It is left out when they
+    have none.
+  - The adapter exposes it as `multiplayer.peerCharacter` (`''` when unknown).
+  - Games without a matching hero ignore both fields.
 - Game → platform: `GHA_MOVE_OUT { data }` (any JSON up to 16,000 characters).
 - Platform → game: `GHA_MOVE_IN { data }`, `GHA_PEER_LEAVE`, `GHA_PEER_JOIN { name }`.
 - The platform holds moves and presence changes until the game has received `GHA_START`.
@@ -92,4 +102,7 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 
 ## 8. Implementation status
 Shipped in Phase 4 ([plan](../plan/phase-4.md)): everything in §2–§6. Slice 4.1 built rooms and
-the connection, 4.4 the turn order rule, and 4.5 made every match go through TURN.
+the connection, 4.4 the turn order rule, and 4.5 made every match go through TURN. Seat
+characters and `peerCharacter` (§3, §5) shipped with Phase 5 slice 5.1
+([plan](../plan/phase-5.md#51-player-characters-)): the platform sends them, and the studio adds
+support to the games.
