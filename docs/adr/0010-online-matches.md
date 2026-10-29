@@ -1,6 +1,6 @@
 # ADR 0010 — Online two-player matches: rooms, invite links and TURN from the web app
 
-- Status: Accepted (2026-10-28)
+- Status: Accepted (2026-10-28); connections are TURN-only since [ADR 0012](0012-online-matches-always-use-turn.md)
 - Related: [ADR 0003](0003-cloudflare-turn.md) (Cloudflare TURN), [Phase 4 plan](../plan/phase-4.md),
   [Multiplayer spec](../specs/multiplayer.md)
 

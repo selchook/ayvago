@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { createRateLimiter, parseCloudflareIce, withoutPort53 } from './ice';
+import { createRateLimiter, hasTurn, parseCloudflareIce, withoutPort53 } from './ice';
 
 describe('ICE servers', () => {
+  it('tells whether a TURN server is in the list', () => {
+    expect(hasTurn([{ urls: 'stun:stun.cloudflare.com:3478' }])).toBe(false);
+    expect(hasTurn([])).toBe(false);
+    expect(
+      hasTurn([
+        { urls: ['stun:stun.cloudflare.com:3478'] },
+        { urls: ['turns:turn.cloudflare.com:443?transport=tcp'], username: 'u', credential: 'c' },
+      ]),
+    ).toBe(true);
+    expect(hasTurn([{ urls: 'turn:turn.cloudflare.com:3478?transport=udp' }])).toBe(true);
+  });
+
   it('drops port 53 URLs and empty servers', () => {
     expect(
       withoutPort53([
