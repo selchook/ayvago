@@ -44,7 +44,10 @@ const LEGACY_ALIASES =
 export function buildThemeCss(): string {
   const rules: string[] = [`:root{${LEGACY_ALIASES}}`];
 
-  for (const id of THEME_IDS) {
+  // The default theme comes first: its block also targets :root, and a :root rule placed after
+  // another theme's [data-theme] rule (same specificity) would override that theme.
+  const order = [DEFAULT_THEME, ...THEME_IDS.filter((id) => id !== DEFAULT_THEME)];
+  for (const id of order) {
     const def = THEMES[id];
     const sel = `[data-theme="${id}"]`;
     const first = def.modes[0] as ColorMode;

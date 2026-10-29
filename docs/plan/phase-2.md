@@ -649,6 +649,13 @@ New visitors (no theme cookie, no account preference) now get the Arcade theme:
 - The system bar color, the manifest and the theme pickers' first render follow it.
 
 Saved choices are untouched.
+- **Fix after release:**
+  - The owner saw retro lose its green CRT palette and pixel font.
+  - Cause: the default theme's block also targets `:root`. With arcade last in `THEME_IDS`, its
+    `:root` rule came after the retro, minimal and cartoon rules at the same specificity and
+    overrode them.
+  - The default theme's block is now emitted first, and a unit test checks that order.
+  - The spotlight's category tags also got their position colors back (`data-tone`, slice 4.4).
 - **Tests:** unit tests (the manifest fallback now expects the arcade bar color). A production
   build in desktop and Pixel 7 emulation renders `data-theme="arcade"`, the arcade bar color
   `#2a2726` and `manifest.webmanifest?theme=arcade&mode=dark` on a first visit.
