@@ -46,3 +46,6 @@ setup: two PRs per cross-cutting change, a hand-copied catalog file and a merge 
   (its CI turns red until then, which is the reminder).
 - Catalog PRs are opened by `github-actions[bot]`; the repository setting that allows Actions to
   open PRs must stay on.
+- Bringing in games from outside (including the parked imported titles) is planned in the studio
+  when it starts. The platform's game import plan was removed on 2026-10-29; its leaderboard rules
+  moved into the leaderboards spec.

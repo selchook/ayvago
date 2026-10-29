@@ -77,7 +77,10 @@ GHA_END    → finishSession(sessionId, token, score, durationMs, continues)
 
 - Only improved scores write entries (no write for a worse run) — keeps cost proportional to personal bests.
 - Flagged entries are stored with `flagged: true`, hidden from boards and listed in `/admin` for review (approve / reject / ban).
-- In the first two weeks after a game launches, limits only flag and never reject (calibration, see the [import plan §6.1](../plan/game-import-plan.md)).
+- In the first two weeks after a game launches, limits only flag and never reject. That is the
+  calibration window: `maxPerSecond` comes from the 99.9th percentile of score per second × 1.5,
+  `minDurationMs` from the shortest realistic run, and both can change in `games/{id}.scoring`
+  without a deploy.
 
 ## 8. Season end
 
@@ -102,7 +105,7 @@ A scheduled function runs every Monday at 09:00 UTC:
 ## 10. Multiplayer games
 
 - `accumulate: true` boards count wins per week.
-- A result counts only when both players report the same outcome (see [import plan §9](../plan/game-import-plan.md)).
+- A result counts only when both players report the same outcome; a mismatch flags the match.
 - Elo ratings for 1v1 games (Tavla) are a later extension with their own board type (`metric: 'elo'`).
 
 ## 11. Acceptance criteria

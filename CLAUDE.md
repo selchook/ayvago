@@ -15,7 +15,8 @@ rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party 
 - Game-provided text (`ayvago.json`) is a `{ en, tr? }` map; English is required.
 
 ## Conventions
-- Plans: `docs/plan/roadmap.md` and `docs/plan/game-import-plan.md`. Decisions are ADRs in `docs/adr/`.
+- Plans: `docs/plan/roadmap.md`. Decisions are ADRs in `docs/adr/`. Bringing in games from outside
+  is planned in the studio (`selchook/ayvago-games`) when it starts.
 - **Phase documentation is part of every slice** (owner request). In the same change that ships a slice:
   - Update `docs/plan/phase-N.md`. It holds the slice table, what shipped, deviations from the spec,
     tests and what is still open.

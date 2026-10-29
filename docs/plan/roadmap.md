@@ -2,7 +2,7 @@
 
 > Platform: **Ayvago** · Domain: **ayvago.com** (purchased)
 > Stack: Next.js on Vercel · Firebase (`europe-west1`) · Cloudflare Realtime TURN · next-intl (en, tr)
-> Related: [Game import plan](game-import-plan.md) · Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [Phase 4](phase-4.md) ([setup](../setup/phase-4.md)) · [ADRs](../adr/)
+> Phase docs: [Phase 0](phase-0.md) ([setup](../setup/phase-0.md)) · [Phase 1](phase-1.md) ([setup](../setup/phase-1.md)) · [Phase 2](phase-2.md) ([setup](../setup/phase-2.md)) · [Phase 4](phase-4.md) ([setup](../setup/phase-4.md)) · [ADRs](../adr/)
 > Feature specs: [Accounts](../specs/accounts.md) · [Leaderboards](../specs/leaderboards.md) · [Voting](../specs/voting.md) · [UI and themes](../specs/ui-and-themes.md)
 
 ---
@@ -63,7 +63,7 @@ The `gamehub-arena` platform code is on the owner's local machine and not on Git
 | Score integrity | v1 had no server validation → v2 adds session tokens and plausibility checks in Cloud Functions. |
 | `GHA_MOVE_OUT / GHA_MOVE_IN` | **Kept** — multiplayer moves flow through it to the platform's WebRTC layer (§10). |
 
-### 1.3 Game inventory (summary — details in the [import plan](game-import-plan.md))
+### 1.3 Game inventory (imported games; parked by [ADR 0008](../adr/0008-park-imported-games.md), and their import will be planned in the studio, [ADR 0011](../adr/0011-studio-and-platform.md))
 
 | Game | Engine | Category (tentative) | Status |
 |---|---|---|---|
@@ -405,7 +405,7 @@ Player A (platform)                     Firebase                           Playe
 Cloudflare Realtime (SFU + TURN combined): **first 1,000 GB per month free**, then **$0.05/GB** egress. Turn-based move data is measured in kilobytes, so usage should stay within the free tier; most connections also never need TURN.
 
 ### 10.5 Existing multiplayer games
-backgammon, battleships, guess-number and tito-multiplayer (all Ably) move to this layer → the Ably dependency and client-side Ably keys disappear. Details: [import plan](game-import-plan.md), wave 3.
+backgammon, battleships, guess-number and tito-multiplayer (all Ably) move to this layer → the Ably dependency and client-side Ably keys disappear. Their migration will be planned in the studio (`selchook/ayvago-games`) when importing outside games starts.
 
 ---
 
@@ -494,7 +494,7 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 - [x] ICE servers + Cloudflare TURN (`GET /api/ice-servers`, [ADR 0010](../adr/0010-online-matches.md)) — TURN switches on with the owner's key
 - [x] Room codes / invite links, presence, rematch — slice 4.1; quick match still open (slice 4.2)
 - [x] Eight Ayvago Arcade games playable online (Connect Four, Reversi, Memory Match, Neon Pong, Air Hockey, Penalty Kick, Bowling Strike, Mini Golf) — slice 4.1
-- [ ] **Import wave 3** (backgammon, battleships, guess-number, tito) — migration off Ably
+- [ ] **Import wave 3** (backgammon, battleships, guess-number, tito) — migration off Ably; planned in the studio when importing starts
 - **Done when:** players on two different mobile carriers (with TURN forced in tests) can finish a match.
 
 ### Phase 5 — Retention (2 weeks)
@@ -560,7 +560,7 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 1. ~~Platform name and domain~~ → **Ayvago / ayvago.com** ✅
 2. Firestore region: `europe-west1` (recommended) or `europe-west3`? (cannot change later)
 3. Business entity (sole proprietor vs company) for the payment provider and AdSense.
-4. The games' production URLs (for the import plan).
+4. ~~The games' production URLs~~ → listed in Phase 0 ✅
 5. Rewarded behavior for `remove_ads` owners: optional ads or direct rewards?
 6. Push gamehub-arena to GitHub (to reuse UI components)? Optional.
 7. ~~Default locale~~ → **`en`** ✅ (Turkish browsers are still redirected to `/tr`)

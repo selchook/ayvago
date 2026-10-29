@@ -28,7 +28,6 @@ imported games are parked until they meet the platform standards (slice 2.7,
 [ADR 0008](docs/adr/0008-park-imported-games.md)).
 
 - Roadmap: [`docs/plan/roadmap.md`](docs/plan/roadmap.md)
-- Game import plan: [`docs/plan/game-import-plan.md`](docs/plan/game-import-plan.md)
 - Feature specs: [`docs/specs/`](docs/specs/) (accounts, leaderboards, voting, UI and themes, multiplayer)
 - Architecture decisions: [`docs/adr/`](docs/adr/)
 

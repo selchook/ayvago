@@ -1,7 +1,7 @@
 # ADR 0008 — Park the imported games until they meet the platform standards
 
 - Status: Accepted (2026-10-27)
-- Related: [ADR 0007](0007-ayvago-arcade.md), [Game import plan](../plan/game-import-plan.md), [Phase 2 plan](../plan/phase-2.md)
+- Related: [ADR 0007](0007-ayvago-arcade.md), [ADR 0011](0011-studio-and-platform.md), [Phase 2 plan](../plan/phase-2.md)
 
 ## Context
 The catalog had ten imported games: six live single-player titles and four multiplayer titles shown
