@@ -76,17 +76,22 @@ describe('seed catalog', () => {
       expect(getGameBySlug(parked.slug), parked.slug).toBeUndefined();
     }
     expect(getAllGames().every((game) => game.repo === 'selchook/ayvago-games')).toBe(true);
-    // The online two-player games of slice 4.1; the parked Ably games are not among them.
-    expect(getMultiplayerGames().map((game) => game.slug)).toEqual([
-      'air-hockey',
-      'bowling-strike',
-      'connect-four',
-      'memory-match',
-      'mini-golf',
-      'neon-pong',
-      'penalty-kick',
-      'reversi',
-    ]);
+    // Online two-player games come from the studio, so the list grows with every catalog sync:
+    // check that the slice 4.1 games are there and that no parked Ably game is among them.
+    const multiplayer = getMultiplayerGames().map((game) => game.slug);
+    expect(multiplayer).toEqual(
+      expect.arrayContaining([
+        'air-hockey',
+        'bowling-strike',
+        'connect-four',
+        'memory-match',
+        'mini-golf',
+        'neon-pong',
+        'penalty-kick',
+        'reversi',
+      ]),
+    );
+    for (const parked of PARKED_GAMES) expect(multiplayer).not.toContain(parked.slug);
     // The home spotlight needs a lead game and two side tiles.
     expect(getFeaturedGames().length).toBeGreaterThanOrEqual(3);
   });
