@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.1.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.2.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -216,6 +216,8 @@ describe('multiplayer', () => {
     playerIndex: 1,
     playerCount: 2,
     peerName: 'Ayşe',
+    character: 'zombie',
+    peerCharacter: 'alien-pink',
   };
 
   it('is inactive in solo runs and standalone', async () => {
@@ -236,7 +238,9 @@ describe('multiplayer', () => {
       isHost: false,
       playerIndex: 1,
       peerName: 'Ayşe',
+      peerCharacter: 'alien-pink',
     });
+    expect(adapter.config?.character).toBe('zombie');
   });
 
   it('sends moves to the platform origin and drops oversized ones', async () => {
