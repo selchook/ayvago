@@ -20,7 +20,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 |---|---|---|
 | 4.1 | Online rooms with invite links, WebRTC + Cloudflare TURN + relay fallback, 8 Ayvago Arcade games playable online | ✅ live, ⏳ TURN key |
 | 4.2 | Quick match (matchmaker), presence across the site | ⬜ |
-| 4.3 | Import wave 3 (backgammon, battleships, guess-number, tito) off Ably | ⬜ |
+| 4.3 | Import wave 3 (backgammon, battleships, guess-number, tito) off Ably; planned in the studio when importing outside games starts | ⬜ |
 | 4.4 | Turn order rule: the host starts the first round, then the winner (after a draw, the other player); "Multiplayer" tag on cards and in the catalog tags | ✅ code |
 
 ## 4.1 Online rooms ✅

@@ -329,8 +329,8 @@ What shipped:
     games or as plain document ids.
 
 Open:
-- Bring the multiplayer games back with Phase 4 (import wave 3 in the
-  [import plan](game-import-plan.md)), against the standards in ADR 0008.
+- Bring the multiplayer games back against the standards in ADR 0008. They are planned in the
+  studio when importing outside games starts ([ADR 0011](../adr/0011-studio-and-platform.md)).
 
 ## 2.8 Ayvago Arcade look ✅
 
@@ -641,6 +641,10 @@ shipping online play is removed:
   - Game pages on that origin are `noindex`.
 - **Tests:** both sync checks were dry-run against the current `main` of both repositories (in
   sync). The workflow's first real run happens after merge (owner step in the setup file).
+- **Follow-up (owner request):** the game import plan (`docs/plan/game-import-plan.md`) is removed.
+  Games come from the studio, so bringing in outside games (including the parked multiplayer
+  titles) will be planned there when it starts. The two leaderboard rules the spec cited from it
+  (calibration window, matching results) now live in [the leaderboards spec](../specs/leaderboards.md).
 
 ## 2.18 Arcade is the default theme ✅
 

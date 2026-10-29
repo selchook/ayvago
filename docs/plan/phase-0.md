@@ -23,7 +23,8 @@ Legend: ✅ done · ⏳ owner action · ⬜ not started
 - The GameHub Arena game contract was reconstructed from `game-factory` and the Crystal Runner SDK:
   - the `GHA_*` postMessage names, which are kept;
   - the `eval` module model, which was dropped as unsafe.
-- Game inventory and import plan ([game import plan](game-import-plan.md)): 11 repositories, the
+- Game inventory and import plan (`docs/plan/game-import-plan.md`, removed in Phase 4: outside
+  games are now planned in the studio, [ADR 0011](../adr/0011-studio-and-platform.md)): 11 repositories, the
   iframe blockers (`X-Frame-Options`), the CrazyGames SDK to remove, and the Ably-based multiplayer
   games for Phase 4.
 - Security findings:

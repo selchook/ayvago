@@ -3,7 +3,7 @@ import type { GameManifestInput } from './manifest';
 
 // Seed catalog used until games are imported into Firestore (Phase 1, import wave 1).
 // Entry URLs are the production URLs confirmed by the owner. A game stays "coming_soon" until
-// it passes the integration checklist in docs/plan/game-import-plan.md; live games ship their
+// it meets the platform standards (ADR 0008); live games ship their
 // own cover and icon (manifest assets, served from the game's origin).
 
 export type CatalogStatus = 'live' | 'coming_soon';

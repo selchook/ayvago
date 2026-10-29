@@ -1,7 +1,7 @@
 # ADR 0007 — In-house Ayvago Arcade games share one runtime and one origin
 
 - Status: Accepted (2026-10-27)
-- Related: [ADR 0002](0002-iframe-game-sdk.md), [Game import plan](../plan/game-import-plan.md), [Phase 2 plan](../plan/phase-2.md#26-ayvago-arcade-catalog)
+- Related: [ADR 0002](0002-iframe-game-sdk.md), [Phase 2 plan](../plan/phase-2.md#26-ayvago-arcade-catalog)
 
 ## Context
 The launch catalog needs many more games than the ten imported titles. Ayvago now builds its own
