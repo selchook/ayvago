@@ -25,3 +25,17 @@ character read as "not chosen", and the player can pick again.
   same GitHub Actions runs as 5.1.
 - Optional check after the deploy: **Profile and settings** shows five characters. A player who
   had picked an alien sees Adventurer marked.
+
+## 5.6 Equal card heights
+**Nothing to set up.** CSS only; merging deploys the web app.
+
+- Optional check after the deploy: switch to the minimal or cartoon theme (theme button in the top
+  bar) and look at the home shelves and a category page. Every card in a row has the same height.
+
+## 5.7 Turkish İ in the pixel font
+**Nothing to set up.** The font ships with the web app; its license (SIL OFL 1.1) is in
+`apps/web/fonts/ayvago-pixel-tr/OFL.txt` and in [docs/assets/LICENSES.md](../assets/LICENSES.md).
+
+- Optional check after the deploy: open ayvago.com in Turkish with the arcade theme. The heading
+  "AYVAGO'DA YENİ" shows a full-height İ with a dot, not a short "i".
+

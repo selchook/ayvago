@@ -70,6 +70,12 @@ export type ThemeDefinition = {
 const SYSTEM_SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const SYSTEM_MONO = "ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace";
 
+// Press Start 2P draws the Turkish capital İ (U+0130) squashed, the same shape as a lowercase i.
+// "Ayvago Pixel TR" (apps/web/fonts/ayvago-pixel-tr, SIL OFL 1.1, from the studio) holds only a
+// full-height İ; its @font-face is limited to U+0130, so it must come first and every other
+// character still uses Press Start 2P.
+export const PIXEL_FONT = `'Ayvago Pixel TR', 'Press Start 2P', ${SYSTEM_MONO}`;
+
 export const THEMES: Record<ThemeId, ThemeDefinition> = {
   minimal: {
     id: 'minimal',
@@ -160,7 +166,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       shadowLg: '6px 6px 0 #000',
     },
     type: {
-      fontDisplay: `'Press Start 2P', ${SYSTEM_MONO}`,
+      fontDisplay: PIXEL_FONT,
       fontBody: `'VT323', ${SYSTEM_MONO}`,
       fontMono: `'VT323', ${SYSTEM_MONO}`,
       fontBodyScale: '1.3',
@@ -235,7 +241,8 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
 
   // The Ayvago Arcade look (selchook/ayvago-games portal and games): brand ink, red and paper
   // from the boot intro, yellow display headings, chunky black outlines with hard drop shadows,
-  // Press Start 2P headings and Pixelify Sans body text (both cover Turkish).
+  // Press Start 2P headings and Pixelify Sans body text (both cover Turkish; the capital İ comes
+  // from Ayvago Pixel TR, see PIXEL_FONT).
   arcade: {
     id: 'arcade',
     modes: ['dark'],
@@ -267,9 +274,9 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       shadowLg: '0 10px 0 #000',
     },
     type: {
-      fontDisplay: `'Press Start 2P', ${SYSTEM_MONO}`,
+      fontDisplay: PIXEL_FONT,
       fontBody: `'Pixelify Sans', ${SYSTEM_SANS}`,
-      fontMono: `'Press Start 2P', ${SYSTEM_MONO}`,
+      fontMono: PIXEL_FONT,
       fontBodyScale: '1.1',
       displayTransform: 'uppercase',
     },

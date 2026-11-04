@@ -1,0 +1,14 @@
+/* Turkish capital dotted I (U+0130) for the pixel display font. Press Start 2P draws İ squashed,
+   the same shape as a lowercase i ("OYUN BiTTi"). This one-glyph face from the studio
+   (selchook/ayvago-games tools/build-tr-font.py) has a full-height I with the dot above. It is a
+   SIL OFL 1.1 Modified Version (OFL.txt) with its own family name, because "Press Start 2P" is a
+   Reserved Font Name. The unicode-range keeps it to U+0130; the theme font stacks list it before
+   Press Start 2P (packages/themes PIXEL_FONT). */
+@font-face {
+  font-family: 'Ayvago Pixel TR';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('./ayvago-pixel-tr.woff') format('woff');
+  unicode-range: U+0130;
+}

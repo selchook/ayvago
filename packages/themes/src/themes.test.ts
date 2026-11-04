@@ -5,6 +5,7 @@ import { themeBootstrapScript } from './preference';
 import {
   COLOR_MODES,
   DEFAULT_THEME,
+  PIXEL_FONT,
   THEMES,
   THEME_IDS,
   colorsFor,
@@ -74,6 +75,21 @@ describe('buildThemeCss', () => {
   it('keeps the legacy GameHub Arena variable names', () => {
     expect(css).toContain('--bg-card:var(--surface)');
     expect(css).toContain('--text-dim:var(--text-muted)');
+  });
+});
+
+describe('pixel font stacks', () => {
+  it('put the Turkish İ face before Press Start 2P everywhere', () => {
+    const stacks = THEME_IDS.flatMap((id) => [
+      THEMES[id].type.fontDisplay,
+      THEMES[id].type.fontMono,
+    ]);
+    const pixel = stacks.filter((stack) => stack.includes('Press Start 2P'));
+    expect(pixel.length).toBeGreaterThan(0);
+    for (const stack of pixel) {
+      expect(stack).toBe(PIXEL_FONT);
+      expect(stack.startsWith("'Ayvago Pixel TR', 'Press Start 2P',")).toBe(true);
+    }
   });
 });
 
