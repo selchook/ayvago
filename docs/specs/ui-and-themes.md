@@ -68,7 +68,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
-- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows.
+- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows. In every theme the cards of one list have the same height (slice 5.6): the card is a flex column that stretches to its row, the cover keeps its aspect ratio, the title takes a fixed area (one line with an ellipsis, two lines on cards 230 px wide or less) and the tag footer is always two rows high, pinned to the bottom of the card.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
@@ -110,6 +110,8 @@ Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
 | arcade | Press Start 2P | Pixelify Sans |
 
 Fonts load through `next/font` with `latin` + `latin-ext` subsets. A glyph test page (`/dev/glyphs`) renders `ç ğ ı İ ö ş ü Ç Ğ Ö Ş Ü` in every font; fonts that fail are replaced.
+
+*Implementation note:* the fonts are self-hosted through `@fontsource` packages (Latin + Latin Extended), not `next/font`. Press Start 2P draws the capital İ squashed like a lowercase i, so every Press Start 2P stack starts with "Ayvago Pixel TR", a one-glyph face (U+0130 only) from the studio with a full-height İ (slice 5.7, `packages/themes` `PIXEL_FONT`). Its dot sits a quarter em above the cap height: pixel-font text in a clipping box needs a line height of at least 1.5. Every bundled font and its license is listed in [docs/assets/LICENSES.md](../assets/LICENSES.md).
 
 ### 5.4 Theme effects
 Optional layers that never change layout:

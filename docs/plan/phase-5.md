@@ -23,6 +23,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.3 | Daily quests, login streaks | ⬜ |
 | 5.4 | FCM web push (localized) | ⬜ |
 | 5.5 | Cloud saves (`GHA.cloud`), coins and a cosmetic store | ⬜ |
+| 5.6 | Equal card heights: game cards in every list and theme have the same height (owner request) | ✅ code |
+| 5.7 | Turkish İ in the pixel font: "Ayvago Pixel TR" draws a full-height İ for Press Start 2P | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -184,3 +186,85 @@ Tests:
 
 Still open: nothing on the platform. Players who had picked an alien play as `adventurer` until
 they pick again.
+
+## 5.6 Equal card heights ✅
+
+The owner reported that in the minimal and cartoon themes the game cards on a page were not all
+the same height. The pixel themes (retro, arcade) already were.
+
+What was wrong:
+- The tag row wrapped. Cards with a multiplayer tag or three categories needed a second row of
+  tags, so they were 24 px taller than their neighbours (measured: 211–235 px in one shelf on a
+  desktop; 158–206 px in one phone grid).
+- The card (`.tile`, a link inside each list item) took its content height, so it did not stretch
+  to the height of its row.
+
+What shipped (`components/catalog/catalog.module.css`, CSS only; every card list uses `GameTile`):
+- The card is a flex column that fills its list item (`height: 100%`; every list that holds cards
+  is a CSS grid, whose items stretch to the row).
+- The cover keeps its fixed aspect ratio and never shrinks or grows (`min-height: 0`, so a tall
+  portrait screenshot no longer stretches its 9:12 frame in the pixel themes).
+- The title takes a fixed area: one line with an ellipsis on normal cards, and two lines on narrow
+  cards (a `tile` container query, 230 px or less: phone grids and the phone spotlight). Long
+  Turkish titles such as "Mağara Helikopteri" or "Zombi Hayatta Kalma" no longer get cut off on
+  phones.
+- The footer (tags and like share) is pinned to the bottom of the card and is always two tag rows
+  high. A single row of tags sits on the bottom edge; a third row is cut off, and the multiplayer
+  tag comes first so it is never the one cut. The like share sits at the end of the footer
+  instead of wrapping after the tags, so it is never cut off.
+- The pixel themes keep their look: their own title and tag rules still apply, and their tags stay
+  at the top of the footer.
+
+Pages covered: home (continue playing, spotlight, every shelf), new, category pages, multiplayer,
+search, recently played, favorites and the related games on a game page.
+
+Deviations: none.
+
+Tests:
+- Measured with Playwright on `next dev`, pointed at a local build of the studio for the art: the
+  height of every card in every list on the eight pages above, in arcade, minimal light, minimal
+  dark, retro and cartoon, at 360, 390 and 1366 px wide, in English and Turkish (240
+  combinations). Every list has a single card height everywhere, with no horizontal overflow of a
+  card or the page. The pixel themes kept their earlier heights.
+- Same check with like shares shown on half of the cards (a temporary local change, not
+  committed).
+- Screenshots checked: the same pages, themes, sizes and languages.
+
+Still open: nothing.
+
+## 5.7 Turkish İ in the pixel font ✅
+
+Press Start 2P draws every accented capital squashed to five pixel rows so the accent fits inside
+the cap height. Its İ (U+0130) ends up the same shape as a lowercase i, so Turkish headings in the
+retro and arcade themes read "AYVAGO'DA YENi". The studio built a one-glyph replacement,
+"Ayvago Pixel TR" (`selchook/ayvago-games` `tools/build-tr-font.py`): a full-height I with its dot
+above. It is a SIL OFL 1.1 Modified Version with its own family name, because "Press Start 2P" is
+a Reserved Font Name.
+
+What shipped:
+- The font, copied verbatim from the studio: `apps/web/fonts/ayvago-pixel-tr/` (the woff, 1 KB,
+  and its `OFL.txt`), with an `@font-face` (`ayvago-pixel-tr.css`, `unicode-range: U+0130`)
+  imported in the root layout next to the other fonts.
+- `packages/themes` `PIXEL_FONT`: `'Ayvago Pixel TR', 'Press Start 2P', …`, used for every stack
+  that had Press Start 2P (retro `fontDisplay`, arcade `fontDisplay` and `fontMono`). The theme CSS
+  is generated at runtime by `buildThemeCss()`, so there is no generated file to refresh. Games get
+  the same stack in `GHA_START` tokens; a game without the face skips it.
+- Because the face has no space character, Press Start 2P stays the first available font, so line
+  metrics do not change.
+- The dot reaches a quarter em above the cap height, which fits exactly in a line height of 1.5.
+  Headings and tile titles in the pixel themes already use 1.5 or more; `h3` in the pixel themes
+  now gets 1.5 too (it had the global 1.15).
+- The font is listed in the new asset register, [docs/assets/LICENSES.md](../assets/LICENSES.md),
+  with the other bundled fonts and images.
+
+Deviations: none.
+
+Tests:
+- themes `themes.test.ts` (1 new): every stack that uses Press Start 2P is `PIXEL_FONT`, with
+  Ayvago Pixel TR first. The contrast tests are unchanged and pass.
+- Playwright on `next dev` (Turkish, arcade and retro): `document.fonts` reports Ayvago Pixel TR
+  loaded. 3× zoomed screenshots of shelf headings ("AYVAGO'DA YENİ") and tile titles ("Uzaylı
+  İstilası", "Ay İnişi", "İp Salıncağı") show a full-height I with its dot, not clipped in the
+  tile titles' clamped boxes. Body text (Pixelify Sans, VT323) was already right and is unchanged.
+
+Still open: nothing.

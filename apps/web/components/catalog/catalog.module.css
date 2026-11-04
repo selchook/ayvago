@@ -79,9 +79,18 @@
   font-size: clamp(0.9rem, 2vw, 1.3rem);
 }
 
+/* Every card in a list has the same height, whatever its title, tags or badges:
+   - the card is a flex column that fills its list item, so it stretches to the row height
+     (every list that holds cards is a CSS grid, whose items are stretched);
+   - the cover has a fixed aspect ratio and never shrinks;
+   - the title takes a fixed number of lines (one, or two on narrow cards) and the tags a fixed
+     two-row area pinned to the bottom of the card. */
 .tile {
+  container: tile / inline-size;
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
   border-radius: var(--radius-md);
   border: var(--border-width) solid var(--border);
@@ -191,6 +200,7 @@
 :is([data-theme='retro'], [data-theme='arcade']) .tileCategory {
   height: 44px;
   overflow: hidden;
+  align-items: flex-start;
   align-content: flex-start;
 }
 
@@ -226,24 +236,57 @@
   border-radius: 0;
 }
 
+/* min-height: 0 keeps the aspect ratio: a flex item otherwise grows to fit a taller image. */
+.tile > .cover,
+.tile > .shot {
+  flex: none;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .tileMeta {
-  display: grid;
-  gap: 2px;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 10px 12px 12px;
 }
 
 .tileTitle {
+  flex: none;
   font-weight: 700;
+  line-height: 1.35;
+  height: 1.35em;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
+/* Narrow cards (phone grids, the phone spotlight) give long titles a second line instead of
+   cutting them off; every card of the list keeps the same two-line title area. */
+@container tile (max-width: 230px) {
+  .tileTitle {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    height: 2.7em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* The footer: tags on the left, the like share on the right. Pinned to the bottom of the card
+   and always two tag rows high (20 px each), however many tags wrap; a single row of tags sits
+   on the bottom edge, and a third row is cut off (the multiplayer tag comes first). */
 .tileCategory {
+  --tag-row: 20px;
+  margin-top: auto;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 4px 8px;
+  height: calc(2 * var(--tag-row) + 4px);
+  overflow: hidden;
   font-size: 0.8rem;
   color: var(--text-muted);
 }
@@ -255,11 +298,20 @@
   gap: 4px;
 }
 
+.tileCategory > .tags {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .tag {
   padding: 1px 7px;
   border-radius: 999px;
   font-size: 0.72rem;
+  line-height: 18px;
   font-weight: 600;
+  white-space: nowrap;
   color: var(--text);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
@@ -435,8 +487,10 @@
 }
 
 .tileLikes {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  height: var(--tag-row);
   font-variant-numeric: tabular-nums;
 }

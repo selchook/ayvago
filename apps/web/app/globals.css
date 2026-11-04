@@ -53,6 +53,12 @@ h2 {
   line-height: 1.6;
 }
 
+/* The pixel font's capital İ (Ayvago Pixel TR) puts its dot a quarter em above the cap height;
+   a line height of at least 1.5 keeps that dot inside the line box. */
+:is([data-theme='retro'], [data-theme='arcade']) h3 {
+  line-height: 1.5;
+}
+
 a {
   color: var(--accent);
 }

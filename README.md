@@ -18,7 +18,7 @@ their profile, and games with a hero play with it (slice 5.1; 5.1b retired the f
 | 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.20), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
 | 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
 | 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 live (8 games online), 4.4 and 4.5 (always TURN) code complete; TURN key open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
-| 5 | Retention: player characters, achievements, XP, quests, push, cloud saves | In progress: 5.1 (player characters) and 5.1b (five characters) code complete, nothing to set up | [Plan](docs/plan/phase-5.md) · [Setup](docs/setup/phase-5.md) |
+| 5 | Retention: player characters, achievements, XP, quests, push, cloud saves | In progress: 5.1 (player characters), 5.1b (five characters), 5.6 (equal card heights) and 5.7 (Turkish İ in the pixel font) code complete, nothing to set up | [Plan](docs/plan/phase-5.md) · [Setup](docs/setup/phase-5.md) |
 | 6 | Developer program | Not started | |
 | 7 | App stores | Not started | |
 
