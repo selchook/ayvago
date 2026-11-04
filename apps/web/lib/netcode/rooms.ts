@@ -3,29 +3,13 @@
 // Online match rooms in the Realtime Database (docs/adr/0010-online-matches.md):
 // rooms/{code} holds the two seats and their presence. The rules (firebase/database.rules.json)
 // let the first non-host claim the guest seat, so joining needs no transaction.
-import { readCharacterId, type CharacterId } from '@ayvago/shared';
+import type { CharacterId } from '@ayvago/shared';
 import type { Unsubscribe } from 'firebase/database';
 import { loadDatabase } from '@/lib/firebase/client';
 import { generateRoomCode } from './room-code';
+import { toRoom, type Room } from './room-data';
 
-export type RoomStatus = 'open' | 'full' | 'closed';
-
-export type Room = {
-  code: string;
-  gameId: string;
-  slug: string;
-  hostUid: string;
-  hostName: string;
-  guestUid: string | null;
-  guestName: string | null;
-  /** Each seat's chosen character (protocol 2.2 `peerCharacter`); null when none was chosen. */
-  hostCharacter: CharacterId | null;
-  guestCharacter: CharacterId | null;
-  status: RoomStatus;
-  createdAt: number;
-  /** uid → the page session that holds the seat right now (a reload makes a new one). */
-  online: Record<string, string>;
-};
+export type { Room, RoomStatus } from './room-data';
 
 /** How long a room stays usable; cleanupRooms deletes older ones. */
 export const ROOM_TTL_MS = 2 * 60 * 60 * 1000;
@@ -36,33 +20,6 @@ export type JoinResult =
   | { kind: 'full' | 'missing' | 'closed' | 'expired' };
 
 const NAME_LIMIT = 40;
-
-export function toRoom(code: string, value: unknown): Room | null {
-  if (typeof value !== 'object' || value === null) return null;
-  const v = value as Record<string, unknown>;
-  if (typeof v.hostUid !== 'string' || typeof v.slug !== 'string') return null;
-  const online: Record<string, string> = {};
-  if (typeof v.online === 'object' && v.online !== null) {
-    for (const [uid, session] of Object.entries(v.online)) {
-      if (typeof session === 'string') online[uid] = session;
-    }
-  }
-  return {
-    code,
-    gameId: String(v.gameId ?? ''),
-    slug: v.slug,
-    hostUid: v.hostUid,
-    hostName: String(v.hostName ?? ''),
-    guestUid: typeof v.guestUid === 'string' ? v.guestUid : null,
-    guestName: typeof v.guestName === 'string' ? v.guestName : null,
-    // Unlisted ids (such as the retired alien characters) read as "no choice".
-    hostCharacter: readCharacterId(v.hostCharacter),
-    guestCharacter: readCharacterId(v.guestCharacter),
-    status: v.status === 'full' || v.status === 'closed' ? v.status : 'open',
-    createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
-    online,
-  };
-}
 
 const roomPath = (code: string) => `rooms/${code}`;
 

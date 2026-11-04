@@ -501,7 +501,7 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 
 ### Phase 5 — Retention (2 weeks) — in progress
 Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup](../setup/phase-5.md)
-- [x] Player characters: ten free characters on the profile page, sent to games as `character` / `peerCharacter` in `GHA_START` (protocol 2.2, [ADR 0013](../adr/0013-player-characters.md)) — slice 5.1; game support is added in the studio
+- [x] Player characters: five free characters on the profile page, sent to games as `character` / `peerCharacter` in `GHA_START` (protocol 2.2, [ADR 0013](../adr/0013-player-characters.md)) — slice 5.1; 5.1b retired the five alien characters; game support is added in the studio
 - [ ] Achievements, XP/levels, badges
 - [ ] Daily quests, login streaks
 - [ ] FCM web push (localized)

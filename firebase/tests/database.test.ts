@@ -148,7 +148,15 @@ describe('rooms', () => {
   });
 
   it("rejects unknown characters and changes to the other seat's character", async () => {
-    for (const hostCharacter of ['alien-red', 'alien-pink', 'Zombie', '', 7, true, 'zombie; drop']) {
+    for (const hostCharacter of [
+      'alien-red',
+      'alien-pink',
+      'Zombie',
+      '',
+      7,
+      true,
+      'zombie; drop',
+    ]) {
       await assertFails(set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter }));
     }
     // No guest character before someone takes the guest seat.

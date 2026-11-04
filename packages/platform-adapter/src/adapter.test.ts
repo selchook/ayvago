@@ -217,7 +217,7 @@ describe('multiplayer', () => {
     playerCount: 2,
     peerName: 'Ayşe',
     character: 'zombie',
-    peerCharacter: 'alien-pink',
+    peerCharacter: 'explorer',
   };
 
   it('is inactive in solo runs and standalone', async () => {
@@ -238,7 +238,7 @@ describe('multiplayer', () => {
       isHost: false,
       playerIndex: 1,
       peerName: 'Ayşe',
-      peerCharacter: 'alien-pink',
+      peerCharacter: 'explorer',
     });
     expect(adapter.config?.character).toBe('zombie');
   });

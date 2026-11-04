@@ -18,12 +18,15 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | # | Slice | Status |
 |---|---|---|
 | 5.1 | Player characters: ten free characters picked on the profile page, sent to games in `GHA_START` (protocol 2.2), solo and online | ✅ code |
+| 5.1b | Five characters: the five aliens retired, `adventurer` the default; old stored ids read as "no choice" | ✅ code |
 | 5.2 | Achievements, XP and levels, badges | ⬜ |
 | 5.3 | Daily quests, login streaks | ⬜ |
 | 5.4 | FCM web push (localized) | ⬜ |
 | 5.5 | Cloud saves (`GHA.cloud`), coins and a cosmetic store | ⬜ |
 
 ## 5.1 Player characters ✅
+
+> Slice 5.1b below cut the list to five characters. This section describes 5.1 as it shipped.
 
 The owner asked for ten characters that players choose in their profile settings. Games that use
 a character, like Jetpack Rush, swap their hero for the chosen one. Decided with the owner:
@@ -116,3 +119,68 @@ Still open:
   choice is not merged, like the avatar.
 - `web lint`: the repository has no lint script; `pnpm format:check` and `pnpm typecheck` cover the
   checks CI runs.
+
+## 5.1b Five characters ✅
+
+The owner decided to remove the five alien characters. The games now show each character's own
+Kenney poses (kick, hang, cheer, ...) instead of drawing extra limbs on top, and only the human
+figures of Kenney Platformer Characters 1 have those poses. The studio (`selchook/ayvago-games`)
+has already dropped the aliens; a game that receives an unknown id falls back to `adventurer`.
+Decision: [ADR 0013 amendment](../adr/0013-player-characters.md#amendment-2026-11-04-five-characters-slice-51b).
+
+What shipped:
+- **Character list** (`packages/shared/src/characters.ts`):
+  - `CHARACTER_IDS`: `adventurer` (default), `explorer`, `rookie`, `soldier`, `zombie`;
+  - `RETIRED_CHARACTER_IDS` keeps the five alien ids so they are never reused;
+  - `readCharacterId(value)`: a listed id, or `null` ("not chosen") for anything else.
+  - The alien previews are gone from `apps/web/public/characters/`.
+- **Reading old data** (no migration; some profiles and rooms still hold an alien id):
+  - The profile (`lib/account/store.ts`) and rooms (`lib/netcode/room-data.ts`, split out of
+    `rooms.ts` so it can be unit-tested) read the stored id with `readCharacterId`. `GHA_START`
+    already left out ids that are not listed (`buildStartConfig`).
+  - The profile picker marks `adventurer` when nothing (or a retired id) is stored. The status
+    line says so: "No character chosen yet: games use Adventurer, the default."
+  - Picking a character overwrites the old value.
+- **Rules:**
+  - Firestore: `characterId` must be one of the five ids, but only when the write changes it.
+    Before, the whole document was checked, so a profile holding an alien id could not have
+    changed its language or theme, or been marked registered after a Google link.
+  - Realtime Database: `hostCharacter` / `guestCharacter` must be one of the five ids when set or
+    changed. An unchanged old value is accepted as it is, so a room created before the change can
+    still be joined and closed.
+- **Profile UI:** the five previews fill one row (the grid already had five columns), on phones and
+  desktops, in every theme. The alien name keys are removed from `en.json` and `tr.json`, and
+  `profile.characterNone` takes the default's name.
+- **Adapter:** the doc comment's example id is now `"adventurer"`. This is a comment only, with no
+  behaviour change; the studio copies the file verbatim.
+
+Deviations: none.
+
+Tests:
+- Unit tests:
+  - shared `characters.test.ts` (5, 2 new): the five ids with `adventurer` first, the guard,
+    retired ids never accepted, `readCharacterId` for listed, retired and malformed values;
+  - web `room-data.test.ts` (2 new): listed seat characters, and missing, unknown and alien ids
+    read as `null`;
+  - bridge: alien ids are among the unknown values left out of `GHA_START`.
+- Emulator tests:
+  - `firebase/tests/firestore.test.ts` (3 new):
+    - a profile holding `alien-green` is updated to `explorer`; one holding `alien-pink` removes it;
+    - a profile holding an alien id can still change locale and theme and link Google. This test
+      fails against the old rule;
+    - no alien id is accepted as a new value, nor a switch from one alien id to another.
+  - `firebase/tests/database.test.ts` (1 new, 2 updated): a room whose host holds `alien-green`
+    can be claimed and closed. The guest cannot replace the host's value, nobody can set an alien
+    id, and the host can overwrite it with a listed id.
+- End to end on `next dev` against the emulators (Playwright):
+  - a signed-in profile seeded with `alien-green` shows five radios with `adventurer` checked
+    (English and Turkish);
+  - choosing Explorer stores `explorer` through the rules and survives a reload.
+- Screenshots checked:
+  - themes: arcade, minimal light, minimal dark, retro, cartoon;
+  - sizes: 360×780 and 1366×900; English everywhere, Turkish in arcade and cartoon;
+  - the default marked and a choice made. Measured at 360 and 390 px: no overflow, and no name
+    is cut off.
+
+Still open: nothing on the platform. Players who had picked an alien play as `adventurer` until
+they pick again.

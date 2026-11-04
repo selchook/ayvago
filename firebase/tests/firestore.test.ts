@@ -255,10 +255,8 @@ describe('users/{uid} update', () => {
         updatedAt: serverTimestamp(),
       }),
     );
-    const stored = await env.withSecurityRulesDisabled(async (ctx) =>
-      (await getDoc(doc(ctx.firestore(), 'users', 'alice'))).get('characterId'),
-    );
-    expect(stored).toBe('explorer');
+    const stored = await getDoc(doc(guest('alice'), 'users', 'alice'));
+    expect(stored.get('characterId')).toBe('explorer');
 
     await seed('bob', { isGuest: false, characterId: 'alien-pink' });
     await assertSucceeds(

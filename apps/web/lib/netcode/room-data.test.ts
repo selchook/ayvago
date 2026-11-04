@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toRoom } from './rooms';
+import { toRoom } from './room-data';
 
 const base = {
   gameId: 'connectfour',
