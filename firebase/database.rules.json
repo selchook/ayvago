@@ -19,10 +19,10 @@
         "guestUid": { ".validate": "newData.isString()" },
         "guestName": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "hostCharacter": {
-          ".validate": "newData.isString() && newData.val().matches(/^(alien-green|alien-blue|alien-pink|alien-yellow|alien-beige|adventurer|explorer|rookie|soldier|zombie)$/) && (newData.val() === data.val() || newData.parent().child('hostUid').val() === auth.uid)"
+          ".validate": "newData.isString() && (newData.val() === data.val() || (newData.val().matches(/^(adventurer|explorer|rookie|soldier|zombie)$/) && newData.parent().child('hostUid').val() === auth.uid))"
         },
         "guestCharacter": {
-          ".validate": "newData.isString() && newData.val().matches(/^(alien-green|alien-blue|alien-pink|alien-yellow|alien-beige|adventurer|explorer|rookie|soldier|zombie)$/) && (newData.val() === data.val() || newData.parent().child('guestUid').val() === auth.uid)"
+          ".validate": "newData.isString() && (newData.val() === data.val() || (newData.val().matches(/^(adventurer|explorer|rookie|soldier|zombie)$/) && newData.parent().child('guestUid').val() === auth.uid))"
         },
         "createdAt": {
           ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() <= now && newData.val() > now - 60000)"

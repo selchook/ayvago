@@ -15,8 +15,8 @@ import {
   Timestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { CHARACTER_IDS, generateGuestName } from '@ayvago/shared';
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { CHARACTER_IDS, generateGuestName, RETIRED_CHARACTER_IDS } from '@ayvago/shared';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 let env: RulesTestEnvironment;
 
@@ -217,7 +217,7 @@ describe('users/{uid} update', () => {
     }
   });
 
-  it('lets guests and registered players choose any of the ten characters', async () => {
+  it('lets guests and registered players choose any of the five characters', async () => {
     await seed('alice');
     for (const characterId of CHARACTER_IDS) {
       await assertSucceeds(
@@ -246,12 +246,72 @@ describe('users/{uid} update', () => {
     );
   });
 
+  // Slice 5.1b retired the five alien characters; some profiles still hold one.
+  it('lets a profile holding a retired alien character pick a listed one or clear it', async () => {
+    await seed('alice', { characterId: 'alien-green' });
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        characterId: 'explorer',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    const stored = await getDoc(doc(guest('alice'), 'users', 'alice'));
+    expect(stored.get('characterId')).toBe('explorer');
+
+    await seed('bob', { isGuest: false, characterId: 'alien-pink' });
+    await assertSucceeds(
+      updateDoc(doc(google('bob'), 'users', 'bob'), {
+        characterId: deleteField(),
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('keeps other profile updates working while a retired character is stored', async () => {
+    await seed('alice', { characterId: 'alien-blue' });
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        locale: 'tr',
+        theme: 'retro',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    // Linking Google marks the profile registered (the sign-in transaction in store.ts).
+    await assertSucceeds(
+      updateDoc(doc(google('alice'), 'users', 'alice'), {
+        isGuest: false,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('never accepts a retired alien character as a new choice', async () => {
+    await seed('alice');
+    await seed('bob', { characterId: 'alien-green' });
+    for (const characterId of RETIRED_CHARACTER_IDS) {
+      await assertFails(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), {
+          characterId,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+      if (characterId === 'alien-green') continue;
+      // Nor a switch from one retired id to another.
+      await assertFails(
+        updateDoc(doc(guest('bob'), 'users', 'bob'), {
+          characterId,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    }
+  });
+
   it('rejects unknown characters, other players and banned players', async () => {
     await seed('alice');
     for (const characterId of [
       'alien-red',
-      'Alien-Green',
-      'alien_green',
+      'Adventurer',
+      'zombie_1',
       '',
       null,
       42,

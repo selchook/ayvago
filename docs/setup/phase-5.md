@@ -16,3 +16,12 @@ Plan and status: [Phase 5 plan](../plan/phase-5.md).
 - Optional check after the deploy: open **Profile and settings** on ayvago.com, pick a character
   and reload. The choice stays marked. Games show it once the studio has added support for them,
   starting with Jetpack Rush.
+
+## 5.1b Five characters
+**Nothing to set up.** There is no data migration: profiles and rooms that still hold an alien
+character read as "not chosen", and the player can pick again.
+
+- 🤖 Merging deploys the web app and both rules files (Firestore and Realtime Database) through the
+  same GitHub Actions runs as 5.1.
+- Optional check after the deploy: **Profile and settings** shows five characters. A player who
+  had picked an alien sees Adventurer marked.

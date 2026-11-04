@@ -41,9 +41,11 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 - The host creates the room with an empty guest seat; the first other player claims it. Seats
   never change afterwards. Members update the status and their own `online` entry: a 12-hex
   page session id, removed by `onDisconnect`. A new id means the player reloaded.
-- Each seat's character (`hostCharacter`, `guestCharacter`) is one of the ten ids of
+- Each seat's character (`hostCharacter`, `guestCharacter`) is one of the five ids of
   `packages/shared/src/characters.ts`. Only that seat's player may set, change or remove it; the
-  guest character needs a claimed guest seat.
+  guest character needs a claimed guest seat. A value left from before slice 5.1b (a retired
+  alien id) may stay as it is; the app reads it as "no choice", and the seat's player can replace
+  it with a listed id.
 - Signals go only to the other member's inbox, written as yourself; only the recipient reads and
   deletes them.
 - Relay messages are written by members as themselves (at most 16,000 characters) and deleted
@@ -105,4 +107,5 @@ Shipped in Phase 4 ([plan](../plan/phase-4.md)): everything in §2–§6. Slice 
 the connection, 4.4 the turn order rule, and 4.5 made every match go through TURN. Seat
 characters and `peerCharacter` (§3, §5) shipped with Phase 5 slice 5.1
 ([plan](../plan/phase-5.md#51-player-characters-)): the platform sends them, and the studio adds
-support to the games.
+support to the games. Slice 5.1b ([plan](../plan/phase-5.md#51b-five-characters-)) cut the list to
+the five human figures.

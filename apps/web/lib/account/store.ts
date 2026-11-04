@@ -5,7 +5,7 @@
 // the first game launch; signing in with Google links to the same uid (docs/specs/accounts.md).
 import {
   generateGuestName,
-  isCharacterId,
+  readCharacterId,
   isSupportedLocale,
   usernameKey,
   type CharacterId,
@@ -347,7 +347,8 @@ async function syncProfile(user: User): Promise<void> {
       isGuest: user.isAnonymous,
       locale: isSupportedLocale(data.locale) ? data.locale : preferredLocale,
       avatarId: typeof data.avatarId === 'string' ? data.avatarId : null,
-      characterId: isCharacterId(data.characterId) ? data.characterId : null,
+      // Unlisted ids (such as the retired alien characters) read as "no choice".
+      characterId: readCharacterId(data.characterId),
       theme: isThemeId(data.theme) ? data.theme : null,
       mode: isModePreference(data.mode) ? data.mode : null,
       createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : null,
@@ -372,7 +373,7 @@ export async function updateProfile(changes: ProfileChanges): Promise<void> {
   const { characterId, ...rest } = changes;
   await updateDoc(doc(db, 'users', uid), {
     ...rest,
-    // No character means the field is absent (the rules accept only the ten ids).
+    // No character means the field is absent (the rules accept only the listed ids).
     ...(characterId === undefined ? {} : { characterId: characterId ?? deleteField() }),
     updatedAt: serverTimestamp(),
   });

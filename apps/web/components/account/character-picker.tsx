@@ -1,6 +1,11 @@
 'use client';
 
-import { CHARACTER_IDS, characterPreviewPath, type CharacterId } from '@ayvago/shared';
+import {
+  CHARACTER_IDS,
+  characterPreviewPath,
+  DEFAULT_CHARACTER,
+  type CharacterId,
+} from '@ayvago/shared';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { updateProfile } from '@/lib/account/store';
@@ -13,11 +18,13 @@ type SaveState = 'idle' | 'saved' | 'error';
 /**
  * The player's character for games with a hero (docs/adr/0013-player-characters.md). A native
  * radio group: Tab reaches the group, the arrow keys move the choice, and each choice is saved
- * to the profile at once.
+ * to the profile at once. Without a choice (`current` is null, which includes a retired id such
+ * as an old alien character) the default is marked, because that is who games play with.
  */
 export function CharacterPicker({ current }: { current: CharacterId | null }) {
   const t = useTranslations('profile');
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const shown = current ?? DEFAULT_CHARACTER;
 
   function choose(id: CharacterId) {
     setSaveState('idle');
@@ -44,7 +51,7 @@ export function CharacterPicker({ current }: { current: CharacterId | null }) {
               type="radio"
               name="character"
               value={id}
-              checked={current === id}
+              checked={shown === id}
               onChange={() => choose(id)}
             />
             <span className={styles.art}>
@@ -66,7 +73,7 @@ export function CharacterPicker({ current }: { current: CharacterId | null }) {
           ? t('characterSaved', { name: t(`characters.${current}`) })
           : current
             ? null
-            : t('characterNone')}
+            : t('characterNone', { name: t(`characters.${DEFAULT_CHARACTER}`) })}
       </p>
       {saveState === 'error' ? (
         <p className={menuStyles.error} role="alert">

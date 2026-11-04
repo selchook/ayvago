@@ -124,9 +124,9 @@ describe('rooms', () => {
     await assertFails(update(ref(as('stranger'), `rooms/${CODE}`), { status: 'open' }));
   });
 
-  it("stores each seat's character, one of the ten ids, set by that seat only", async () => {
+  it("stores each seat's character, one of the five ids, set by that seat only", async () => {
     await assertSucceeds(
-      set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter: 'alien-pink' }),
+      set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter: 'adventurer' }),
     );
     await assertSucceeds(
       update(ref(as('guest'), `rooms/${CODE}`), {
@@ -148,14 +148,22 @@ describe('rooms', () => {
   });
 
   it("rejects unknown characters and changes to the other seat's character", async () => {
-    for (const hostCharacter of ['alien-red', 'Zombie', '', 7, true, 'zombie; drop']) {
+    for (const hostCharacter of [
+      'alien-red',
+      'alien-pink',
+      'Zombie',
+      '',
+      7,
+      true,
+      'zombie; drop',
+    ]) {
       await assertFails(set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), hostCharacter }));
     }
     // No guest character before someone takes the guest seat.
     await assertFails(
       set(ref(as('host'), `rooms/${CODE}`), { ...newRoom(), guestCharacter: 'zombie' }),
     );
-    await seedRoom({ hostCharacter: 'alien-blue' });
+    await seedRoom({ hostCharacter: 'explorer' });
     await assertFails(
       update(ref(as('guest'), `rooms/${CODE}`), {
         guestUid: 'guest',
@@ -173,7 +181,7 @@ describe('rooms', () => {
     await seedRoom({
       guestUid: 'guest',
       status: 'full',
-      hostCharacter: 'alien-blue',
+      hostCharacter: 'explorer',
       guestCharacter: 'rookie',
     });
     await assertFails(set(ref(as('guest'), `rooms/${CODE}/hostCharacter`), 'zombie'));
@@ -182,8 +190,32 @@ describe('rooms', () => {
     await assertFails(remove(ref(as('host'), `rooms/${CODE}/guestCharacter`)));
     await assertFails(set(ref(as('stranger'), `rooms/${CODE}/hostCharacter`), 'zombie'));
     await assertFails(set(ref(as('guest'), `rooms/${CODE}/guestCharacter`), 'alien-red'));
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/guestCharacter`), 'alien-green'));
     // Removing your own choice is allowed: games then use their default.
     await assertSucceeds(remove(ref(as('guest'), `rooms/${CODE}/guestCharacter`)));
+  });
+
+  // Slice 5.1b retired the five alien characters; a room created before may still hold one.
+  it('keeps rooms with a retired alien character usable', async () => {
+    await seedRoom({ hostCharacter: 'alien-green' });
+    // The guest claims the free seat; the host's old value stays untouched.
+    await assertSucceeds(
+      update(ref(as('guest'), `rooms/${CODE}`), {
+        guestUid: 'guest',
+        guestName: 'Mert',
+        guestCharacter: 'zombie',
+        status: 'full',
+      }),
+    );
+    await assertSucceeds(update(ref(as('guest'), `rooms/${CODE}`), { status: 'full' }));
+    // The other seat cannot replace it, and nobody can set a retired id again.
+    await assertFails(set(ref(as('guest'), `rooms/${CODE}/hostCharacter`), 'explorer'));
+    await assertFails(set(ref(as('host'), `rooms/${CODE}/hostCharacter`), 'alien-blue'));
+    // A rejoin with a listed character overwrites the host's old value.
+    await assertSucceeds(set(ref(as('host'), `rooms/${CODE}/hostCharacter`), 'explorer'));
+    await assertSucceeds(update(ref(as('host'), `rooms/${CODE}`), { status: 'closed' }));
+    const room = (await get(ref(as('host'), `rooms/${CODE}`))).val();
+    expect(room).toMatchObject({ hostCharacter: 'explorer', guestCharacter: 'zombie' });
   });
 
   it('lets only the host delete the room', async () => {
