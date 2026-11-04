@@ -134,7 +134,7 @@ describe('buildStartConfig characters (protocol 2.2)', () => {
   });
 
   it('omits the character when none is chosen or the id is unknown', () => {
-    for (const character of [undefined, null, '', 'alien-red', 'Zombie']) {
+    for (const character of [undefined, null, '', 'alien-red', 'alien-green', 'Zombie']) {
       const config = buildStartConfig({ ...base, character });
       expect(config, String(character)).not.toHaveProperty('character');
       expect(config).not.toHaveProperty('peerCharacter');
@@ -144,18 +144,18 @@ describe('buildStartConfig characters (protocol 2.2)', () => {
   it("sends both players' characters in an online match", () => {
     expect(
       buildStartConfig(
-        { ...base, character: 'alien-blue' },
+        { ...base, character: 'adventurer' },
         { isHost: false, peerName: 'Ayşe', peerCharacter: 'soldier' },
       ),
     ).toMatchObject({
       mode: 'multiplayer',
-      character: 'alien-blue',
+      character: 'adventurer',
       peerCharacter: 'soldier',
     });
   });
 
   it("omits the opponent's character when they have none or it is unknown", () => {
-    for (const peerCharacter of [undefined, null, 'robot']) {
+    for (const peerCharacter of [undefined, null, 'robot', 'alien-pink']) {
       const config = buildStartConfig(
         { ...base, character: 'rookie' },
         { isHost: true, peerName: 'Mert', peerCharacter },

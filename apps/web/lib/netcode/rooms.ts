@@ -3,7 +3,7 @@
 // Online match rooms in the Realtime Database (docs/adr/0010-online-matches.md):
 // rooms/{code} holds the two seats and their presence. The rules (firebase/database.rules.json)
 // let the first non-host claim the guest seat, so joining needs no transaction.
-import { isCharacterId, type CharacterId } from '@ayvago/shared';
+import { readCharacterId, type CharacterId } from '@ayvago/shared';
 import type { Unsubscribe } from 'firebase/database';
 import { loadDatabase } from '@/lib/firebase/client';
 import { generateRoomCode } from './room-code';
@@ -37,7 +37,7 @@ export type JoinResult =
 
 const NAME_LIMIT = 40;
 
-function toRoom(code: string, value: unknown): Room | null {
+export function toRoom(code: string, value: unknown): Room | null {
   if (typeof value !== 'object' || value === null) return null;
   const v = value as Record<string, unknown>;
   if (typeof v.hostUid !== 'string' || typeof v.slug !== 'string') return null;
@@ -55,8 +55,9 @@ function toRoom(code: string, value: unknown): Room | null {
     hostName: String(v.hostName ?? ''),
     guestUid: typeof v.guestUid === 'string' ? v.guestUid : null,
     guestName: typeof v.guestName === 'string' ? v.guestName : null,
-    hostCharacter: isCharacterId(v.hostCharacter) ? v.hostCharacter : null,
-    guestCharacter: isCharacterId(v.guestCharacter) ? v.guestCharacter : null,
+    // Unlisted ids (such as the retired alien characters) read as "no choice".
+    hostCharacter: readCharacterId(v.hostCharacter),
+    guestCharacter: readCharacterId(v.guestCharacter),
     status: v.status === 'full' || v.status === 'closed' ? v.status : 'open',
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     online,
