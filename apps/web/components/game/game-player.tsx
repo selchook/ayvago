@@ -14,6 +14,7 @@ import {
   type PlatformMessage,
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
+import { lockLandscape, locksInFullscreen, unlockOrientation } from '@/lib/orientation';
 import { chosenCharacter, ensureGuest } from '@/lib/account/store';
 import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
@@ -241,7 +242,10 @@ export function GamePlayer(props: GamePlayerProps) {
 
   useEffect(() => {
     function onFullscreen() {
-      setFullscreen(document.fullscreenElement === stageRef.current);
+      const on = document.fullscreenElement === stageRef.current;
+      setFullscreen(on);
+      // Leaving fullscreen another way (Esc, the system back gesture) releases the orientation too.
+      if (!on) unlockOrientation();
     }
     document.addEventListener('fullscreenchange', onFullscreen);
     return () => document.removeEventListener('fullscreenchange', onFullscreen);
@@ -295,8 +299,15 @@ export function GamePlayer(props: GamePlayerProps) {
 
   async function toggleFullscreen() {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await stageRef.current?.requestFullscreen();
+      if (document.fullscreenElement) {
+        unlockOrientation();
+        await document.exitFullscreen();
+      } else {
+        await stageRef.current?.requestFullscreen();
+        // A landscape game turns the phone sideways at once; portrait games keep the device's own
+        // orientation, as before.
+        if (locksInFullscreen(orientation)) await lockLandscape();
+      }
     } catch {
       // Fullscreen can be refused (iOS Safari, embedded views); theater mode still works.
     }

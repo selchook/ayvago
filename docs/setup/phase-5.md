@@ -39,3 +39,13 @@ character read as "not chosen", and the player can pick again.
 - Optional check after the deploy: open ayvago.com in Turkish with the arcade theme. The heading
   "AYVAGO'DA YENİ" shows a full-height İ with a dot, not a short "i".
 
+## 5.8 Landscape games go fullscreen in landscape
+**Nothing to set up.** Merging deploys the web app.
+
+- Optional check after the deploy, on an Android phone in Chrome (or the installed app), held
+  upright:
+  - open a landscape game (Tito's Tank, Archery, Head Soccer), press Play, then the fullscreen
+    button: the screen turns to landscape at once;
+  - leave fullscreen: the phone follows its own orientation again;
+  - a portrait game (Sudoku) stays upright in fullscreen.
+

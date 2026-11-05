@@ -25,6 +25,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.5 | Cloud saves (`GHA.cloud`), coins and a cosmetic store | ⬜ |
 | 5.6 | Equal card heights: game cards in every list and theme have the same height (owner request) | ✅ code |
 | 5.7 | Turkish İ in the pixel font: "Ayvago Pixel TR" draws a full-height İ for Press Start 2P | ✅ code |
+| 5.8 | Landscape games turn the phone sideways in fullscreen; portrait games unchanged (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -268,3 +269,42 @@ Tests:
   tile titles' clamped boxes. Body text (Pixelify Sans, VT323) was already right and is unchanged.
 
 Still open: nothing.
+
+## 5.8 Landscape games go fullscreen in landscape ✅
+
+The fullscreen button put a landscape game (1280×720, such as Tito's Tank, Archery and Head Soccer)
+in fullscreen in whatever way the phone was held. Held upright, the game filled only a thin band in
+the middle of the screen until the player turned the phone and the screen rotated. The owner asked for
+landscape games to go fullscreen in landscape straight away, with portrait games left as they were.
+
+What shipped:
+- `apps/web/lib/orientation.ts`:
+  - `locksInFullscreen(orientation)` is true for `landscape` games only;
+  - `lockLandscape()` calls `screen.orientation.lock('landscape')` and reports whether the browser
+    accepted;
+  - `unlockOrientation()` releases the lock.
+  - A refused or missing lock is not an error: the game stays in the device's own orientation.
+- `GamePlayer`:
+  - after `requestFullscreen()` succeeds, a landscape game (manifest `orientation: 'landscape'`)
+    locks to landscape;
+  - leaving fullscreen with the button, Esc or the system back gesture (the `fullscreenchange`
+    event) unlocks;
+  - portrait and `any` games never lock.
+
+Where it works: the lock needs fullscreen and browser support. Chrome on Android, including the
+installed app, rotates at once. iOS Safari has no element fullscreen on the iPhone (theater mode is
+used there, as before) and no orientation lock, so iPhones are unchanged. Desktop browsers refuse the
+lock, which changes nothing.
+
+Deviations: none. This also fills in the spec's line on locking the orientation when the manifest
+requires it (`docs/specs/ui-and-themes.md`), for the fullscreen case.
+
+Tests:
+- web `lib/orientation.test.ts` (5 new):
+  - only landscape games lock;
+  - the lock asks for landscape;
+  - a refused lock and a missing API return false without throwing;
+  - unlocking never throws.
+
+Still open: a CSS rotation fallback for browsers that refuse the lock while the phone is held
+upright (not done: rotating the stage would also rotate touch coordinates inside the game).
