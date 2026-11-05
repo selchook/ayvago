@@ -406,6 +406,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['dungeon', 'dash', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
@@ -746,7 +747,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'penalty', 'kick', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     multiplayer: true,
   }),
   arcadeGame({
@@ -1065,6 +1066,21 @@ export const ARCADE_GAMES: SeedGame[] = [
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
     addedAt: '2026-10-28',
+  }),
+  arcadeGame({
+    slug: 'tito-tank',
+    title: { en: "Tito's Tank", tr: "Tito'nun Tankı" },
+    description: {
+      en: 'Hit the tank behind the hills! Set your barrel, charge your power and read the wind. Every round the ground gets rougher and the gap wider. Play the computer or a friend online; first to three rounds wins.',
+      tr: 'Tepelerin ardındaki rakip tankı vur! Namluyu ayarla, gücü doldur, rüzgârı hesaba kat. Her tur arazi sertleşir, mesafe uzar. Bilgisayara karşı ya da bir arkadaşınla çevrimiçi oyna; üç turu ilk alan kazanır.',
+    },
+    category: 'action',
+    categories: ['action', 'strategy', 'arcade'],
+    tags: ['multiplayer', 'tito', 'tank', 'retro'],
+    orientation: 'landscape',
+    input: ['touch', 'keyboard', 'mouse'],
+    addedAt: '2026-11-05',
+    multiplayer: true,
   }),
   arcadeGame({
     slug: 'tower-defense',
