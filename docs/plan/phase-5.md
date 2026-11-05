@@ -27,6 +27,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.7 | Turkish İ in the pixel font: "Ayvago Pixel TR" draws a full-height İ for Press Start 2P | ✅ code |
 | 5.8 | Landscape games turn the phone sideways in fullscreen; portrait games unchanged (owner request) | ✅ code |
 | 5.9 | Phones: the game toolbar (score, votes, favorite, share, sound, fullscreen) keeps to one line (owner request) | ✅ code |
+| 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -336,5 +337,31 @@ dislike, favorite, share, sound, fullscreen):
 - at 320, 360, 390 and 412 px the toolbar is one line (55 px) and nothing overflows;
 - at 1280 px it is unchanged (63 px);
 - a toast and a rank note float above the toolbar at 360 px.
+
+Still open: nothing.
+
+## 5.10 The game stage fits on screen ✅
+
+On a phone held sideways, outside fullscreen, the bottom of a landscape game was off the screen.
+For Tito's Tank that was the FIRE button, the angle and power readout and the hint. The stage starts
+under the 60 px top bar and was capped at 80% of the screen height only. On an 844×390 phone it
+ended at 399 px, and less is visible with the browser's own bars.
+
+What shipped (`components/game/game.module.css`):
+- The stage's height is now capped at the smaller of two values: 80% of the screen height, and the
+  room below the top bar (`100dvh - var(--topbar-h) - 36px`).
+- This applies to the landscape stage (`max-height`) and to the portrait stage (`height`).
+- On larger screens and in fullscreen nothing changes.
+
+The studio moved Tito's Tank's FIRE button in from the corner and its hint to the top. It also
+enlarged the tank's HUD text for small frames (selchook/ayvago-games, Tito's Tank 1.0.1).
+
+Deviations: none.
+
+Tests: Playwright on `next dev` with the arcade games served locally (`AYVAGO_DEV_ARCADE_ORIGIN`):
+- the stage measured 844×390: 87–381 px (was 87–399);
+- 915×412: 87–405 px (was 87–417);
+- 1280×650 and 1366×768: unchanged;
+- screenshots show Tito's Tank whole at 844×390, 412×860 and 1366×768.
 
 Still open: nothing.
