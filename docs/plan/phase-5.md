@@ -26,6 +26,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.6 | Equal card heights: game cards in every list and theme have the same height (owner request) | ✅ code |
 | 5.7 | Turkish İ in the pixel font: "Ayvago Pixel TR" draws a full-height İ for Press Start 2P | ✅ code |
 | 5.8 | Landscape games turn the phone sideways in fullscreen; portrait games unchanged (owner request) | ✅ code |
+| 5.9 | Phones: the game toolbar (score, votes, favorite, share, sound, fullscreen) keeps to one line (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -308,3 +309,32 @@ Tests:
 
 Still open: a CSS rotation fallback for browsers that refuse the lock while the phone is held
 upright (not done: rotating the stage would also rotate touch coordinates inside the game).
+
+## 5.9 One-line game toolbar on phones ✅
+
+On a phone the toolbar under the game wrapped to a second line. It holds the score, like and
+dislike with the like percentage, favorite, share, sound and fullscreen. At 360 px the buttons left
+the best-score text ("En iyi skorun: 128.450") too little room, so it took a line of its own (113 px
+instead of 55). The owner asked for one line.
+
+What shipped (`components/game/game-player.tsx`, `game.module.css`), below 420 px:
+- The toolbar no longer wraps. Buttons are 38 px wide (34 px below 360 px) instead of 44, with
+  tighter padding.
+- The score shows its short form: the best score as a trophy and the number, and the last score as
+  the number with a trophy when it is a new best. The full sentence stays in the page for screen
+  readers.
+- The like percentage is left out: it is information, and the buttons stay.
+- Passing notes float above the toolbar instead of taking a line: the toast, the season-rank note
+  and the vote prompt.
+- If space still runs out, the score ends in an ellipsis rather than wrapping.
+- Desktop and tablets (420 px and up) are unchanged.
+
+Deviations: none.
+
+Tests: Playwright on `next dev`, Turkish, with the toolbar filled as in production (like, %87,
+dislike, favorite, share, sound, fullscreen):
+- at 320, 360, 390 and 412 px the toolbar is one line (55 px) and nothing overflows;
+- at 1280 px it is unchanged (63 px);
+- a toast and a rank note float above the toolbar at 360 px.
+
+Still open: nothing.

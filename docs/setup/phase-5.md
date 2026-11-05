@@ -49,3 +49,8 @@ character read as "not chosen", and the player can pick again.
   - leave fullscreen: the phone follows its own orientation again;
   - a portrait game (Sudoku) stays upright in fullscreen.
 
+## 5.9 One-line game toolbar on phones
+**Nothing to set up.** CSS and markup only; merging deploys the web app.
+
+- Optional check after the deploy: open a game you have a best score in on a phone. The trophy, the
+  score and all the buttons sit on one line under the game.
