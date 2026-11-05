@@ -25,17 +25,20 @@
   box-shadow: var(--shadow-md);
 }
 
+/* The stage always fits on screen below the top bar, so nothing at the game's edges (a fire
+   button, a score) is cut off on short screens such as a phone held sideways. */
 .stage {
+  --stage-room: calc(100dvh - var(--topbar-h, 60px) - 36px);
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 80dvh;
+  max-height: min(80dvh, var(--stage-room));
   background: #000;
 }
 
 .stage[data-orientation='portrait'] {
   aspect-ratio: auto;
-  height: min(80dvh, 820px);
+  height: min(80dvh, 820px, var(--stage-room));
 }
 
 .stage[data-fullscreen='true'] {

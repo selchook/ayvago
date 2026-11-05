@@ -54,3 +54,9 @@ character read as "not chosen", and the player can pick again.
 
 - Optional check after the deploy: open a game you have a best score in on a phone. The trophy, the
   score and all the buttons sit on one line under the game.
+
+## 5.10 The game stage fits on screen
+**Nothing to set up.** CSS only; merging deploys the web app.
+
+- Optional check after the deploy: hold a phone sideways and open Tito's Tank without fullscreen.
+  The whole game shows, including the FIRE button at the bottom right.
