@@ -507,6 +507,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [ ] FCM web push (localized)
 - [ ] Cloud saves (`GHA.cloud`), coins + cosmetic store
 - [x] UI fixes: equal game card heights in every theme (slice 5.6) and a full-height Turkish İ in the pixel font, "Ayvago Pixel TR" (slice 5.7)
+- [x] Phones: the game toolbar keeps to one line (slice 5.9)
 - [x] Landscape games lock the phone to landscape in fullscreen; portrait games unchanged (slice 5.8)
 
 ### Phase 6 — Developer program (4–6 weeks)

@@ -26,6 +26,7 @@ import {
   PlayIcon,
   ShareIcon,
   TheaterIcon,
+  TrophyIcon,
   VolumeIcon,
 } from '../icons';
 import { FavoriteButton } from './favorite-button';
@@ -391,15 +392,31 @@ export function GamePlayer(props: GamePlayerProps) {
 
       <div className={styles.toolbar} role="toolbar" aria-label={t('player.toolbar')}>
         <div className={styles.scoreArea} aria-live="polite">
+          {/* Phones show the short form (a number, a trophy for a best), so the toolbar keeps to
+              one line; the full sentence stays for screen readers. */}
           {result ? (
-            <span>
-              {t('game.lastScore', { score: formatScore(result.score, scoreFormat, locale) })}
-              {result.improved ? (
-                <strong className={styles.best}> · {t('game.personalBest')}</strong>
-              ) : null}
+            <span className={styles.scoreText}>
+              <span className={styles.scoreFull}>
+                {t('game.lastScore', { score: formatScore(result.score, scoreFormat, locale) })}
+                {result.improved ? (
+                  <strong className={styles.best}> · {t('game.personalBest')}</strong>
+                ) : null}
+              </span>
+              <span className={styles.scoreShort} aria-hidden="true">
+                {formatScore(result.score, scoreFormat, locale)}
+                {result.improved ? <TrophyIcon size={16} className={styles.best} /> : null}
+              </span>
             </span>
           ) : best !== null ? (
-            <span>{t('game.bestScore', { score: formatScore(best, scoreFormat, locale) })}</span>
+            <span className={styles.scoreText}>
+              <span className={styles.scoreFull}>
+                {t('game.bestScore', { score: formatScore(best, scoreFormat, locale) })}
+              </span>
+              <span className={styles.scoreShort} aria-hidden="true">
+                <TrophyIcon size={16} />
+                {formatScore(best, scoreFormat, locale)}
+              </span>
+            </span>
           ) : null}
           {runResult ? <RunNote result={runResult} /> : null}
           {toast ? <span className={styles.toast}>{toast}</span> : null}
