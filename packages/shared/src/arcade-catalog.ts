@@ -449,7 +449,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['gem', 'match', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     featured: true,
   }),
   arcadeGame({
@@ -479,6 +479,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'head', 'soccer', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-30',
     multiplayer: true,
   }),
@@ -663,6 +664,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'mini', 'golf', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     multiplayer: true,
   }),
   arcadeGame({
@@ -753,16 +755,17 @@ export const ARCADE_GAMES: SeedGame[] = [
   }),
   arcadeGame({
     slug: 'pinball',
-    title: { en: 'Pinball', tr: 'Langırt' },
+    title: { en: 'Pinball', tr: 'Tilt' },
     description: {
-      en: 'Keep the ball on the table with the flippers; hit bumpers, slingshots and drop targets, light the AYVA lanes to raise the multiplier. You have three balls.',
-      tr: 'Paletlerle topu masada tut; tamponlara, sapanlara ve düşen hedeflere vur, AYVA harflerini yakıp çarpanı büyüt. Üç topun var.',
+      en: "Keep the ball alive on a tall scrolling table: ride the ramp, loop the orbits, rip the spinner, hit the saucer and the drop targets and light the AYVA lanes for a bigger multiplier. Finish each level's goals to move to the next theme; every third level earns an extra ball. Nudge too hard and it's TILT!",
+      tr: 'Yukarı kayan uzun bir masada paletlerle topu oyunda tut: rampaya çık, yörüngeleri dolan, fırıldağı döndür, kapana ve düşen hedeflere vur, AYVA harfleriyle çarpanı büyüt. Her seviyenin görevlerini bitir; masa yeni temaya geçer, her üç seviyede bir ekstra top kazanırsın. Masayı çok sallarsan TILT!',
     },
     category: 'arcade',
     categories: ['arcade', 'retro', 'action'],
     tags: ['pinball', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.2.0',
     addedAt: '2026-10-30',
   }),
   arcadeGame({
@@ -1080,6 +1083,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'tito', 'tank', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-05',
     multiplayer: true,
   }),
