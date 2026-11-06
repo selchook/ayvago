@@ -97,8 +97,8 @@
   font-size: 0.9rem;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .option,
-:is([data-theme='retro'], [data-theme='arcade']) .option:has(input:checked)::before {
+[data-theme='arcade'] .option,
+[data-theme='arcade'] .option:has(input:checked)::before {
   border-radius: 0;
 }
 

@@ -1,7 +1,7 @@
 // Theme definitions: one set of semantic tokens per theme and color mode.
 // Components only ever read these semantic tokens (as CSS custom properties).
 
-export const THEME_IDS = ['minimal', 'retro', 'cartoon', 'arcade'] as const;
+export const THEME_IDS = ['minimal', 'cartoon', 'arcade'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
 export const COLOR_MODES = ['light', 'dark'] as const;
@@ -10,8 +10,13 @@ export type ColorMode = (typeof COLOR_MODES)[number];
 // "system" follows prefers-color-scheme; it is a preference, not a rendered mode.
 export type ModePreference = ColorMode | 'system';
 
-// New visitors get the Ayvago Arcade look (slice 2.18); a saved choice always wins.
-export const DEFAULT_THEME: ThemeId = 'arcade';
+// New visitors get the Minimal theme in the system's light or dark colours (slice 5.11); a saved
+// choice always wins.
+export const DEFAULT_THEME: ThemeId = 'minimal';
+
+// Retired theme ids and the theme that replaces them (the Retro theme left in slice 5.11; the
+// Arcade theme carries the pixel look on its own).
+export const RETIRED_THEMES: Record<string, ThemeId> = { retro: 'arcade' };
 
 export type ColorTokens = {
   bg: string;
@@ -47,7 +52,7 @@ export type TypeTokens = {
   fontMono: string;
   // Multiplier for body text; pixel fonts need larger sizes to stay readable.
   fontBodyScale: string;
-  // Display text is uppercase in the retro theme.
+  // Display text is uppercase in the arcade theme.
   displayTransform: string;
 };
 
@@ -133,50 +138,6 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       motionBase: '200ms',
       motionSlow: '320ms',
       easing: 'cubic-bezier(0.2, 0, 0, 1)',
-    },
-  },
-
-  retro: {
-    id: 'retro',
-    modes: ['dark'],
-    colors: {
-      dark: {
-        bg: '#07090c',
-        surface: '#0f141a',
-        surfaceRaised: '#161d25',
-        text: '#d9ffe6',
-        textMuted: '#86c49c',
-        accent: '#39ff88',
-        accentContrast: '#03140a',
-        accent2: '#ff3df0',
-        success: '#39ff88',
-        warning: '#ffd23f',
-        danger: '#ff5c7a',
-        border: '#2e4a3a',
-        focusRing: '#ff3df0',
-      },
-    },
-    shape: {
-      radiusSm: '0',
-      radiusMd: '0',
-      radiusLg: '0',
-      borderWidth: '2px',
-      shadowSm: '2px 2px 0 #000',
-      shadowMd: '4px 4px 0 #000',
-      shadowLg: '6px 6px 0 #000',
-    },
-    type: {
-      fontDisplay: PIXEL_FONT,
-      fontBody: `'VT323', ${SYSTEM_MONO}`,
-      fontMono: `'VT323', ${SYSTEM_MONO}`,
-      fontBodyScale: '1.3',
-      displayTransform: 'uppercase',
-    },
-    motion: {
-      motionFast: '80ms',
-      motionBase: '160ms',
-      motionSlow: '240ms',
-      easing: 'steps(3, end)',
     },
   },
 
@@ -291,6 +252,12 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
 
 export function isThemeId(value: unknown): value is ThemeId {
   return typeof value === 'string' && (THEME_IDS as readonly string[]).includes(value);
+}
+
+/** A saved theme id, with a retired id mapped to its replacement; null when unknown. */
+export function normalizeThemeId(value: unknown): ThemeId | null {
+  if (isThemeId(value)) return value;
+  return typeof value === 'string' ? (RETIRED_THEMES[value] ?? null) : null;
 }
 
 export function isModePreference(value: unknown): value is ModePreference {

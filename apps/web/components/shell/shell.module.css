@@ -52,10 +52,6 @@
   text-decoration: none;
 }
 
-[data-theme='retro'] .logo {
-  color: var(--accent);
-}
-
 /* Slogans next to the logo (wide screens only). */
 .slogan {
   flex: 1 1 auto;
@@ -86,7 +82,7 @@
 }
 
 /* Pixel themes: the portal's arcade lettering, stepped in like an old marquee. */
-:is([data-theme='retro'], [data-theme='arcade']) .slogan {
+[data-theme='arcade'] .slogan {
   font-family: var(--font-display);
   font-size: 10px;
   font-weight: 400;
@@ -99,11 +95,7 @@
   text-shadow: 0 2px 0 #000;
 }
 
-[data-theme='retro'] .slogan {
-  color: var(--accent);
-}
-
-:is([data-theme='retro'], [data-theme='arcade']) .sloganText {
+[data-theme='arcade'] .sloganText {
   animation-timing-function: steps(4, end);
 }
 
@@ -120,7 +112,7 @@
 }
 
 /* Pixel themes: the lockup is drawn pixelated (filter defined in brand-logo.tsx). */
-:is([data-theme='retro'], [data-theme='arcade']) .logo [data-pixel] {
+[data-theme='arcade'] .logo [data-pixel] {
   filter: url(#ayvago-pixel);
 }
 

@@ -112,7 +112,7 @@
   color: var(--text-muted);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .badge {
+[data-theme='arcade'] .badge {
   border-radius: 0;
 }
 
@@ -127,8 +127,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .score,
-:is([data-theme='retro'], [data-theme='arcade']) .rank {
+[data-theme='arcade'] .score,
+[data-theme='arcade'] .rank {
   font-size: 0.75rem;
 }
 

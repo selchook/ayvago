@@ -39,7 +39,7 @@ const LEGACY_ALIASES =
  *
  * <html data-theme="minimal">                    light, or dark when the OS prefers dark
  * <html data-theme="minimal" data-mode="dark">   explicit dark
- * <html data-theme="retro">                       retro has a single (dark) mode
+ * <html data-theme="arcade">                      arcade has a single (dark) mode
  */
 export function buildThemeCss(): string {
   const rules: string[] = [`:root{${LEGACY_ALIASES}}`];

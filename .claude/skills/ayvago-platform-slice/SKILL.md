@@ -31,8 +31,8 @@ reply in Turkish, but **everything committed is English**.
 ## 2. Build
 - Every user-visible string is a message key in both locales. No text in code.
 - Pages that hold private or short-lived content are `noindex`.
-- Mobile first: check 360 px wide, the phone bottom bar and safe areas. All four themes
-  (arcade default, minimal light/dark, retro, cartoon) must look right.
+- Mobile first: check 360 px wide, the phone bottom bar and safe areas. All three themes
+  (minimal light/dark as the default, cartoon, arcade) must look right.
 - Rules: a rule change ships with emulator tests for both the allowed and the refused paths.
 - Functions: validate input, check `request.auth`, rate-limit where a player could loop, and log
   with `logger`.

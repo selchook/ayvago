@@ -48,11 +48,12 @@ service cloud.firestore {
     // character list (removing the field means "no choice": games use their default).
     // `changed` is the set of keys this write touches. The character is checked only when it
     // changes, so a profile still holding a retired id (the alien characters, slice 5.1b) can
-    // update its other fields; the app reads such an id as "no choice".
+    // update its other fields; the app reads such an id as "no choice". The theme works the same
+    // way: a stored 'retro' (retired in slice 5.11) stays valid, the app reads it as 'arcade'.
     function validPreferences(data, changed) {
       return (!('avatarId' in data) || (data.avatarId is string && data.avatarId.matches('^[a-z]{2,12}-[a-z]{2,12}$')))
         && (!('characterId' in changed) || !('characterId' in data) || validCharacter(data.characterId))
-        && (!('theme' in data) || data.theme in ['retro', 'cartoon', 'minimal', 'arcade'])
+        && (!('theme' in changed) || !('theme' in data) || data.theme in ['cartoon', 'minimal', 'arcade'])
         && (!('mode' in data) || data.mode in ['system', 'light', 'dark']);
     }
 

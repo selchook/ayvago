@@ -60,3 +60,10 @@ character read as "not chosen", and the player can pick again.
 
 - Optional check after the deploy: hold a phone sideways and open Tito's Tank without fullscreen.
   The whole game shows, including the FIRE button at the bottom right.
+
+## 5.11 Three themes, Minimal by default
+**Nothing to set up.** Merging deploys the web app, and the Firestore rules deploy from GitHub
+Actions as usual.
+
+- Optional check after the deploy: open ayvago.com in a private window. It shows the Minimal
+  theme, light or dark like your system. A browser that had Retro selected now shows Arcade.

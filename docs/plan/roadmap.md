@@ -249,6 +249,8 @@ The foundation (routing, proxy, message catalogs, language switcher, completenes
 
 ## 4. UI Themes (retro · cartoon · minimal)
 
+> Since slice 5.11 the themes are **minimal** (the default, in the system's colours), **cartoon** and **arcade**; retro was retired ([ADR 0014](../adr/0014-three-themes-minimal-default.md)). This section is the original plan.
+
 `<html data-theme="retro">`; the choice is stored in `users/{uid}.theme` and `localStorage`. The GHA CSS variable names (`--bg`, `--bg-card`, `--accent`, `--text`, `--text-dim`, `--border`, `--radius`, `--success`) are **kept unchanged**.
 
 | Token | Retro | Cartoon | Minimal |
@@ -510,6 +512,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Phones: the game toolbar keeps to one line (slice 5.9)
 - [x] Landscape games lock the phone to landscape in fullscreen; portrait games unchanged (slice 5.8)
 - [x] The game stage always fits on screen below the top bar (slice 5.10)
+- [x] Three themes: Retro retired, Minimal in the system's colours by default (slice 5.11, ADR 0014)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

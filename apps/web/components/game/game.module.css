@@ -122,7 +122,7 @@
   transform: scale(1.05);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .playButton {
+[data-theme='arcade'] .playButton {
   border-radius: 0;
   font-size: 0.8rem;
 }
@@ -150,7 +150,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .spinner {
+[data-theme='arcade'] .spinner {
   border-radius: 0;
   animation-timing-function: steps(4);
 }
@@ -279,7 +279,7 @@
   font-size: 0.85rem;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .chips li {
+[data-theme='arcade'] .chips li {
   border-radius: 0;
 }
 
@@ -523,7 +523,7 @@
   justify-self: start;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) :is(.inviteButton, .friendButton, .inviteInput) {
+[data-theme='arcade'] :is(.inviteButton, .friendButton, .inviteInput) {
   border-radius: 0;
 }
 
@@ -571,7 +571,7 @@
   color: var(--success);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .routeBadge {
+[data-theme='arcade'] .routeBadge {
   border-radius: 0;
 }
 

@@ -6,7 +6,7 @@
 ## 1. Goals
 
 - A catalog that feels instant: browse, hover, click, play.
-- Distinct looks — **retro**, **cartoon**, **minimal** and **arcade** (the Ayvago Arcade look) — from one component library.
+- Distinct looks — **minimal**, **cartoon** and **arcade** (the Ayvago Arcade look) — from one component library. A fourth, **retro**, was retired in slice 5.11 ([ADR 0014](../adr/0014-three-themes-minimal-default.md)).
 - Accessible (WCAG 2.2 AA), localized (en, tr) and mobile-first.
 
 ### Lessons taken from CrazyGames
@@ -68,7 +68,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
-- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The pixel themes (retro, arcade) show the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows. In every theme the cards of one list have the same height (slice 5.6): the card is a flex column that stretches to its row, the cover keeps its aspect ratio, the title takes a fixed area (one line with an ellipsis, two lines on cards 230 px wide or less) and the tag footer is always two rows high, pinned to the bottom of the card.
+- 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The arcade theme shows the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows. In every theme the cards of one list have the same height (slice 5.6): the card is a flex column that stretches to its row, the cover keeps its aspect ratio, the title takes a fixed area (one line with an ellipsis, two lines on cards 230 px wide or less) and the tag footer is always two rows high, pinned to the bottom of the card.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
@@ -82,7 +82,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 ## 5. Theme system (`packages/themes`)
 
 ### 5.1 Token layers
-1. **Primitive tokens** — raw palettes and scales per theme (`--retro-green-500`, `--cartoon-yellow-300`, …). Never used by components.
+1. **Primitive tokens** — raw palettes and scales per theme (`--arcade-red-500`, `--cartoon-yellow-300`, …). Never used by components.
 2. **Semantic tokens** — what components use:
    `--bg`, `--surface`, `--surface-raised`, `--text`, `--text-muted`, `--accent`, `--accent-contrast`, `--success`, `--warning`, `--danger`, `--border`, `--focus-ring`,
    `--radius-sm/md/lg`, `--shadow-sm/md/lg`, `--border-width`,
@@ -93,19 +93,17 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 
 | Theme | Modes | Personality |
 |---|---|---|
-| **minimal** | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
-| **retro** | dark only | CRT palette (green/magenta/cyan on near-black), 0 radius, 2 px borders with hard pixel shadows, optional scanlines, pixel icons. Tiles are the games portal's cards, as in arcade |
+| **minimal** (default since slice 5.11) | light + dark (follows the system unless chosen) | Neutral surfaces, one accent, 8 px radius, hairline borders, quiet motion |
 | **cartoon** | light + dark | Saturated yellow/blue/pink, 20 px radius, 3 px dark outlines, springy hover, confetti on personal bests |
-| **arcade** (labelled "Arcade", default since slice 2.18) | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
+| **arcade** (labelled "Arcade"; the default from slice 2.18 to 5.11) | dark only | The Ayvago Arcade look: brand ink, paper and red, yellow display headings, 0 radius, 3 px black outlines with hard drop shadows, red top-bar rule, scanlines. Tiles are the games portal's cards: the in-game screenshot (9:12, 16:12 for landscape) and cyan / yellow / pink category tags |
 
-Selection is expressed as `<html data-theme="retro" data-mode="dark">`.
+Selection is expressed as `<html data-theme="minimal" data-mode="dark">`.
 
 ### 5.3 Typography (all with Latin Extended subsets for Turkish)
 
 | Theme | Display | Body |
 |---|---|---|
 | minimal | Inter (600–800) | Inter |
-| retro | Press Start 2P (headings only, small sizes) | VT323 or IBM Plex Mono |
 | cartoon | Fredoka | Baloo 2 |
 | arcade | Press Start 2P | Pixelify Sans |
 
@@ -115,15 +113,15 @@ Fonts load through `next/font` with `latin` + `latin-ext` subsets. A glyph test 
 
 ### 5.4 Theme effects
 Optional layers that never change layout:
-- Retro: scanline overlay (`::after`, can be turned off in settings), `image-rendering: pixelated` for pixel art, 8-bit UI sounds (off by default).
+- Arcade: scanline overlay (`body::after`).
 - Cartoon: spring hover on tiles, confetti on personal bests.
-- Retro and arcade: the logo's word and mark are pixelated by an SVG filter (3 px blocks); top-bar slogans step in like a marquee.
+- Arcade: the logo's word and mark are pixelated by an SVG filter (3 px blocks); top-bar slogans step in like a marquee.
 - All effects are disabled under `prefers-reduced-motion`.
 
 ### 5.5 Persistence without flashing
 - The choice is stored in a cookie (`ayvago-theme`, `ayvago-mode`) and, for signed-in users, in `users/{uid}.theme/mode`.
 - Pages stay statically rendered: a tiny inline script in `<head>` (`themeBootstrapScript` in `packages/themes`) reads the cookies and sets `data-theme`/`data-mode` before first paint, so there is no flash of the wrong theme. When the mode is "system", no `data-mode` is set and the CSS follows `prefers-color-scheme`.
-- Without a saved choice (no cookie, no account preference) the page renders `DEFAULT_THEME`, which is **arcade** since slice 2.18: new visitors meet the Ayvago Arcade look. Players who chose minimal, retro or cartoon keep their choice.
+- Without a saved choice (no cookie, no account preference) the page renders `DEFAULT_THEME`, which is **minimal** since slice 5.11, in the system's light or dark colours (from slice 2.18 to 5.11 it was arcade). Players who chose a theme keep their choice. A saved **retro** (retired in 5.11) reads as arcade: `RETIRED_THEMES` / `normalizeThemeId` in `packages/themes`, applied by the head script, the account store and the PWA manifest route.
 - *Implementation note:* reading the cookie on the server was the original plan, but it would make every page dynamic; the inline script keeps static generation and ISR.
 
 ### 5.6 Games and themes

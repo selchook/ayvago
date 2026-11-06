@@ -4,7 +4,7 @@
 // Letters, ring and GAMES take the theme's text color (currentColor); the seeds and the rule
 // keep the brand red. GAMES and the rule are drawn larger than in the intro so they stay
 // legible at top-bar size.
-// In the pixel themes (retro, arcade) the word and the mark are pixelated by the SVG filter
+// In the Arcade theme the word and the mark are pixelated by the SVG filter
 // below, switched on from shell.module.css: each block takes the color sampled at its center.
 // GAMES stays crisp: at top-bar size it is only a few blocks tall.
 

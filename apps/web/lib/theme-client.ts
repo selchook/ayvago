@@ -7,6 +7,7 @@ import {
   THEME_COOKIE,
   isModePreference,
   isThemeId,
+  normalizeThemeId,
   resolveMode,
   type ColorMode,
   type ModePreference,
@@ -76,7 +77,8 @@ export function restoreThemeFromCookies(): void {
   const root = document.documentElement;
   const theme = readCookie(THEME_COOKIE);
   const mode = readCookie(MODE_COOKIE);
-  root.setAttribute('data-theme', isThemeId(theme) ? theme : DEFAULT_THEME);
+  // A retired theme (retro) shows its replacement (arcade).
+  root.setAttribute('data-theme', normalizeThemeId(theme) ?? DEFAULT_THEME);
   if (mode === 'light' || mode === 'dark') root.setAttribute('data-mode', mode);
   else root.removeAttribute('data-mode');
   syncThemeColor();

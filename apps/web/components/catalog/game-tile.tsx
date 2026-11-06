@@ -30,7 +30,7 @@ export type TileData = {
 export type TileLabels = { comingSoon: string; new: string; multiplayer: string; likes: string };
 
 /**
- * The pixel themes (retro, arcade) show the game's screenshot in its own orientation instead
+ * The Arcade theme show the game's screenshot in its own orientation instead
  * of the cover, like the Ayvago Arcade games portal.
  */
 export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {

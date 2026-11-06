@@ -12,7 +12,12 @@ import {
   type Locale,
   type UserProfile,
 } from '@ayvago/shared';
-import { isModePreference, isThemeId, type ModePreference, type ThemeId } from '@ayvago/themes';
+import {
+  isModePreference,
+  normalizeThemeId,
+  type ModePreference,
+  type ThemeId,
+} from '@ayvago/themes';
 import type { AuthCredential, User } from 'firebase/auth';
 import { useSyncExternalStore } from 'react';
 import { firebaseEnabled, loadAuth, loadFirestore, loadFunctions } from '@/lib/firebase/client';
@@ -349,7 +354,8 @@ async function syncProfile(user: User): Promise<void> {
       avatarId: typeof data.avatarId === 'string' ? data.avatarId : null,
       // Unlisted ids (such as the retired alien characters) read as "no choice".
       characterId: readCharacterId(data.characterId),
-      theme: isThemeId(data.theme) ? data.theme : null,
+      // A retired theme (retro) reads as its replacement (arcade).
+      theme: normalizeThemeId(data.theme),
       mode: isModePreference(data.mode) ? data.mode : null,
       createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : null,
       usernameChangedAt:
