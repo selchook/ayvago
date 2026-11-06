@@ -112,6 +112,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['archery', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-29',
   }),
   arcadeGame({
@@ -158,7 +159,7 @@ export const ARCADE_GAMES: SeedGame[] = [
   }),
   arcadeGame({
     slug: 'block-blast',
-    title: { en: 'Block Blast', tr: 'Blok Patlat' },
+    title: { en: 'Block Burst', tr: 'Blok Patlaması' },
     description: {
       en: 'Fit three pieces onto the 8x8 board and blast full rows and columns. Chain combos and score until nothing fits!',
       tr: 'Üç parçayı 8x8 tahtaya yerleştir, dolan satır ve sütunları patlat. Kombo yap, parçalar sığmayana kadar puan topla!',
@@ -168,6 +169,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['block', 'blast', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
   }),
   arcadeGame({
     slug: 'block-drop',
@@ -181,6 +183,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['block', 'drop', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
@@ -224,6 +227,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['brick', 'breaker', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     featured: true,
   }),
   arcadeGame({
@@ -320,6 +324,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['color', 'gate', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
@@ -449,7 +454,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['gem', 'match', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.2.0',
+    version: '1.4.0',
     featured: true,
   }),
   arcadeGame({
@@ -479,7 +484,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'head', 'soccer', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     addedAt: '2026-10-30',
     multiplayer: true,
   }),
@@ -524,7 +529,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['hoop', 'shot', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
   }),
   arcadeGame({
     slug: 'jetpack-rush',
@@ -794,6 +799,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['pixel', 'runner', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.1',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
@@ -986,6 +992,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['space', 'blaster', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     featured: true,
   }),
   arcadeGame({
@@ -1099,6 +1106,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['tower', 'defense', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
   }),
   arcadeGame({
     slug: 'traffic-racer',
