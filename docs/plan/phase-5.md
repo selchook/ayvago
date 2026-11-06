@@ -4,7 +4,7 @@
 - Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Specs:
   [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md)
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
-  [ADR 0013](../adr/0013-player-characters.md)
+  [ADR 0013](../adr/0013-player-characters.md), [ADR 0015](../adr/0015-tables-for-four-with-bots.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -28,6 +28,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.8 | Landscape games turn the phone sideways in fullscreen; portrait games unchanged (owner request) | ✅ code |
 | 5.9 | Phones: the game toolbar (score, votes, favorite, share, sound, fullscreen) keeps to one line (owner request) | ✅ code |
 | 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
+| 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -365,3 +366,64 @@ Tests: Playwright on `next dev` with the arcade games served locally (`AYVAGO_DE
 - screenshots show Tito's Tank whole at 844×390, 412×860 and 1366×768.
 
 Still open: nothing.
+
+## 5.12 Game tables for up to four, with bots ✅ code
+
+The owner asked for Turkish Okey with up to four players: one player and three bots, two and two,
+three and one, or four players. The player who opens the table adds the bots.
+
+What shipped ([ADR 0015](../adr/0015-tables-for-four-with-bots.md)):
+- **Tables:**
+  - `tables/{code}` in the Realtime Database, with 2–4 seats, each a player (`uid`, `name`,
+    `character`) or a bot (`bot`, `name`), plus `status` and `online`;
+  - pages `/{locale}/games/{slug}/table` (opens a table) and `/table/{code}` (the invite link);
+  - on the game page, "Play at a table" replaces "Play with a friend" for games with
+    `players.max > 2` (`isTableGame`).
+- **Lobby** (`components/game/table-view.tsx`):
+  - the invite link with copy and share;
+  - one row per seat, showing the name, "you", the host, bot and away tags;
+  - for the host, "Add a bot" on empty seats, "Remove the bot" or "Free the seat" on taken ones,
+    and "Start the game" once every seat is taken; the others wait for the host.
+- **Moves:**
+  - `tableMoves/{code}` over the database (no WebRTC, no TURN);
+  - a page listens only to moves written after it opened;
+  - presence and leave or join reach the game per seat, with a 4-second grace period, as in rooms.
+- **Protocol 2.3** (`packages/platform-adapter` 2.3.0, `lib/gha/bridge.ts`):
+  - `GHA_START.config.seats`;
+  - `GHA_MOVE_IN.from`;
+  - `GHA_PEER_LEAVE.seat` and `GHA_PEER_JOIN.seat`;
+  - the adapter's `multiplayer.seats`, and callbacks that receive the seat.
+  Two-player rooms are unchanged.
+- **Rules** (`firebase/database.rules.json`):
+  - a player creates a table only in seat 0 under their own uid;
+  - non-hosts take one free seat while the table is open, never a bot seat or a seat past `size`;
+  - only the host writes bots, `status` and the rest of the table;
+  - players mark only themselves online;
+  - moves only from the sender's own seat, read only by seated players; only the host clears them.
+- **Cleanup:** `cleanupRooms` deletes tables and their moves after two hours as well
+  (`deleteOldTables`).
+- **Messages:** a `table` namespace in `en.json` and `tr.json`.
+
+Deviations from the multiplayer spec: tables are a second kind of room, not a matchmaker. Quick
+match with strangers is still open.
+
+Tests:
+- adapter (19): table seats and the sender seat, and the two-player defaults;
+- bridge: `GHA_START` seats for a table, with bots carrying no character;
+- `table-data`: parsing, the seat helpers and bot numbers;
+- RTDB emulator (7 new):
+  - creating a table;
+  - taking one free seat, and closed seats after the start;
+  - the table size;
+  - host-only bots, start and close;
+  - presence and leaving a seat;
+  - moves from one's own seat only, and who may read and clear them;
+  - `deleteOldTables`;
+- web build: the table routes are generated.
+
+Owner steps: none. The rules and the functions deploy from GitHub Actions; see the setup doc.
+
+Still open:
+- the first table game (Turkish Okey) comes from the studio and reaches the catalog through the
+  "Sync arcade catalog" PR;
+- re-hosting when the host leaves for good.

@@ -60,3 +60,15 @@ character read as "not chosen", and the player can pick again.
 
 - Optional check after the deploy: hold a phone sideways and open Tito's Tank without fullscreen.
   The whole game shows, including the FIRE button at the bottom right.
+
+## 5.12 Game tables for up to four, with bots
+**Nothing to set up.**
+- Merging deploys the web app.
+- The Realtime Database rules (`tables`, `tableMoves`) and the updated `cleanupRooms` function
+  deploy from GitHub Actions as usual.
+- Tables use no TURN credentials.
+
+- Optional check once Turkish Okey is in the catalog (after its "Sync arcade catalog" PR):
+  1. Open Okey and choose "Play at a table".
+  2. Copy the link to a second browser; the friend takes seat 2.
+  3. Add two bots and start the game; both screens show the same table.

@@ -431,5 +431,41 @@
       "failed": "Oda açılamadı. Bağlantını kontrol edip tekrar dene.",
       "unavailable": "Çevrimiçi oyun şu anda kullanılamıyor."
     }
+  },
+  "table": {
+    "title": "{title} masası",
+    "pageTitle": "{title} çevrimiçi masada oyna",
+    "playAtTable": "Masada oyna",
+    "playAtTableHint": "En fazla {count} kişilik bir masa aç, arkadaşlarını linkle davet et, boş koltuklara bot oturt.",
+    "createTable": "Masa aç",
+    "preparing": "Masa hazırlanıyor…",
+    "inviteTitle": "Arkadaşlarını davet et",
+    "inviteBody": "Bu linki gönder. Linki açan herkes boş bir koltuğa oturur. Kalan koltuklara bot ekleyip oyunu başlat.",
+    "seats": "Koltuklar",
+    "you": "sen",
+    "host": "Masa sahibi",
+    "bot": "Bot",
+    "botName": "Bot {n}",
+    "empty": "Boş koltuk",
+    "addBot": "Bot ekle",
+    "removeBot": "Botu çıkar",
+    "removePlayer": "Koltuğu boşalt",
+    "away": "Ayrıldı",
+    "start": "Oyunu başlat",
+    "startHint": "Başlamak için her koltuğa bir arkadaş ya da bot oturt.",
+    "waitingHost": "{name} oyunu başlatana kadar bekleniyor…",
+    "players": "Masada: {names}",
+    "peerAway": "{name} masadan ayrıldı. Oyun sürüyor; linkle geri dönebilir.",
+    "tableCode": "Masa kodu: {code}",
+    "newTable": "Yeni masa aç",
+    "error": {
+      "full": "Bu masa dolu.",
+      "started": "Bu masadaki oyun başladı.",
+      "missing": "Böyle bir masa yok. Linki kontrol et ya da yeni bir masa aç.",
+      "closed": "Bu masa kapandı.",
+      "expired": "Bu masanın süresi doldu. Masalar iki saat açık kalır.",
+      "failed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
+      "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
+    }
   }
 }

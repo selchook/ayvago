@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.2.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.3.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -270,5 +270,45 @@ describe('multiplayer', () => {
     deliver({ type: 'GHA_PEER_JOIN', name: 'Ayşe' });
     expect(moves).toEqual([{ col: 4 }]);
     expect(events).toEqual(['leave', 'join:Ayşe']);
+  });
+
+  it('names the sender seat in two-player rooms as the other player', async () => {
+    const { adapter, deliver } = await connected(MATCH);
+    const from: number[] = [];
+    adapter.multiplayer.onMove((_data, seat) => from.push(seat));
+    adapter.multiplayer.onPeerLeave((seat) => from.push(seat));
+    deliver({ type: 'GHA_MOVE_IN', data: 1 });
+    deliver({ type: 'GHA_PEER_LEAVE' });
+    expect(from).toEqual([0, 0]);
+    expect(adapter.multiplayer.seats).toEqual([]);
+  });
+
+  it('exposes table seats and the sender seat of every move (protocol 2.3)', async () => {
+    const TABLE: StartConfig = {
+      ...START,
+      mode: 'multiplayer',
+      isHost: false,
+      playerIndex: 2,
+      playerCount: 4,
+      seats: [
+        { name: 'Ayşe', character: 'explorer', bot: false },
+        { name: 'Bot 1', bot: true },
+        { name: 'Mehmet', bot: false },
+        { name: 'Bot 2', bot: true },
+      ],
+    };
+    const { adapter, deliver } = await connected(TABLE);
+    expect(adapter.multiplayer.playerIndex).toBe(2);
+    expect(adapter.multiplayer.seats.map((s) => s.bot)).toEqual([false, true, false, true]);
+    const got: string[] = [];
+    adapter.multiplayer.onMove((data, from) => got.push(`${String(data)}@${from}`));
+    adapter.multiplayer.onPeerLeave((seat) => got.push(`leave@${seat}`));
+    adapter.multiplayer.onPeerJoin((name, seat) => got.push(`join:${name}@${seat}`));
+    deliver({ type: 'GHA_MOVE_IN', data: 'draw', from: 0 });
+    deliver({ type: 'GHA_MOVE_IN', data: 'bad', from: 9 });
+    deliver({ type: 'GHA_PEER_LEAVE', seat: 0 });
+    deliver({ type: 'GHA_PEER_JOIN', name: 'Ayşe', seat: 0 });
+    // An out-of-range seat falls back to the default (the other player of a two-player room).
+    expect(got).toEqual(['draw@0', 'bad@0', 'leave@0', 'join:Ayşe@0']);
   });
 });
