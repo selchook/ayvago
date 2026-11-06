@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, THEMES, isThemeId, resolveMode, type ThemeId } from '@ayvago/themes';
+import { DEFAULT_THEME, THEMES, normalizeThemeId, resolveMode, type ThemeId } from '@ayvago/themes';
 import type { MetadataRoute } from 'next';
 
 // Web app manifest: lets players install Ayvago from the browser (Android, desktop Chromium;
@@ -26,7 +26,7 @@ export function manifestHref(theme: ThemeId, mode: 'light' | 'dark'): string {
 
 /** The color of the app's top and bottom bars in a theme and mode. */
 export function barColor(theme: string | null, mode: string | null): string {
-  const id: ThemeId = isThemeId(theme) ? theme : DEFAULT_THEME;
+  const id: ThemeId = normalizeThemeId(theme) ?? DEFAULT_THEME;
   const resolved = resolveMode(id, mode === 'dark' ? 'dark' : 'light', false);
   return THEMES[id].colors[resolved]?.surface ?? BRAND_INK;
 }

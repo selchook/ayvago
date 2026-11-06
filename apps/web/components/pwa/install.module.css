@@ -71,7 +71,7 @@
   border-color: var(--border);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .title {
+[data-theme='arcade'] .title {
   font-size: 0.75rem;
   line-height: 1.6;
 }

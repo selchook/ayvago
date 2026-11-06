@@ -22,7 +22,7 @@ Rules:
   Turkish.
 - **Security.** Rules start from deny-all and every change has emulator tests. Secrets stay in
   server env vars. Games are never given Firebase or Cloudflare access.
-- **Look.** Semantic tokens only; check arcade, minimal (light and dark), retro and cartoon on a
+- **Look.** Semantic tokens only; check minimal (light and dark), cartoon and arcade on a
   phone and a desktop.
 - **Gate.** Do not report done until format, typecheck, tests and the web build pass, and you
   have looked at screenshots of any UI you changed.

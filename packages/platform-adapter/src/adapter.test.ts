@@ -14,7 +14,7 @@ const START: StartConfig = {
   isHost: true,
   playerIndex: 0,
   playerCount: 1,
-  theme: 'retro',
+  theme: 'arcade',
   colorMode: 'dark',
   tokens: { '--accent': '#39ff88', '--bg-card': '#0f141a' },
   locale: 'tr',
@@ -108,7 +108,7 @@ describe('createPlatformAdapter', () => {
     });
     expect(adapter.name).toBe('ayvago');
     expect(adapter.locale).toBe('tr');
-    expect(adapter.config?.theme).toBe('retro');
+    expect(adapter.config?.theme).toBe('arcade');
   });
 
   it('ignores a GHA_START that does not come from the parent platform', async () => {
