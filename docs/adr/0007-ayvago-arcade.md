@@ -15,7 +15,8 @@ that matters.
 - **One repository, one Vercel project, one origin** for all in-house games. Each game is served
   from `<origin>/games/<slug>/` with its `ayvago.json`, `ayvago/icon-512.png` and
   `ayvago/cover-1920x1080.jpg` beside it. The origin is `https://ayvago-games.vercel.app` until a
-  custom domain is chosen.
+  custom domain is chosen. *Update 2026-11-07:* the games moved to a new Vercel project under the
+  ayvagogames account; the origin is now `https://ayvago-games-nine.vercel.app`.
 - **The games still integrate through the iframe + SDK v2 model of ADR 0002.** They vendor the
   platform adapter (`packages/platform-adapter`) into the shared runtime unchanged. They never call
   Firebase. Their origin allows the platform with `frame-ancestors`.
