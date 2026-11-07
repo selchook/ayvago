@@ -54,6 +54,15 @@ describe('parseGameMessage', () => {
     });
   });
 
+  it("reads the game's sound switch and rejects malformed ones", () => {
+    expect(parseGameMessage({ type: 'GHA_MUTE_STATE', muted: true })).toEqual({
+      type: 'muteState',
+      muted: true,
+    });
+    expect(parseGameMessage({ type: 'GHA_MUTE_STATE', muted: 'yes' })).toBeNull();
+    expect(parseGameMessage({ type: 'GHA_MUTE_STATE' })).toBeNull();
+  });
+
   it('clamps loading progress to 0..1', () => {
     expect(parseGameMessage({ type: 'GHA_LOADING', progress: 3 })).toEqual({
       type: 'loading',

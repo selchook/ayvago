@@ -169,6 +169,10 @@ export function GamePlayer(props: GamePlayerProps) {
         case 'loading':
           setProgress(message.progress);
           break;
+        case 'muteState':
+          // The game's own sound switch was used: the toolbar button follows it (no echo back).
+          setMuted(message.muted);
+          break;
         case 'moveOut': {
           const json = match ? relayableMove(message.data) : null;
           if (json) match?.send(json);

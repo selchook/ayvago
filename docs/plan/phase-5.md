@@ -32,7 +32,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
 | 5.11 | Three themes: Retro retired (Arcade covers it); new visitors get Minimal in the system's colours (owner request, [ADR 0014](../adr/0014-three-themes-minimal-default.md)) | ✅ code |
 | 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
-| 5.13 | Fresh start: progress reset and server-synced bests. Games get the player's server best in `GHA_START` (protocol 2.4), the toolbar's personal best follows the server, and a "Reset progress" workflow clears all progress once (owner request, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) | ✅ code · ⏳ reset |
+| 5.13 | Fresh start: progress reset and server-synced bests. Games get the player's server best in `GHA_START` (protocol 2.4), the toolbar's personal best follows the server, and a "Reset progress" workflow clears all progress once (owner request, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) | ✅ code · ✅ reset run 2026-11-07 |
+| 5.14 | One sound switch: muting in the game's own menu also mutes the toolbar's sound button and the other way round (protocol 2.5, owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -689,4 +690,26 @@ Still open:
   afterwards puts a pre-reset score on the new boards.
 - A tab left open during the reset can write its old library bests back to the account copy; they
   show only in the profile's list of bests.
+
+## 5.14 One sound switch ✅
+
+The owner reported that turning the sound off in a game's own menu left the toolbar's sound
+button showing sound on, so the two buttons disagreed. Until now the game had two independent
+switches (its own, kept in the browser, and the platform's), and the platform never learned
+about the game's.
+
+What shipped (protocol 2.5, adapter 2.5.0):
+- **Adapter:** `reportMute(muted)` sends `GHA_MUTE_STATE { muted }` to the platform. Standalone
+  it does nothing.
+- **Bridge and player:** `GHA_MUTE_STATE` is parsed (booleans only) and sets the toolbar's sound
+  button without sending anything back, so the two sides cannot loop.
+- **Studio games** (selchook/ayvago-games): one switch. The toolbar's `GHA_MUTE` now sets the
+  game's own switch (and its menu icon updates), and the game reports its switch after the
+  handshake and on every change.
+
+Tests: adapter (`reportMute` posts `GHA_MUTE_STATE` to the platform origin only) and bridge
+(valid and malformed `GHA_MUTE_STATE`). Older games keep working: they never send the message.
+
+Still open: the platform does not remember the sound choice between visits; the game's own
+switch (kept in the game's browser storage) is what carries over.
 

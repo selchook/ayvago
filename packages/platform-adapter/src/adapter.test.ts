@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.4.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.5.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -134,6 +134,17 @@ describe('ayvago adapter', () => {
       { type: 'GHA_SESSION_START' },
       { type: 'GHA_SCORE', score: 120 },
       { type: 'GHA_END', score: 480, won: false, message: undefined },
+    ]);
+    expect(posted.every((p) => p.origin === PLATFORM)).toBe(true);
+  });
+
+  it("reports the game's own sound switch (protocol 2.5)", async () => {
+    const { adapter, posted } = await connected();
+    adapter.reportMute(true);
+    adapter.reportMute(false);
+    expect(posted.slice(1).map((p) => p.message)).toEqual([
+      { type: 'GHA_MUTE_STATE', muted: true },
+      { type: 'GHA_MUTE_STATE', muted: false },
     ]);
     expect(posted.every((p) => p.origin === PLATFORM)).toBe(true);
   });

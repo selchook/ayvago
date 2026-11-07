@@ -294,6 +294,7 @@ GHA.getPlayer() : Promise<{ displayName, avatarUrl, isGuest } | null>
 GHA.cloud.save(key, json) · GHA.cloud.load(key)          // stored in Firestore by the platform
 GHA.unlockAchievement(id)
 GHA.onThemeChange(cb) · GHA.onLocaleChange(cb) · GHA.onMute(cb)
+GHA.reportMute(muted)                                     // protocol 2.5: the game's own sound switch (GHA_MUTE_STATE)
 GHA.multiplayer.onPeerJoin(cb) · onPeerLeave(cb) · getRoom()
 GHA.track(event, props)                                   // forwarded to Google Analytics
 // GHA_START config: { mode, isHost, playerIndex, playerCount, peerName?, character?, peerCharacter?, seats?, best?, theme, locale, adsEnabled, protocol: 2 }
@@ -519,6 +520,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Three themes: Retro retired, Minimal in the system's colours by default (slice 5.11, ADR 0014)
 - [x] Game tables for up to four players with bots, protocol 2.3 (slice 5.12, ADR 0015)
 - [x] Fresh start: the player's server best in `GHA_START` (protocol 2.4), a server-backed personal best in the toolbar and a one-time "Reset progress" workflow (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); the reset itself is an owner step
+- [x] One sound switch: the game's own sound button and the player's toolbar button stay in sync (protocol 2.5, slice 5.14)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

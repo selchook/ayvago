@@ -138,3 +138,7 @@ The studio now deploys from a new Vercel project under the ayvagogames account
 - ⏳ After the sync PR is merged, open one game on ayvago.com and check that it loads.
 - ⏳ Once the new projects work, disconnect or delete the old Vercel projects (`ayvago-games`,
   `ayvago-web` under the previous account) so each push deploys only once.
+
+## 5.14 One sound switch
+**Nothing to set up.** Merge this PR, then the studio PR that adopts adapter 2.5.0.
+
