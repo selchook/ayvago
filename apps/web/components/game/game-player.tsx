@@ -15,7 +15,9 @@ import {
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { lockLandscape, locksInFullscreen, unlockOrientation } from '@/lib/orientation';
-import { applyProgress, chosenCharacter, ensureGuest } from '@/lib/account/store';
+import { applyProgress, chosenCharacter, ensureGuest, useAccount } from '@/lib/account/store';
+import { isPersonalBest } from '@/lib/leaderboard/best';
+import { startBest, useServerBest } from '@/lib/leaderboard/server-best';
 import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
@@ -100,7 +102,14 @@ export function GamePlayer(props: GamePlayerProps) {
   const [toast, setToast] = useState<string | null>(null);
   // True once the game completed the SDK handshake; exposed for diagnostics and tests.
   const [connected, setConnected] = useState(false);
-  const best = useBestScore(slug);
+  // The best shown before a run: the server's (all-time board) when it can answer, else this
+  // browser's library (Firebase off, still loading, read failed). docs/adr/0017.
+  const account = useAccount();
+  const accountUid =
+    account.status === 'signedIn' ? account.uid : account.status === 'signedOut' ? null : undefined;
+  const serverBest = useServerBest(gameId, accountUid);
+  const localBest = useBestScore(slug);
+  const best = serverBest !== undefined ? serverBest : localBest;
 
   // Messages always go to the game's registered origin, never '*'.
   const post = useCallback(
@@ -115,7 +124,10 @@ export function GamePlayer(props: GamePlayerProps) {
     const target = frameRef.current?.contentWindow;
     // The player's character (protocol 2.2): the seat's in a match, else the profile's choice.
     const character = match ? Promise.resolve(match.character) : chosenCharacter();
-    startRef.current = character.then((chosen) => {
+    // The player's server best (protocol 2.4), solo runs only: online rounds are not ranked.
+    // Both reads have their own short timeout and run side by side.
+    const best = match ? Promise.resolve(undefined) : startBest(gameId);
+    startRef.current = Promise.all([character, best]).then(([chosen, serverBest]) => {
       // A reload in the meantime opened a new game window, which asks again.
       if (frameRef.current?.contentWindow !== target) return false;
       const theme = readThemeState();
@@ -129,6 +141,7 @@ export function GamePlayer(props: GamePlayerProps) {
             locale,
             adsEnabled: false,
             character: chosen,
+            best: serverBest,
           },
           match?.seat,
         ),
@@ -136,7 +149,7 @@ export function GamePlayer(props: GamePlayerProps) {
       return true;
     });
     return startRef.current;
-  }, [locale, post, match]);
+  }, [locale, post, match, gameId]);
 
   // Bridge: only trusted, well-formed messages from this game's frame are handled.
   useEffect(() => {
@@ -173,10 +186,21 @@ export function GamePlayer(props: GamePlayerProps) {
           const run = runRef.current;
           runRef.current = null;
           if (message.score !== null) {
-            const improved = recordBestScore(slug, message.score, scoreOrder);
-            setResult({ score: message.score, improved });
-            run?.finish(message.score).then((finished) => {
+            const score = message.score;
+            // The browser's own best stays up to date as the fallback for unrecorded runs.
+            const localImproved = recordBestScore(slug, score, scoreOrder);
+            // A registered run waits for the server's verdict before it is called a personal
+            // best; without one (Firebase off, not registered) the browser's answer stands.
+            const shown = { score, improved: run ? false : localImproved };
+            setResult(shown);
+            run?.finish(score).then((finished) => {
               setRunResult(finished);
+              const improved =
+                finished === null
+                  ? localImproved
+                  : finished.status === 'recorded' && isPersonalBest(finished.boards.all);
+              // Only this run's result changes; a newer run or a replay keeps its own.
+              setResult((current) => (current === shown ? { score, improved } : current));
               // XP, level and achievements: the header chip and the stage notes follow.
               if (finished?.status === 'recorded' && finished.progress) {
                 applyProgress(finished.progress);

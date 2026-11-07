@@ -223,3 +223,37 @@ describe('originOf', () => {
     expect(originOf('https://orb-surge.vercel.app/play?x=1')).toBe('https://orb-surge.vercel.app');
   });
 });
+
+describe('buildStartConfig best (protocol 2.4)', () => {
+  const base = {
+    theme: 'minimal',
+    colorMode: 'light',
+    tokens: {},
+    locale: 'tr',
+    adsEnabled: false,
+  } as const;
+
+  it("sends the player's server best as stored, zero included", () => {
+    expect(buildStartConfig({ ...base, best: 4200 })).toMatchObject({ best: 4200 });
+    expect(buildStartConfig({ ...base, best: 0 })).toMatchObject({ best: 0 });
+    // Lower-is-better games send their lowest time; the platform passes it unchanged.
+    expect(buildStartConfig({ ...base, best: 12.5 })).toMatchObject({ best: 12.5 });
+  });
+
+  it('sends null when the player has no score yet', () => {
+    const config = buildStartConfig({ ...base, best: null });
+    expect(config).toHaveProperty('best', null);
+  });
+
+  it('leaves best out when it is unknown or not a finite number', () => {
+    for (const best of [undefined, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(buildStartConfig({ ...base, best }), String(best)).not.toHaveProperty('best');
+    }
+  });
+
+  it('sends best in online matches too', () => {
+    expect(
+      buildStartConfig({ ...base, best: null }, { isHost: true, peerName: 'Ayşe' }),
+    ).toMatchObject({ mode: 'multiplayer', best: null });
+  });
+});

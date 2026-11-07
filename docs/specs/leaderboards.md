@@ -149,3 +149,9 @@ Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
   - Profile placements.
 - **Review (slice 2.3):** flagged scores are approved, rejected or the player banned from `/admin`. An approved score keeps its original time. It joins the weekly board only when it was reached in the current season.
 - **App Check (slice 2.4):** sessions record whether their App Check token was verified. Admins switch enforcement on in `/admin` once 95% of the last day's sessions are verified.
+- **Server-synced bests (Phase 5 slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)):**
+  - The all-time entry (`leaderboards/{gameId}/boards/all/entries/{uid}.score`) is the player's best for every surface.
+  - Games get it as `GHA_START.config.best` (protocol 2.4): a number, `null` for no score yet, or left out when unknown (Firebase off, the read failed or took over 1.5 s). Solo runs only.
+  - `finishSession` adds `previous` (the board's best before the run, `null` for a first score) to each board of its `recorded` result. The game toolbar shows "Personal best!" only when `boards.all.improved` and `previous` is set.
+  - Before a run the toolbar shows the entry live; the browser library is only the fallback.
+  - The one-time **Reset progress** workflow backs up, then deletes every board, entry and season archive, with the play stats, progress, XP and levels, and score sessions. Pending score flags are not touched.

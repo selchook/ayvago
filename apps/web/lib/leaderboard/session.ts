@@ -10,6 +10,11 @@ type Session = { sessionId: string; token: string };
 export type BoardResult = {
   improved: boolean;
   best: number;
+  /**
+   * The player's best on this board before the run (null: this is their first score there).
+   * Sent since slice 5.13; absent from older servers.
+   */
+  previous?: number | null;
   rank: number;
   previousRank: number | null;
 };
