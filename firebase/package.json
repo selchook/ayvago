@@ -9,13 +9,14 @@
     "emulators": "firebase emulators:start --only auth,firestore,functions,database --project demo-ayvago"
   },
   "devDependencies": {
+    "@ayvago/functions": "workspace:*",
     "@ayvago/shared": "workspace:*",
     "@firebase/rules-unit-testing": "6.0.0",
     "@types/node": "22.20.5",
     "firebase": "13.1.0",
+    "firebase-admin": "14.5.0",
     "firebase-tools": "15.34.1",
     "typescript": "5.9.3",
-    "vitest": "5.0.5",
-    "@ayvago/functions": "workspace:*"
+    "vitest": "5.0.5"
   }
 }

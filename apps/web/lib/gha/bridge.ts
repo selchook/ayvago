@@ -32,6 +32,12 @@ export type StartConfig = {
   peerCharacter?: CharacterId;
   /** Protocol 2.3, table games only: every seat in order (`playerCount` entries). */
   seats?: SeatConfig[];
+  /**
+   * Protocol 2.4: the player's best score for this game on the platform's all-time board;
+   * `null` when they have none yet. Absent when the platform does not know it (Firebase off,
+   * a failed or slow read): the game then keeps its own stored best.
+   */
+  best?: number | null;
   theme: ThemeId;
   colorMode: ColorMode;
   tokens: Record<string, string>;
@@ -161,11 +167,16 @@ export function buildStartConfig(
     adsEnabled: boolean;
     /** The player's chosen character (null or unknown ids are left out). */
     character?: string | null;
+    /**
+     * The player's server best (protocol 2.4): a number, `null` for no score yet, `undefined`
+     * when unknown (left out). Non-finite numbers count as unknown.
+     */
+    best?: number | null;
   },
   /** An online match: the seat in the room (host = player 0) and the opponent's name. */
   match?: MatchSeat,
 ): StartConfig {
-  const { character, ...rest } = options;
+  const { character, best, ...rest } = options;
   const table = match?.table;
   const seat = match
     ? {
@@ -189,6 +200,7 @@ export function buildStartConfig(
   return {
     ...seat,
     ...(isCharacterId(character) ? { character } : {}),
+    ...(best === null || (typeof best === 'number' && Number.isFinite(best)) ? { best } : {}),
     protocol: PROTOCOL_VERSION,
     ...rest,
   };
