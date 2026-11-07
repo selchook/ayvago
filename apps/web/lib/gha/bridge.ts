@@ -14,6 +14,8 @@ export type GameMessage =
   | { type: 'end'; score: number | null; won: boolean | null }
   | { type: 'moveOut'; data: unknown }
   | { type: 'openLeaderboard' }
+  /** Protocol 2.5: the game's own sound switch, so the player's sound button can match it. */
+  | { type: 'muteState'; muted: boolean }
   | { type: 'adRequest'; id: number; format: 'rewarded' | 'interstitial'; placement: string };
 
 /** Protocol 2.3: one seat at a table game (the game plays bot seats on the host's side). */
@@ -125,6 +127,8 @@ export function parseGameMessage(data: unknown): GameMessage | null {
       return { type: 'moveOut', data: msg.data };
     case 'GHA_OPEN_LEADERBOARD':
       return { type: 'openLeaderboard' };
+    case 'GHA_MUTE_STATE':
+      return typeof msg.muted === 'boolean' ? { type: 'muteState', muted: msg.muted } : null;
     case 'GHA_AD_REQUEST': {
       const { id, format, placement } = msg;
       if (typeof id !== 'number' || !Number.isInteger(id)) return null;
