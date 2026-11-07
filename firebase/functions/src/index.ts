@@ -53,8 +53,9 @@ export const syncLeaderboardProfile = onCall(async (request) => {
 
 /**
  * deleteMyData(): Delete account, server part. Removes everything the server wrote about the
- * caller (leaderboard rows and entries, votes, play stats) and their profile, library and
- * username. The client then deletes the Firebase Auth user.
+ * caller (leaderboard rows and entries, votes, username) and `users/{uid}` with every
+ * subcollection (profile, library, play stats of every game). The client then deletes the
+ * Firebase Auth user.
  */
 export const deleteMyData = onCall(async (request) => {
   if (!request.auth) throw fail('unauthenticated', 'signed-out');

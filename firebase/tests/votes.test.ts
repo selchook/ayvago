@@ -128,6 +128,25 @@ describe('player data', () => {
     expect(await read(`users/${ayla.uid}/stats/${FIXTURE}`)).toBeUndefined();
   });
 
+  it('takes every play stat and subcollection with deleteMyData, not only catalog games', async () => {
+    const ayla = await registered('ayla@example.com', { username: 'Ayla', usernameKey: 'ayla' });
+    await write('usernames/ayla', { uid: ayla.uid, username: 'Ayla' });
+    await play(ayla, 100, 70);
+    // Stats of a game that has left the catalog, and a subcollection added in the future.
+    await write(`users/${ayla.uid}/stats/retiredgame`, { plays: 3, playSeconds: 240 });
+    await write(`users/${ayla.uid}/library/state`, { favorites: [FIXTURE] });
+    await write(`users/${ayla.uid}/future/doc`, { kept: false });
+    expect(await read(`users/${ayla.uid}/stats/${FIXTURE}`)).toMatchObject({ plays: 1 });
+
+    await expect(ayla.call('deleteMyData', {})).resolves.toEqual({ deleted: true });
+    expect(await read(`users/${ayla.uid}/stats/${FIXTURE}`)).toBeUndefined();
+    expect(await read(`users/${ayla.uid}/stats/retiredgame`)).toBeUndefined();
+    expect(await read(`users/${ayla.uid}/library/state`)).toBeUndefined();
+    expect(await read(`users/${ayla.uid}/future/doc`)).toBeUndefined();
+    expect(await read(`users/${ayla.uid}`)).toBeUndefined();
+    expect(await read('usernames/ayla')).toBeUndefined();
+  });
+
   it("moves a guest's votes and play time to the account on merge", async () => {
     const ayla = await registered('ayla@example.com');
     const player = await guest();
