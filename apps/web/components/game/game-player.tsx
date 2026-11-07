@@ -15,7 +15,7 @@ import {
 } from '@/lib/gha/bridge';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { lockLandscape, locksInFullscreen, unlockOrientation } from '@/lib/orientation';
-import { chosenCharacter, ensureGuest } from '@/lib/account/store';
+import { applyProgress, chosenCharacter, ensureGuest } from '@/lib/account/store';
 import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
@@ -30,6 +30,7 @@ import {
   VolumeIcon,
 } from '../icons';
 import { FavoriteButton } from './favorite-button';
+import { RunRewards } from './run-rewards';
 import { VoteButtons } from './vote-buttons';
 import styles from './game.module.css';
 
@@ -174,7 +175,13 @@ export function GamePlayer(props: GamePlayerProps) {
           if (message.score !== null) {
             const improved = recordBestScore(slug, message.score, scoreOrder);
             setResult({ score: message.score, improved });
-            run?.finish(message.score).then(setRunResult);
+            run?.finish(message.score).then((finished) => {
+              setRunResult(finished);
+              // XP, level and achievements: the header chip and the stage notes follow.
+              if (finished?.status === 'recorded' && finished.progress) {
+                applyProgress(finished.progress);
+              }
+            });
           }
           if (shouldPromptVote(slug, Date.now() - runStartedRef.current)) setVotePrompt(true);
           break;
@@ -351,6 +358,12 @@ export function GamePlayer(props: GamePlayerProps) {
             allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
             referrerPolicy="origin"
             onLoad={onFrameLoad}
+          />
+        ) : null}
+
+        {phase === 'playing' ? (
+          <RunRewards
+            progress={runResult?.status === 'recorded' ? (runResult.progress ?? null) : null}
           />
         ) : null}
 

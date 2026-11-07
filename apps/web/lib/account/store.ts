@@ -5,6 +5,7 @@
 // the first game launch; signing in with Google links to the same uid (docs/specs/accounts.md).
 import {
   generateGuestName,
+  levelForXp,
   readCharacterId,
   isSupportedLocale,
   usernameKey,
@@ -35,6 +36,9 @@ export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
   createdAt: number | null;
   // When the player last chose a username (ms), for the cooldown hint; null if never.
   usernameChangedAt: number | null;
+  /** Server-written copy of the progress summary's XP and level (docs/adr/0016). */
+  xp: number;
+  level: number;
 };
 
 /** Fields the player can change from the settings page. */
@@ -221,7 +225,10 @@ async function googleSignIn({ link, signIn, credentialFrom }: GoogleFlow): Promi
     // Proof that this browser owned the guest, taken before switching accounts.
     const guestIdToken = await current.getIdToken();
     await signInWithCredential(auth, credential);
-    mergeGuest(guestIdToken).catch((cause) => console.error('[account] guest merge failed', cause));
+    mergeGuest(guestIdToken)
+      // The merge adds the guest's XP to the account's profile; show it.
+      .then(() => (auth.currentUser ? syncProfile(auth.currentUser) : undefined))
+      .catch((cause) => console.error('[account] guest merge failed', cause));
   }
 }
 
@@ -341,6 +348,8 @@ async function syncProfile(user: User): Promise<void> {
         mode: null,
         createdAt: Date.now(),
         usernameChangedAt: null,
+        xp: 0,
+        level: 1,
       };
     }
     const data = snapshot.data();
@@ -362,11 +371,23 @@ async function syncProfile(user: User): Promise<void> {
         typeof data.usernameChangedAt?.toMillis === 'function'
           ? data.usernameChangedAt.toMillis()
           : null,
+      xp: typeof data.xp === 'number' && data.xp > 0 ? data.xp : 0,
+      level: levelForXp(typeof data.xp === 'number' ? data.xp : 0),
     };
   });
   if (state.status === 'signedIn' && state.uid === user.uid) {
     setState({ ...state, isGuest: user.isAnonymous, email: user.email, profile });
   }
+}
+
+/**
+ * Takes the XP and level a finished run reported (finishSession), so the header's level chip
+ * updates without reading the profile again.
+ */
+export function applyProgress(progress: { xp: number; level: number }): void {
+  if (state.status !== 'signedIn' || !state.profile) return;
+  if (progress.xp < state.profile.xp) return;
+  setState({ ...state, profile: { ...state.profile, xp: progress.xp, level: progress.level } });
 }
 
 /** Saves settings-page changes to users/{uid}; the UI updates immediately. */
@@ -502,9 +523,10 @@ export async function exportAccountData(): Promise<string> {
   if (!user) throw new Error('Not signed in');
   const db = await loadFirestore();
   const { doc, getDoc } = await import('firebase/firestore');
-  const [profile, library] = await Promise.all([
+  const [profile, library, progress] = await Promise.all([
     getDoc(doc(db, 'users', user.uid)),
     getDoc(doc(db, 'users', user.uid, 'library', 'state')),
+    getDoc(doc(db, 'users', user.uid, 'progress', 'summary')),
   ]);
   const data = {
     exportedAt: new Date().toISOString(),
@@ -517,6 +539,7 @@ export async function exportAccountData(): Promise<string> {
     },
     profile: profile.exists() ? toJson(profile.data()) : null,
     library: library.exists() ? toJson(library.data()) : null,
+    progress: progress.exists() ? toJson(progress.data()) : null,
   };
   return JSON.stringify(data, null, 2);
 }

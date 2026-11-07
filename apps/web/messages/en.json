@@ -466,5 +466,83 @@
       "failed": "The table could not be opened. Check your connection and try again.",
       "unavailable": "Online play is not available right now."
     }
+  },
+  "progress": {
+    "title": "Progress",
+    "loading": "Loading your progress…",
+    "level": "Level {level}",
+    "chipLabel": "Level {level}: {xp} XP to level {next}",
+    "chipLabelMax": "Level {level}: the top level",
+    "xpOf": "{into} / {needed} XP",
+    "toNext": "{xp} XP to level {next}",
+    "maxLevel": "You reached the top level.",
+    "totalXp": "{xp} XP in total",
+    "statRuns": "Games finished",
+    "statGames": "Different games",
+    "statCategories": "Categories",
+    "statBests": "Records beaten",
+    "statPlayTime": "Play time",
+    "statBadges": "Achievements",
+    "playHours": "{hours} h {minutes} min",
+    "playMinutes": "{minutes} min",
+    "count": "{value}/{target}",
+    "badgesTitle": "Badges",
+    "unlockedOn": "Unlocked {date}",
+    "locked": "Locked",
+    "howTo": "Finish games to earn XP: a run of 20 seconds or more, your first run of each game, a new personal best and a place in a weekly top 10 all count. Each achievement adds 30 XP.",
+    "toastXp": "+{xp} XP",
+    "toastLevel": "Level {level}!",
+    "toastAchievement": "Achievement unlocked: {name}",
+    "toasts": "Rewards for this run"
+  },
+  "achievements": {
+    "first-run": {
+      "name": "First Run",
+      "desc": "Finish your first game."
+    },
+    "runs-25": {
+      "name": "Regular",
+      "desc": "Finish 25 games."
+    },
+    "runs-100": {
+      "name": "Devoted",
+      "desc": "Finish 100 games."
+    },
+    "runs-500": {
+      "name": "Arcade Legend",
+      "desc": "Finish 500 games."
+    },
+    "explorer-5": {
+      "name": "Explorer",
+      "desc": "Play 5 different games."
+    },
+    "explorer-20": {
+      "name": "Globetrotter",
+      "desc": "Play 20 different games."
+    },
+    "explorer-50": {
+      "name": "Collector",
+      "desc": "Play 50 different games."
+    },
+    "all-rounder": {
+      "name": "All-Rounder",
+      "desc": "Play a game in every category."
+    },
+    "best-10": {
+      "name": "Record Breaker",
+      "desc": "Beat your personal best 10 times."
+    },
+    "top-10": {
+      "name": "Top Ten",
+      "desc": "Reach the weekly top 10 of any game."
+    },
+    "champion": {
+      "name": "Champion",
+      "desc": "Be #1 on a weekly leaderboard."
+    },
+    "marathon": {
+      "name": "Marathon",
+      "desc": "Play for 60 minutes in total."
+    }
   }
 }

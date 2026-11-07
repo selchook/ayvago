@@ -8,7 +8,8 @@ import { requirePlayer } from './appcheck';
 import { fail } from './errors';
 import { leaderboardGame, type LeaderboardGame } from './games';
 import { applyScore, boardRef, playerCard, rankOf } from './leaderboards';
-import { countFinish, countStart } from './stats';
+import { awardProgress, type ProgressResult } from './progress';
+import { countFinish, countStart, MAX_COUNTED_RUN_MS } from './stats';
 
 // Score sessions (docs/specs/leaderboards.md §7). A run starts with startSession when the game
 // reports GHA_SESSION_START and ends with finishSession on GHA_END. sessions/{id} is written by
@@ -69,6 +70,8 @@ export type FinishResult =
         'season' | 'all',
         { improved: boolean; best: number; rank: number; previousRank: number | null }
       >;
+      /** XP, level and achievements the run earned (docs/adr/0016-achievements-and-xp.md). */
+      progress: ProgressResult;
     };
 
 type Verdict = { reject: string | null; flags: string[] };
@@ -211,6 +214,8 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     return { status: 'flagged' };
   }
 
+  // The accepted score and its progress (XP, level, achievements) commit together.
+  const earned: { progress?: ProgressResult } = {};
   const outcomes = await applyScore({
     game,
     uid: caller.uid,
@@ -218,9 +223,30 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     continued: continues > 0,
     sessionId,
     now,
+    hook: awardProgress({
+      uid: caller.uid,
+      game,
+      seconds: Math.round(Math.min(serverMs, MAX_COUNTED_RUN_MS) / 1000),
+      now,
+      onResult: (result) => {
+        earned.progress = result;
+      },
+    }),
   });
   await close({ status: 'finished', improved: outcomes.some((o) => o.improved) });
-  return { status: 'recorded', boards: await describeBoards(game, outcomes, score, now) };
+  const progress = earned.progress!;
+  if (progress.unlocked.length > 0) {
+    logger.info('Achievements unlocked', {
+      uid: caller.uid,
+      gameId: game.gameId,
+      unlocked: progress.unlocked,
+    });
+  }
+  return {
+    status: 'recorded',
+    boards: await describeBoards(game, outcomes, score, now),
+    progress,
+  };
 }
 
 async function describeBoards(

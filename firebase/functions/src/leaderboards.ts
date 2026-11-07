@@ -49,6 +49,22 @@ export type BoardOutcome = {
   /** The player's previous best in this period, if any. */
   previous: number | null;
   achievedAt: number;
+  /** The player's place in the board's cached top list before and after the score (null: absent). */
+  previousPlace: number | null;
+  place: number | null;
+};
+
+/**
+ * Extra work inside the score transaction (progress, docs/adr/0016-achievements-and-xp.md): it
+ * does its reads when called, then returns the step that writes once the outcomes are known.
+ */
+export type ScoreHook = (
+  tx: FirebaseFirestore.Transaction,
+) => Promise<(outcomes: BoardOutcome[]) => void>;
+
+const placeOf = (top: BoardRow[], uid: string) => {
+  const index = top.findIndex((row) => row.uid === uid);
+  return index < 0 ? null : index + 1;
 };
 
 /**
@@ -67,6 +83,8 @@ export async function applyScore(options: {
   achievedAt?: number;
   /** Boards to write; defaults to both. */
   boards?: readonly BoardKey[];
+  /** Runs in the same transaction (finishSession awards progress here). */
+  hook?: ScoreHook;
 }): Promise<BoardOutcome[]> {
   const { game, uid, score, continued, sessionId, now } = options;
   const achievedAt = options.achievedAt ?? now;
@@ -92,8 +110,9 @@ export async function applyScore(options: {
           : null;
       }),
     );
+    const finish = options.hook ? await options.hook(tx) : null;
 
-    return reads.map(({ board, boardDoc, entry }, i): BoardOutcome => {
+    const outcomes = reads.map(({ board, boardDoc, entry }, i): BoardOutcome => {
       const period = periodKey(board, now);
       const archive = archives[i];
       let top = rows(boardDoc.data());
@@ -101,6 +120,7 @@ export async function applyScore(options: {
         if (!archive.exists) writeArchive(tx, game.gameId, archive.stale, boardDoc.data(), order);
         top = [];
       }
+      const previousPlace = placeOf(top, uid);
       const old = entry.data() as Entry | undefined;
       const previous = old && old.periodKey === period ? old.score : null;
       const improved = previous === null || isBetterScore(score, previous, order);
@@ -112,6 +132,8 @@ export async function applyScore(options: {
           best: previous,
           previous,
           achievedAt: old!.achievedAt.toMillis(),
+          previousPlace,
+          place: previousPlace,
         };
       }
       tx.set(entryRef(game.gameId, board, uid), {
@@ -123,8 +145,18 @@ export async function applyScore(options: {
       });
       top = upsertRow(top, { uid, ...card, score, achievedAt, continued }, order);
       writeBoard(tx, game.gameId, board, period, order, top);
-      return { board, improved, best: score, previous, achievedAt };
+      return {
+        board,
+        improved,
+        best: score,
+        previous,
+        achievedAt,
+        previousPlace,
+        place: placeOf(top, uid),
+      };
     });
+    finish?.(outcomes);
+    return outcomes;
   });
 }
 

@@ -459,6 +459,59 @@ describe('users/{uid}/library/state', () => {
   });
 });
 
+describe('users/{uid}/progress/summary', () => {
+  const ref = (db: ReturnType<typeof guest>, uid: string) =>
+    doc(db, 'users', uid, 'progress', 'summary');
+
+  beforeEach(async () => {
+    await seed('alice', { xp: 350, level: 3 });
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users/alice/progress/summary'), {
+        xp: 350,
+        level: 3,
+        runs: 12,
+      });
+    });
+  });
+
+  it('can be read by its owner, guests included, and by admins', async () => {
+    await assertSucceeds(getDoc(ref(guest('alice'), 'alice')));
+    await assertSucceeds(getDoc(ref(google('boss', { admin: true }), 'alice')));
+  });
+
+  it('cannot be read by other players or signed-out visitors', async () => {
+    await assertFails(getDoc(ref(guest('mallory'), 'alice')));
+    await assertFails(getDoc(ref(env.unauthenticatedContext().firestore(), 'alice')));
+  });
+
+  it('cannot be written by anyone, its owner and admins included', async () => {
+    await assertFails(setDoc(ref(guest('alice'), 'alice'), { xp: 1e9, level: 99 }));
+    await assertFails(updateDoc(ref(guest('alice'), 'alice'), { xp: 1e9 }));
+    await assertFails(deleteDoc(ref(guest('alice'), 'alice')));
+    await assertFails(setDoc(ref(guest('bob'), 'bob'), { xp: 10 }));
+    await assertFails(updateDoc(ref(google('boss', { admin: true }), 'alice'), { xp: 0 }));
+  });
+
+  it("keeps xp and level on the profile out of the owner's reach", async () => {
+    const db = guest('alice');
+    await assertFails(
+      updateDoc(doc(db, 'users', 'alice'), { xp: 1e9, updatedAt: serverTimestamp() }),
+    );
+    await assertFails(
+      updateDoc(doc(db, 'users', 'alice'), { level: 99, updatedAt: serverTimestamp() }),
+    );
+    await assertFails(
+      updateDoc(doc(db, 'users', 'alice'), { xp: deleteField(), updatedAt: serverTimestamp() }),
+    );
+    // Other settings still save while the server's copy is there.
+    await assertSucceeds(
+      updateDoc(doc(db, 'users', 'alice'), { locale: 'tr', updatedAt: serverTimestamp() }),
+    );
+    const profile = await getDoc(doc(db, 'users', 'alice'));
+    expect(profile.data()).toMatchObject({ xp: 350, level: 3 });
+  });
+});
+
 describe('everything else', () => {
   it('stays closed', async () => {
     await assertFails(setDoc(doc(guest('alice'), 'games', 'orbsurge'), { title: 'x' }));

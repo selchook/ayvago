@@ -6,7 +6,7 @@ import { db } from './admin';
 //   games/{gameId}/daily/{YYYY-MM-DD} { started, finished, playSeconds }   catalog ranking
 
 /** Longest run counted towards play time, so a forgotten tab does not inflate the stats. */
-const MAX_COUNTED_RUN_MS = 3 * 60 * 60 * 1000;
+export const MAX_COUNTED_RUN_MS = 3 * 60 * 60 * 1000;
 
 export const dayKey = (time: number) => new Date(time).toISOString().slice(0, 10);
 

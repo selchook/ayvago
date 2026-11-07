@@ -1,4 +1,5 @@
 import { firebaseEnabled, loadFunctions } from '@/lib/firebase/client';
+import { isRunProgress, type RunProgress } from '@/lib/progress/notes';
 
 // Score sessions (docs/specs/leaderboards.md §7): a run is registered with startSession when the
 // game reports that gameplay started, and its score is submitted with finishSession when the
@@ -17,7 +18,12 @@ export type BoardResult = {
 export type RunResult =
   | { status: 'rejected'; reason: string }
   | { status: 'flagged' }
-  | { status: 'recorded'; boards: { season: BoardResult; all: BoardResult } };
+  | {
+      status: 'recorded';
+      boards: { season: BoardResult; all: BoardResult };
+      /** XP, level and achievements the run earned (docs/adr/0016-achievements-and-xp.md). */
+      progress?: RunProgress;
+    };
 
 /** Fired on window after a score reached the boards, so leaderboard views can refresh ranks. */
 export const SCORE_RECORDED_EVENT = 'ayvago:score-recorded';
@@ -65,6 +71,7 @@ export function beginRun(gameId: string, identity: Promise<unknown>): Run {
           continues,
         });
         if (result.status === 'recorded') {
+          if (!isRunProgress(result.progress)) delete result.progress;
           window.dispatchEvent(new CustomEvent(SCORE_RECORDED_EVENT, { detail: { gameId } }));
         }
         return result;

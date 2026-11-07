@@ -1,0 +1,319 @@
+/* Level chip, the profile's Progress section and badges (docs/adr/0016-achievements-and-xp.md). */
+
+.chip {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: var(--text);
+  line-height: 1;
+}
+
+.chip svg {
+  position: absolute;
+  inset: 0;
+}
+
+.chipTrack {
+  fill: var(--surface);
+  stroke: var(--border);
+}
+
+.chipFill {
+  fill: none;
+  stroke: var(--accent);
+  transition: stroke-dashoffset var(--motion-slow) var(--easing);
+}
+
+[data-theme='arcade'] .chipFill {
+  stroke-linecap: butt;
+}
+
+.chipLevel {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The pixel font is wide; keep two digits inside the ring. */
+[data-theme='arcade'] .chipLevel {
+  font-size: 0.72em;
+}
+
+.levelRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.levelText {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.levelTitle {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+[data-theme='arcade'] .levelTitle {
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.bar,
+.miniBar {
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: var(--border-width) solid var(--border);
+}
+
+.bar {
+  height: 12px;
+}
+
+.miniBar {
+  flex: 1;
+  max-width: 72px;
+  height: 6px;
+  /* Too thin for a theme's border (cartoon draws thick ones): a tinted track instead. */
+  border: 0;
+  background: color-mix(in srgb, var(--text-muted) 25%, transparent);
+}
+
+[data-theme='arcade'] .bar,
+[data-theme='arcade'] .miniBar,
+[data-theme='arcade'] .bar > span,
+[data-theme='arcade'] .miniBar > span {
+  border-radius: 0;
+}
+
+.bar > span,
+.miniBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width var(--motion-slow) var(--easing);
+}
+
+.levelMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stats div {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: var(--border-width) solid var(--border);
+}
+
+.stats dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stats dd {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='arcade'] .stats dd {
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+
+.badges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+}
+
+.badge[data-unlocked='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-raised));
+}
+
+.badgeIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent2) 55%, transparent);
+}
+
+[data-theme='arcade'] .badgeIcon {
+  border-radius: 0;
+}
+
+/* Locked: a dimmed, colourless icon; the text stays readable. */
+.badge[data-unlocked='false'] .badgeIcon {
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: none;
+  border: var(--border-width) dashed var(--border);
+  opacity: 0.75;
+}
+
+.badgeText {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.badgeText strong {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+[data-theme='arcade'] .badgeText strong {
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.badgeDesc {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.badgeState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge[data-unlocked='false'] .badgeState {
+  color: var(--text-muted);
+}
+
+/* After a run: short notes, one at a time, at the top edge of the game stage. They never take
+   clicks, so the game's own result screen stays usable. */
+.toasts {
+  position: absolute;
+  inset-inline: 8px;
+  top: 8px;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: toast-in var(--motion-base) var(--easing) both;
+}
+
+.toast[data-kind='xp'],
+.toast[data-kind='level'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+[data-theme='arcade'] .toast {
+  border-radius: 0;
+  font-size: 0.7rem;
+}
+
+.toast svg {
+  flex: none;
+}
+
+.toasts[data-leaving='true'] .toast {
+  animation: toast-out var(--motion-base) var(--easing) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipFill,
+  .bar > span,
+  .miniBar > span {
+    transition: none;
+  }
+
+  .toast,
+  .toasts[data-leaving='true'] .toast {
+    animation: none;
+  }
+
+  .toasts[data-leaving='true'] {
+    visibility: hidden;
+  }
+}
