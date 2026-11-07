@@ -186,7 +186,7 @@ describe('users/{uid} update', () => {
     await assertSucceeds(
       updateDoc(doc(guest('alice'), 'users', 'alice'), {
         avatarId: 'rocket-violet',
-        theme: 'retro',
+        theme: 'arcade',
         mode: 'dark',
         updatedAt: serverTimestamp(),
       }),
@@ -272,7 +272,7 @@ describe('users/{uid} update', () => {
     await assertSucceeds(
       updateDoc(doc(guest('alice'), 'users', 'alice'), {
         locale: 'tr',
-        theme: 'retro',
+        theme: 'arcade',
         updatedAt: serverTimestamp(),
       }),
     );
@@ -280,6 +280,32 @@ describe('users/{uid} update', () => {
     await assertSucceeds(
       updateDoc(doc(google('alice'), 'users', 'alice'), {
         isGuest: false,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('keeps other profile updates working while the retired retro theme is stored', async () => {
+    await seed('alice', { theme: 'retro' });
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        locale: 'tr',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        theme: 'arcade',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('never accepts the retired retro theme as a new choice', async () => {
+    await seed('alice', { theme: 'minimal' });
+    await assertFails(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        theme: 'retro',
         updatedAt: serverTimestamp(),
       }),
     );

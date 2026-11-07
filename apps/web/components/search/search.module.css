@@ -122,7 +122,7 @@
 }
 
 /* Pixel themes: square corners, the portal's search field (dark well, cyan focus). */
-:is([data-theme='retro'], [data-theme='arcade']) :is(.field, .top, .suggestions, .suggestions a) {
+[data-theme='arcade'] :is(.field, .top, .suggestions, .suggestions a) {
   border-radius: 0;
 }
 

@@ -22,7 +22,7 @@
   font-size: 1.15rem;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .card h2 {
+[data-theme='arcade'] .card h2 {
   font-size: 0.85rem;
   line-height: 1.6;
 }
@@ -62,7 +62,7 @@
   overflow-wrap: anywhere;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .identity .name {
+[data-theme='arcade'] .identity .name {
   font-size: 0.8rem;
 }
 
@@ -159,9 +159,9 @@
   cursor: pointer;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .choice,
-:is([data-theme='retro'], [data-theme='arcade']) .disc,
-:is([data-theme='retro'], [data-theme='arcade']) .swatch {
+[data-theme='arcade'] .choice,
+[data-theme='arcade'] .disc,
+[data-theme='arcade'] .swatch {
   border-radius: 0;
 }
 

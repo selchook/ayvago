@@ -1,7 +1,7 @@
 # Ayvago — working agreement for Claude
 
 Ayvago (https://ayvago.com) is a web game platform: a catalog of retro action, casual and puzzle
-HTML5 games with accounts, leaderboards, voting, three UI themes (retro / cartoon / minimal),
+HTML5 games with accounts, leaderboards, voting, three UI themes (minimal / cartoon / arcade),
 rewarded ads with a `remove_ads` purchase, multiplayer, and later a third-party developer program.
 
 ## Language rules

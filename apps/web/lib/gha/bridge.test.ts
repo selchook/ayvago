@@ -84,14 +84,14 @@ describe('parseGameMessage', () => {
 describe('buildStartConfig', () => {
   it('includes the v1 fields and protocol 2 additions', () => {
     const config = buildStartConfig({
-      theme: 'retro',
+      theme: 'arcade',
       colorMode: 'dark',
       tokens: { '--accent': '#39ff88' },
       locale: 'tr',
       adsEnabled: false,
     });
     expect(config).toMatchObject({ mode: 'solo', isHost: true, playerIndex: 0, playerCount: 1 });
-    expect(config).toMatchObject({ protocol: 2, theme: 'retro', locale: 'tr' });
+    expect(config).toMatchObject({ protocol: 2, theme: 'arcade', locale: 'tr' });
   });
 
   it('seats both players of an online match', () => {

@@ -17,8 +17,8 @@ You are the QA engineer for the Ayvago platform. For the assigned slice or branc
    - **Pages:** private or short-lived pages are `noindex`; game iframes keep the sandbox and the
      origin + source checks.
 3. Start the app (`next start`, or `next dev` against the emulators) and take Playwright
-   screenshots on a 360 px phone and a 1280 px desktop, in arcade, minimal light, minimal dark,
-   retro and cartoon, in both `/tr` and `/en`. Look at each one for:
+   screenshots on a 360 px phone and a 1280 px desktop, in minimal light, minimal dark,
+   cartoon and arcade, in both `/tr` and `/en`. Look at each one for:
    - overflow, clipped or overlapping text;
    - untranslated keys;
    - unreadable contrast;

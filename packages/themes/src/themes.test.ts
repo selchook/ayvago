@@ -9,6 +9,7 @@ import {
   THEMES,
   THEME_IDS,
   colorsFor,
+  normalizeThemeId,
   resolveMode,
   type ColorMode,
   type ColorTokens,
@@ -35,8 +36,8 @@ const PAIRS: [keyof ColorTokens, keyof ColorTokens, number][] = [
 ];
 
 describe('theme contrast (WCAG AA)', () => {
-  it('covers six theme/mode combinations', () => {
-    expect(combos).toHaveLength(6);
+  it('covers five theme/mode combinations', () => {
+    expect(combos).toHaveLength(5);
   });
 
   it.each(combos)('%s / %s meets every contrast pair', (theme, mode) => {
@@ -55,7 +56,7 @@ describe('resolveMode', () => {
   });
 
   it('forces the only available mode for single-mode themes', () => {
-    expect(resolveMode('retro', 'light', false)).toBe('dark');
+    expect(resolveMode('arcade', 'light', false)).toBe('dark');
     expect(resolveMode('arcade', 'system', false)).toBe('dark');
   });
 });
@@ -114,5 +115,20 @@ describe('themeBootstrapScript', () => {
       if (id === DEFAULT_THEME) continue;
       expect(css.indexOf('[data-theme="' + id + '"]{'), id).toBeGreaterThan(rootRule);
     }
+  });
+});
+
+describe('retired themes', () => {
+  it('reads the retired retro theme as arcade and unknown ids as nothing', () => {
+    expect(normalizeThemeId('retro')).toBe('arcade');
+    expect(normalizeThemeId('minimal')).toBe('minimal');
+    expect(normalizeThemeId('nope')).toBeNull();
+    expect(normalizeThemeId(undefined)).toBeNull();
+  });
+
+  it('defaults to the minimal theme, which follows the system colour mode', () => {
+    expect(DEFAULT_THEME).toBe('minimal');
+    expect(THEMES.minimal.modes).toEqual(['light', 'dark']);
+    expect(themeBootstrapScript).toContain('"retro":"arcade"');
   });
 });

@@ -4,7 +4,8 @@
 - Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Specs:
   [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md)
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
-  [ADR 0013](../adr/0013-player-characters.md), [ADR 0015](../adr/0015-tables-for-four-with-bots.md)
+  [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
+  [ADR 0015](../adr/0015-tables-for-four-with-bots.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -28,6 +29,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.8 | Landscape games turn the phone sideways in fullscreen; portrait games unchanged (owner request) | ✅ code |
 | 5.9 | Phones: the game toolbar (score, votes, favorite, share, sound, fullscreen) keeps to one line (owner request) | ✅ code |
 | 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
+| 5.11 | Three themes: Retro retired (Arcade covers it); new visitors get Minimal in the system's colours (owner request, [ADR 0014](../adr/0014-three-themes-minimal-default.md)) | ✅ code |
 | 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
@@ -364,6 +366,44 @@ Tests: Playwright on `next dev` with the arcade games served locally (`AYVAGO_DE
 - 915×412: 87–405 px (was 87–417);
 - 1280×650 and 1366×768: unchanged;
 - screenshots show Tito's Tank whole at 844×390, 412×860 and 1366×768.
+
+Still open: nothing.
+
+## 5.11 Three themes, Minimal by default ✅
+
+The owner asked for two changes:
+- remove the Retro theme, because the Arcade theme already gives the pixel look;
+- start new visitors in the Minimal theme with the system's colours.
+
+What shipped:
+- **Themes** (`packages/themes`):
+  - `THEME_IDS` is `minimal`, `cartoon`, `arcade`, and `DEFAULT_THEME` is `minimal`;
+  - Minimal follows `prefers-color-scheme` until a mode is chosen (the "system" preference, as before);
+  - the retro token set is removed.
+- **Retired id:** `RETIRED_THEMES` maps `retro` to `arcade`, and `normalizeThemeId()` applies it in:
+  - the head bootstrap script (cookies);
+  - the account store (`users/{uid}.theme`);
+  - the PWA manifest route.
+- **Styles:**
+  - `:is([data-theme='retro'], [data-theme='arcade'])` selectors became `[data-theme='arcade']`;
+  - the Retro-only rules are removed: pixelated images, the green logo and slogan.
+- **Messages:** `theme.retro` is removed from `en.json` and `tr.json`. The theme picker lists three
+  themes. The **Retro category** of games is unchanged.
+- **Firestore rules:** a new theme choice must be `minimal`, `cartoon` or `arcade`. The theme is
+  checked only when a write changes it, so profiles that still hold `retro` keep saving their other
+  fields.
+
+Deviations: none.
+
+Tests:
+- themes: the contrast test (five combinations), `normalizeThemeId`, the default theme and mode,
+  and the bootstrap mapping;
+- web: the PWA bar colour for a retired and an unknown theme;
+- Firestore emulator:
+  - a stored `retro` still lets other fields update;
+  - `retro` is refused as a new choice;
+  - the three themes are accepted;
+- the adapter and bridge tests use `arcade` as the sample theme.
 
 Still open: nothing.
 

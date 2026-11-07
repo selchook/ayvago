@@ -27,7 +27,7 @@
 }
 
 /* Retro covers: hard-edged stripes and a pixel grid instead of soft gradients. */
-:is([data-theme='retro'], [data-theme='arcade']) .cover {
+[data-theme='arcade'] .cover {
   background:
     repeating-linear-gradient(0deg, rgb(0 0 0 / 0.25) 0 2px, transparent 2px 6px),
     linear-gradient(180deg, hsl(var(--h1) 80% 30%) 0 50%, hsl(var(--h2) 80% 22%) 50% 100%);
@@ -47,7 +47,7 @@
   height: 96px;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .coverIcon {
+[data-theme='arcade'] .coverIcon {
   border-radius: 0;
 }
 
@@ -70,12 +70,12 @@
   font-size: clamp(1.4rem, 3vw, 2.2rem);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .coverTitle {
+[data-theme='arcade'] .coverTitle {
   font-size: 0.7rem;
   line-height: 1.6;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .cover[data-size='hero'] .coverTitle {
+[data-theme='arcade'] .cover[data-size='hero'] .coverTitle {
   font-size: clamp(0.9rem, 2vw, 1.3rem);
 }
 
@@ -121,7 +121,7 @@
    outline on hover and colored genre tags. Every card has the same height: the screenshot is
    always 9:12 (landscape games are fitted on a blurred copy of their own frame), the title takes
    two lines and the tags two rows. */
-:is([data-theme='retro'], [data-theme='arcade']) .tile {
+[data-theme='arcade'] .tile {
   align-content: start;
   border: 3px solid #000;
   box-shadow: 0 6px 0 #000;
@@ -130,42 +130,42 @@
     box-shadow 0.12s;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tile:hover,
-:is([data-theme='retro'], [data-theme='arcade']) .tile:focus-visible {
+[data-theme='arcade'] .tile:hover,
+[data-theme='arcade'] .tile:focus-visible {
   transform: translateY(-4px);
   border-color: #000;
   box-shadow: 0 10px 0 #000;
   outline: 3px solid var(--accent);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot] .cover {
+[data-theme='arcade'] .tile[data-shot] .cover {
   display: none;
 }
 
 /* Games without a screenshot keep their cover, in the same 9:12 frame. */
-:is([data-theme='retro'], [data-theme='arcade']) .tile:not([data-shot]) .cover {
+[data-theme='arcade'] .tile:not([data-shot]) .cover {
   aspect-ratio: 9 / 12;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot] .shot {
+[data-theme='arcade'] .tile[data-shot] .shot {
   display: block;
   aspect-ratio: 9 / 12;
   background: #111;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .shot img {
+[data-theme='arcade'] .shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot {
+[data-theme='arcade'] .tile[data-shot='landscape'] .shot {
   position: relative;
   overflow: hidden;
 }
 
 /* The backdrop only exists (and so only loads) while the screenshot is shown. */
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot::before {
+[data-theme='arcade'] .tile[data-shot='landscape'] .shot::before {
   content: '';
   position: absolute;
   inset: -12%;
@@ -173,17 +173,17 @@
   filter: blur(12px) brightness(0.5);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tile[data-shot='landscape'] .shot img {
+[data-theme='arcade'] .tile[data-shot='landscape'] .shot img {
   position: relative;
   object-fit: contain;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tileMeta {
+[data-theme='arcade'] .tileMeta {
   padding: 10px;
   gap: 6px;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tileTitle {
+[data-theme='arcade'] .tileTitle {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -197,7 +197,7 @@
 }
 
 /* Two rows of tags (20 px each), whatever the number of tags or the card width. */
-:is([data-theme='retro'], [data-theme='arcade']) .tileCategory {
+[data-theme='arcade'] .tileCategory {
   height: 44px;
   overflow: hidden;
   align-items: flex-start;
@@ -232,7 +232,7 @@
   color: var(--accent-contrast);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .badge {
+[data-theme='arcade'] .badge {
   border-radius: 0;
 }
 
@@ -317,7 +317,7 @@
 }
 
 /* Pixel themes: the portal's square cyan / yellow / pink tags with ink text. */
-:is([data-theme='retro'], [data-theme='arcade']) .tag {
+[data-theme='arcade'] .tag {
   border-radius: 0;
   padding: 1px 6px;
   font-size: 13px;
@@ -328,11 +328,11 @@
   background: #3ee6ff;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tag[data-tone='1'] {
+[data-theme='arcade'] .tag[data-tone='1'] {
   background: #ffd23f;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tag[data-tone='2'] {
+[data-theme='arcade'] .tag[data-tone='2'] {
   background: #ff4fa3;
 }
 
@@ -342,7 +342,7 @@
   background: var(--accent);
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .tag[data-kind='mp'] {
+[data-theme='arcade'] .tag[data-kind='mp'] {
   color: #201e1d;
   background: #5dff7a;
 }
@@ -423,7 +423,7 @@
   display: none;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .arrow {
+[data-theme='arcade'] .arrow {
   border-radius: 0;
 }
 
@@ -446,12 +446,12 @@
 }
 
 /* Pixel-theme grids and shelves use the portal's card widths. */
-:is([data-theme='retro'], [data-theme='arcade']) .grid {
+[data-theme='arcade'] .grid {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 14px;
 }
 
-:is([data-theme='retro'], [data-theme='arcade']) .shelfList {
+[data-theme='arcade'] .shelfList {
   align-items: start;
   grid-auto-columns: clamp(220px, 22%, 260px);
   gap: 14px;
@@ -464,11 +464,11 @@
     gap: 12px;
   }
 
-  :is([data-theme='retro'], [data-theme='arcade']) .shelfList {
+  [data-theme='arcade'] .shelfList {
     grid-auto-columns: 44%;
   }
 
-  :is([data-theme='retro'], [data-theme='arcade']) .grid {
+  [data-theme='arcade'] .grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 

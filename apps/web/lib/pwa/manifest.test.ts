@@ -44,9 +44,11 @@ describe('web app manifest', () => {
   });
 
   it('falls back safely on unknown input', () => {
-    // Dark-only themes ignore a light request; unknown themes use the default theme.
-    expect(barColor('retro', 'light')).toBe(THEMES.retro.colors.dark?.surface);
-    expect(barColor('nope', 'light')).toBe(THEMES[DEFAULT_THEME].colors.dark?.surface);
+    // Dark-only themes ignore a light request; a retired theme uses its replacement; unknown
+    // themes use the default theme.
+    expect(barColor('arcade', 'light')).toBe(THEMES.arcade.colors.dark?.surface);
+    expect(barColor('retro', 'dark')).toBe(THEMES.arcade.colors.dark?.surface);
+    expect(barColor('nope', 'light')).toBe(THEMES[DEFAULT_THEME].colors.light?.surface);
     expect(manifestHref('arcade', 'dark')).toBe('/manifest.webmanifest?theme=arcade&mode=dark');
   });
 });
