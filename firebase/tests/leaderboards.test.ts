@@ -66,8 +66,8 @@ describe('finishSession', () => {
     expect(result).toEqual({
       status: 'recorded',
       boards: {
-        season: { improved: true, best: 5000, rank: 1, previousRank: null },
-        all: { improved: true, best: 5000, rank: 1, previousRank: null },
+        season: { improved: true, best: 5000, previous: null, rank: 1, previousRank: null },
+        all: { improved: true, best: 5000, previous: null, rank: 1, previousRank: null },
       },
       // First play (+20), a 60 s run (+10), into the weekly top 10 (+50) and three achievements
       // (first-run, top-10, champion: +30 each).
@@ -100,12 +100,17 @@ describe('finishSession', () => {
     const bora = await guest({ username: 'Bora' });
     await play(ayla, 5000);
     const worse = await play(ayla, 1000);
-    expect(worse).toMatchObject({ boards: { season: { improved: false, best: 5000, rank: 1 } } });
+    expect(worse).toMatchObject({
+      boards: { season: { improved: false, best: 5000, previous: 5000, rank: 1 } },
+    });
 
     const second = await play(bora, 3000);
     expect(second).toMatchObject({ boards: { all: { rank: 2 } } });
     const first = await play(bora, 9000);
-    expect(first).toMatchObject({ boards: { all: { improved: true, rank: 1, previousRank: 2 } } });
+    // `previous` tells the game player this beat an earlier best (a personal best, slice 5.13).
+    expect(first).toMatchObject({
+      boards: { all: { improved: true, best: 9000, previous: 3000, rank: 1, previousRank: 2 } },
+    });
     expect((await top(ALL)).map((row) => [row.username, row.score])).toEqual([
       ['Bora', 9000],
       ['Ayla', 5000],

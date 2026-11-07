@@ -5,7 +5,8 @@
   [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md)
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
   [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
-  [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md)
+  [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md),
+  [ADR 0017](../adr/0017-server-best-and-fresh-start.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -31,6 +32,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
 | 5.11 | Three themes: Retro retired (Arcade covers it); new visitors get Minimal in the system's colours (owner request, [ADR 0014](../adr/0014-three-themes-minimal-default.md)) | ✅ code |
 | 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
+| 5.13 | Fresh start: progress reset and server-synced bests. Games get the player's server best in `GHA_START` (protocol 2.4), the toolbar's personal best follows the server, and a "Reset progress" workflow clears all progress once (owner request, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) | ✅ code · ⏳ reset |
 
 ## 5.1 Player characters ✅
 
@@ -569,3 +571,122 @@ Still open:
 - the first table game (Turkish Okey) comes from the studio and reaches the catalog through the
   "Sync arcade catalog" PR;
 - re-hosting when the host leaves for good.
+
+## 5.13 Fresh start: progress reset and server-synced bests ✅ code
+
+After the games moved to their new origin (`ayvago-games-nine.vercel.app`), every game showed
+"YENİ REKOR!" (new best) even for scores below the player's real best. The games keep their best
+in `localStorage` on their own origin, which starts empty on a new origin. The platform's toolbar
+had the same weakness: its "Personal best!" compared with the browser library, not the server.
+
+The owner decided:
+- **(A)** reset every player's progress for a fresh start;
+- **(B)** make the server the source of truth for bests, so this cannot recur.
+
+Decision record: [ADR 0017](../adr/0017-server-best-and-fresh-start.md).
+
+What shipped:
+- **Protocol 2.4** (`packages/platform-adapter` 2.4.0):
+  - `GHA_START.config.best?: number | null`. A number is the player's best for the game on the
+    platform, as stored (the lowest for lower-is-better games). `null` means no recorded score
+    yet. Absent means the platform does not know, so the game keeps its own value.
+  - The adapter keeps `best` only as a finite number or `null` and drops anything else. Games read
+    it from `config.best`, like the other start fields.
+- **Bridge** (`lib/gha/bridge.ts`): `buildStartConfig` takes `best`. A number or `null` is
+  passed on; `undefined` and non-finite numbers are left out.
+- **Game player** (`components/game/game-player.tsx`, `lib/leaderboard/best.ts`,
+  `lib/leaderboard/server-best.ts`):
+  - Before `GHA_START`, solo runs read the player's all-time entry,
+    `leaderboards/{gameId}/boards/all/entries/{uid}`, side by side with the character. The read
+    waits at most 1.5 s.
+  - The result: the entry's score; `null` when nobody is signed in once the auth state is known,
+    or there is no entry; left out when Firebase is off, the read fails or it times out.
+  - Online rounds leave `best` out, since they are not ranked.
+  - The toolbar's best before a run is a live view of the same entry. The browser library is the
+    fallback only while the account loads, when Firebase is off or when the read fails.
+  - After a run, "Personal best!" comes from `finishSession`: `boards.all.improved` with a
+    previous best. A first score, a rejected run and a flagged run are not personal bests. Runs
+    not registered with the server (Firebase off, sign-in failed) keep the browser's answer.
+- **`finishSession`** adds `previous` to each board of its `recorded` result: the player's best on
+  that board before the run, `null` for a first score. The change is backward compatible; for
+  servers without it the web app reads `previousRank !== null`, which means the same.
+- **Browser reset** (`lib/library.ts`): `BEST_EPOCH = '2026-11-07'`. A browser with another stored
+  epoch clears its best scores once (favorites and recently played stay), including the old
+  per-game `ayvago:best:<slug>` keys, and stores the epoch.
+- **Reset workflow** (`.github/workflows/reset-progress.yml`, "Reset progress", manual):
+  - Inputs: `confirm` must be exactly `RESET ALL PROGRESS` (checked first, for dry runs too);
+    `dry_run` defaults to true.
+  - It authenticates like `deploy-functions.yml` (the secret goes to a temporary key file used by
+    `GOOGLE_APPLICATION_CREDENTIALS`, removed on exit) and runs
+    `firebase/functions/scripts/reset-progress.mjs` with `firebase-admin` from the functions
+    package. The selection and delete logic is in `reset-progress-lib.mjs`.
+  - The backup is written before anything is deleted (nothing is deleted when that fails) and is
+    uploaded as an artifact kept for 90 days. It is one JSON file with Timestamps as ISO strings,
+    holding:
+    - every document under `leaderboards/**` (boards, entries, season archives);
+    - `users/*/stats/*` and `users/*/progress/*`;
+    - `xp` and `level` of `users/*`;
+    - the `best` map of `users/*/library/state`;
+    - `sessions/*`.
+  - Then it deletes:
+    - `leaderboards` with `recursiveDelete`;
+    - the stats and progress documents, found with collection-group queries and limited to
+      `users/{uid}/…`;
+    - `xp` and `level` with `FieldValue.delete()`;
+    - the library's `best` map, set to `{}`;
+    - `sessions` with `recursiveDelete`.
+  - It keeps the rest of each profile, favorites and recently played, votes, `games/*` counters,
+    rankings, rooms and tables, usernames, roles and bans.
+  - It logs the counts per category, also in the job summary, and exits non-zero on any error.
+
+Deviations from the brief:
+- **Source of the server best.** The brief preferred `users/{uid}/stats/{gameId}.bestScore`, but
+  the stats document has no best (`plays`, `playSeconds`, `lastPlayedAt` only). The all-time
+  leaderboard entry is the server's best already: only `finishSession` and the admin review write
+  it, the guest merge moves it, and account deletion and bans remove it. It is public, so no new
+  field, function write or rule was needed.
+- **The account library's bests are reset too.** The library sync makes the account copy win on
+  every page load, so without this the old bests would come back right after the browser epoch
+  cleared them. Favorites and recently played stay.
+- **The script lives in `firebase/functions/scripts/`**, next to `set-admin.mjs`, so it uses the
+  functions package's `firebase-admin` and is never deployed. `@ayvago/firebase` gained
+  `firebase-admin` (same version) as a dev dependency, so the emulator test can seed with it, and
+  `allowJs` so the test can import the checked JavaScript module.
+
+Tests:
+- adapter (23, 4 new): `best` passed on as a number, `0` and `null`; left out when absent or
+  malformed; standalone has no config;
+- bridge (4 new): `best` as a number, `0`, `null`, left out when unknown or not finite, and in
+  online matches;
+- `best.test.ts` (9): the entry parser, `bestForStart` (stored best, `null` without a uid or an
+  entry, unknown when Firebase is off, the read fails or it times out at 1.5 s) and
+  `isPersonalBest`, with the fallback for older servers;
+- `library.test.ts` (4): the epoch clears bests once, keeps favorites and recently played and the
+  legacy keys go too; a later epoch resets again;
+- Firestore emulator:
+  - `finishSession` returns `previous` (`null` for a first score, the old best otherwise);
+  - reset (4): a dry run changes nothing and its backup holds every category with ISO times; the
+    real run removes exactly the listed data and keeps profiles, votes, favorites, counters,
+    rankings, usernames and same-named collections outside `users/`; nothing is deleted when the
+    backup fails; an empty database is fine;
+- the reset command line against the emulator: usage and refusal without the exact phrase, a dry
+  run and a real run with the job summary;
+- in the browser (`next dev` on the emulators, the fixture game, Playwright):
+  - the first `GHA_START` carries `best: null`;
+  - a first score and a worse one show no personal best, and a better one shows "Personal best!"
+    ("Kişisel rekor!");
+  - after a reload the toolbar shows the server best and `GHA_START` carries it;
+  - the toolbar was checked in minimal light and dark, cartoon and arcade, on desktop and on a
+    phone.
+
+Owner steps: grant the deploy account Firestore data access, merge, merge the studio's protocol
+2.4 PR, then run the reset (dry run first). See the [setup doc](../setup/phase-5.md#513-fresh-start-progress-reset-and-server-synced-bests).
+
+Still open:
+- The studio adopts protocol 2.4: its `src/core/storage.ts` uses `config.best` when present (and
+  `null` as "no best yet") instead of its own `localStorage` value.
+- Pending score flags are not reset; reject or review them before the reset, or an approval
+  afterwards puts a pre-reset score on the new boards.
+- A tab left open during the reset can write its old library bests back to the account copy; they
+  show only in the profile's list of bests.
+

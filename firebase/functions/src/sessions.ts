@@ -68,7 +68,17 @@ export type FinishResult =
       status: 'recorded';
       boards: Record<
         'season' | 'all',
-        { improved: boolean; best: number; rank: number; previousRank: number | null }
+        {
+          improved: boolean;
+          best: number;
+          /**
+           * The player's best on this board before the run; null for their first score there
+           * (slice 5.13: the game player marks a personal best only when one was beaten).
+           */
+          previous: number | null;
+          rank: number;
+          previousRank: number | null;
+        }
       >;
       /** XP, level and achievements the run earned (docs/adr/0016-achievements-and-xp.md). */
       progress: ProgressResult;
@@ -275,7 +285,13 @@ async function describeBoards(
           : null;
       return [
         outcome.board,
-        { improved: outcome.improved, best: outcome.best, rank, previousRank },
+        {
+          improved: outcome.improved,
+          best: outcome.best,
+          previous: outcome.previous,
+          rank,
+          previousRank,
+        },
       ] as const;
     }),
   );

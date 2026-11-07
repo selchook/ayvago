@@ -22,6 +22,32 @@ const BEST_KEY = 'ayvago:best';
 const LEGACY_BEST_PREFIX = 'ayvago:best:';
 const CHANGE_EVENT = 'ayvago:library-change';
 
+/**
+ * The fresh start of slice 5.13 (docs/adr/0017-server-best-and-fresh-start.md): a browser whose
+ * stored epoch differs drops its best scores once (favorites and recently played stay), so bests
+ * from before the progress reset never come back. Change it only for another reset.
+ */
+export const BEST_EPOCH = '2026-11-07';
+const EPOCH_KEY = 'ayvago:best-epoch';
+
+/** The parts of Storage the epoch check uses (a fake in tests). */
+export type BestStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
+
+/**
+ * Clears the stored best scores when the browser's epoch is not `epoch`, then records it.
+ * Returns true when it cleared them.
+ */
+export function resetBestsForEpoch(store: BestStore, epoch = BEST_EPOCH): boolean {
+  if (store.getItem(EPOCH_KEY) === epoch) return false;
+  for (let i = store.length - 1; i >= 0; i--) {
+    const key = store.key(i);
+    if (key?.startsWith(LEGACY_BEST_PREFIX)) store.removeItem(key);
+  }
+  store.setItem(BEST_KEY, '{}');
+  store.setItem(EPOCH_KEY, epoch);
+  return true;
+}
+
 export type { RecentEntry };
 
 type Change = (state: LibraryState) => LibraryState;
@@ -61,6 +87,11 @@ function migrateLegacyBest(store: Storage, best: LibraryState['best']) {
 export function readLibrary(): LibraryState {
   const store = storage();
   if (!store) return EMPTY_LIBRARY;
+  try {
+    resetBestsForEpoch(store);
+  } catch {
+    // Storage refused the write; the old bests stay until it works again.
+  }
   const parse = (key: string) => {
     try {
       return JSON.parse(store.getItem(key) ?? 'null');

@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.3.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.4.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -310,5 +310,36 @@ describe('multiplayer', () => {
     deliver({ type: 'GHA_PEER_JOIN', name: 'Ayşe', seat: 0 });
     // An out-of-range seat falls back to the default (the other player of a two-player room).
     expect(got).toEqual(['draw@0', 'bad@0', 'leave@0', 'join:Ayşe@0']);
+  });
+});
+
+describe('server best (protocol 2.4)', () => {
+  it('passes the platform best on, including null for a first run', async () => {
+    expect((await connected({ ...START, best: 4200 })).adapter.config?.best).toBe(4200);
+    // An 'asc' game's best is its lowest time, sent as stored.
+    expect((await connected({ ...START, best: 0 })).adapter.config?.best).toBe(0);
+    const first = (await connected({ ...START, best: null })).adapter.config;
+    expect(first?.best).toBeNull();
+    expect(first && 'best' in first).toBe(true);
+  });
+
+  it('leaves best out when the platform does not know it', async () => {
+    const unknown = (await connected()).adapter.config;
+    expect(unknown?.best).toBeUndefined();
+    expect(unknown && 'best' in unknown).toBe(false);
+  });
+
+  it('drops a malformed best instead of passing it to the game', async () => {
+    for (const best of ['900', Number.NaN, Number.POSITIVE_INFINITY, { score: 1 }]) {
+      const config = (await connected({ ...START, best: best as unknown as number })).adapter
+        .config;
+      expect(config && 'best' in config).toBe(false);
+    }
+  });
+
+  it('is standalone without a config, so games use their own best', async () => {
+    const host = fakeEnv({ embedded: false });
+    const adapter = await createPlatformAdapter({ gameId: 'orbsurge', env: host.env });
+    expect(adapter.config).toBeNull();
   });
 });

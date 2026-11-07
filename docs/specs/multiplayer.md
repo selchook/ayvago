@@ -75,6 +75,9 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
     have none.
   - The adapter exposes it as `multiplayer.peerCharacter` (`''` when unknown).
   - Games without a matching hero ignore both fields.
+- Protocol 2.4 ([ADR 0017](../adr/0017-server-best-and-fresh-start.md)) adds `best`, the
+  player's server best, to `GHA_START.config`. Online rounds are not ranked, so rooms and tables
+  leave it out and games keep their own value.
 - Game → platform: `GHA_MOVE_OUT { data }` (any JSON up to 16,000 characters).
 - Platform → game: `GHA_MOVE_IN { data }`, `GHA_PEER_LEAVE`, `GHA_PEER_JOIN { name }`.
 - The platform holds moves and presence changes until the game has received `GHA_START`.

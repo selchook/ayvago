@@ -195,7 +195,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | Function | Type | Purpose |
 |---|---|---|
 | `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored) |
-| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)) |
+| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)); each board in the result carries the `previous` best, so the toolbar's personal best follows the server (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
@@ -296,8 +296,11 @@ GHA.unlockAchievement(id)
 GHA.onThemeChange(cb) · GHA.onLocaleChange(cb) · GHA.onMute(cb)
 GHA.multiplayer.onPeerJoin(cb) · onPeerLeave(cb) · getRoom()
 GHA.track(event, props)                                   // forwarded to Google Analytics
-// GHA_START config: { mode, isHost, playerIndex, playerCount, peerName?, character?, peerCharacter?, theme, locale, adsEnabled, protocol: 2 }
+// GHA_START config: { mode, isHost, playerIndex, playerCount, peerName?, character?, peerCharacter?, seats?, best?, theme, locale, adsEnabled, protocol: 2 }
 // character / peerCharacter: protocol 2.2, ids from packages/shared/src/characters.ts (ADR 0013)
+// seats: protocol 2.3, table games only (ADR 0015)
+// best: protocol 2.4, the player's server best for the game (number), null = no score yet,
+//       absent = unknown, the game keeps its own value (ADR 0017)
 ```
 
 ### 5.3 Score validation flow
@@ -515,6 +518,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] The game stage always fits on screen below the top bar (slice 5.10)
 - [x] Three themes: Retro retired, Minimal in the system's colours by default (slice 5.11, ADR 0014)
 - [x] Game tables for up to four players with bots, protocol 2.3 (slice 5.12, ADR 0015)
+- [x] Fresh start: the player's server best in `GHA_START` (protocol 2.4), a server-backed personal best in the toolbar and a one-time "Reset progress" workflow (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); the reset itself is an owner step
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

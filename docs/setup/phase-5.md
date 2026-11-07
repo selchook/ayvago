@@ -94,6 +94,42 @@ Actions as usual.
   2. Copy the link to a second browser; the friend takes seat 2.
   3. Add two bots and start the game; both screens show the same table.
 
+## 5.13 Fresh start: progress reset and server-synced bests
+Decision record: [ADR 0017](../adr/0017-server-best-and-fresh-start.md). There are no new secrets,
+env vars, Firebase services, rules or indexes.
+
+- 🤖 Merging deploys the web app (server best in `GHA_START`, protocol 2.4, and in the toolbar)
+  and the Cloud Functions (`finishSession` returns `previous`) through GitHub Actions as usual.
+- ⏳ **1. Give the deploy account Firestore data access.** Its roles only cover deploys, so the
+  reset would stop with `PERMISSION_DENIED`. Google Cloud console → **Activate Cloud Shell**,
+  then:
+  ```bash
+  gcloud projects add-iam-policy-binding ayvago-prod \
+    --member=serviceAccount:github-rules-deployer@ayvago-prod.iam.gserviceaccount.com \
+    --role=roles/datastore.user --condition=None --quiet > /dev/null
+  ```
+- ⏳ **2. Merge this PR** (slice 5.13).
+- ⏳ **3. Merge the studio PR that adopts protocol 2.4** in `selchook/ayvago-games` (the games use
+  `config.best` instead of their own `localStorage` best), and wait for its Vercel deploy.
+- ⏳ **4. Review pending score flags** in `/admin` → **Flagged scores** and decide them. Flags
+  are not reset; approving one after the reset would put a pre-reset score on the new boards.
+- ⏳ **5. Run "Reset progress"**: GitHub → **Actions → Reset progress → Run workflow**.
+  1. First a dry run: `confirm` = `RESET ALL PROGRESS`, **dry_run** ticked (the default). It
+     deletes nothing; the run's summary lists how many documents each category holds. Read the
+     counts.
+  2. Then the reset: `confirm` = `RESET ALL PROGRESS`, **dry_run** unticked. It backs up first,
+     then deletes leaderboards, play stats, XP, levels and achievements, the account copies of
+     best scores and score sessions. Profiles, favorites, votes, game counters, rankings,
+     usernames, roles and bans stay.
+  - The job refuses to start unless `confirm` is exactly that phrase, for dry runs too.
+- ⏳ **6. The backup** is the artifact `progress-backup-<run id>-reset` on the run's page, kept for
+  **90 days**. It is one JSON file (Timestamps as ISO strings) and holds player names and scores,
+  so download it only when needed. There is no restore script; ask Claude to write one if a
+  restore is ever needed.
+- Optional check after the reset: open a game you had a best score in. The toolbar shows no best,
+  the leaderboard is empty, and the header shows level 1. Finish a run, then a better one: only
+  the second shows "Personal best!".
+
 ## Games origin moved to ayvago-games-nine.vercel.app
 The studio now deploys from a new Vercel project under the ayvagogames account
 (`https://ayvago-games-nine.vercel.app`, [ADR 0007](../adr/0007-ayvago-arcade.md)).

@@ -1,4 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // The admin scripts in functions/scripts are plain JavaScript (// @ts-check); tests import them.
+    "allowJs": true
+  },
   "include": ["tests", "vitest.config.ts"]
 }
