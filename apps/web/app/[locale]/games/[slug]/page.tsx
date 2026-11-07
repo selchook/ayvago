@@ -18,6 +18,7 @@ import {
   getAllGames,
   getGameBySlug,
   getRelatedGames,
+  isTableGame,
   type CatalogGame,
 } from '@/lib/catalog';
 import { getRankings } from '@/lib/catalog/rankings';
@@ -128,7 +129,22 @@ export default async function GamePage({ params }: Props) {
               </p>
             </div>
 
-            {game.multiplayer && game.status === 'live' ? (
+            {game.multiplayer && game.status === 'live' && isTableGame(game) ? (
+              <section className={styles.card} aria-labelledby="online-heading">
+                <h2 id="online-heading">
+                  <UsersIcon />
+                  {t('table.playAtTable')}
+                </h2>
+                <p>{t('table.playAtTableHint', { count: manifest.players.max })}</p>
+                <Link
+                  href={`${gamePath(game)}/table`}
+                  className={styles.friendButton}
+                  prefetch={false}
+                >
+                  {t('table.createTable')}
+                </Link>
+              </section>
+            ) : game.multiplayer && game.status === 'live' ? (
               <section className={styles.card} aria-labelledby="online-heading">
                 <h2 id="online-heading">
                   <UsersIcon />

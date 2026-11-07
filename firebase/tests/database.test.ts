@@ -16,7 +16,7 @@ import {
   type DatabaseReference,
 } from 'firebase/database';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { deleteOldRooms, ROOM_TTL_MS } from '../functions/src/rooms';
+import { deleteOldRooms, deleteOldTables, ROOM_TTL_MS } from '../functions/src/rooms';
 
 // Realtime Database rules for online two-player rooms (docs/plan/phase-4.md): rooms/{code},
 // signals/{code}/{toUid} (WebRTC handshake inboxes) and relay/{code} (fallback channel).
@@ -306,6 +306,157 @@ describe('deleteOldRooms', () => {
       expect((await get(ref(db, 'signals/OLD234'))).exists()).toBe(false);
       expect((await get(ref(db, 'relay/OLD234'))).exists()).toBe(false);
       expect((await get(ref(db, `rooms/${CODE}`))).exists()).toBe(true);
+    });
+  });
+});
+
+// Game tables for up to four players (docs/adr/0015-tables-for-four-with-bots.md):
+// tables/{code} with seats, and tableMoves/{code} for the moves.
+function newTable(hostUid = 'host') {
+  return {
+    gameId: 'okey',
+    slug: 'okey',
+    hostUid,
+    size: 4,
+    status: 'open',
+    createdAt: Date.now(),
+    seats: { 0: { uid: hostUid, name: 'Ayşe' } },
+  };
+}
+
+async function seedTable(changes: Record<string, unknown> = {}) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.database() as unknown as Database;
+    await set(ref(db, `tables/${CODE}`), { ...newTable(), ...changes });
+  });
+}
+
+describe('tables/{code}', () => {
+  it('lets a signed-in player create a table in seat 0, never for someone else', async () => {
+    await assertFails(set(ref(anon(), `tables/${CODE}`), newTable()));
+    await assertFails(set(ref(as('mallory'), `tables/${CODE}`), newTable('host')));
+    await assertFails(
+      set(ref(as('host'), `tables/${CODE}`), {
+        ...newTable(),
+        seats: { 0: { uid: 'x', name: 'X' } },
+      }),
+    );
+    await assertFails(set(ref(as('host'), `tables/${CODE}`), { ...newTable(), size: 5 }));
+    await assertSucceeds(set(ref(as('host'), `tables/${CODE}`), newTable()));
+    await assertFails(set(ref(as('other'), `tables/${CODE}`), newTable('other')));
+  });
+
+  it('lets a player take one free seat while the table is open', async () => {
+    await seedTable();
+    await assertSucceeds(
+      set(ref(as('guest'), `tables/${CODE}/seats/1`), { uid: 'guest', name: 'Mert' }),
+    );
+    // Taken seats, a second seat, someone else's uid and seats past the size are refused.
+    await assertFails(set(ref(as('third'), `tables/${CODE}/seats/1`), { uid: 'third', name: 'T' }));
+    await assertFails(
+      set(ref(as('guest'), `tables/${CODE}/seats/2`), { uid: 'guest', name: 'Mert' }),
+    );
+    await assertFails(set(ref(as('third'), `tables/${CODE}/seats/2`), { uid: 'guest', name: 'T' }));
+    await assertFails(set(ref(as('third'), `tables/${CODE}/seats/2`), { bot: true, name: 'Bot' }));
+    await assertSucceeds(
+      set(ref(as('third'), `tables/${CODE}/seats/2`), { uid: 'third', name: 'T' }),
+    );
+  });
+
+  it('closes free seats once the game has started', async () => {
+    await seedTable({ status: 'playing' });
+    await assertFails(
+      set(ref(as('guest'), `tables/${CODE}/seats/1`), { uid: 'guest', name: 'Mert' }),
+    );
+  });
+
+  it('respects the table size', async () => {
+    await seedTable({ size: 2 });
+    await assertFails(
+      set(ref(as('guest'), `tables/${CODE}/seats/2`), { uid: 'guest', name: 'Mert' }),
+    );
+    await assertSucceeds(
+      set(ref(as('guest'), `tables/${CODE}/seats/1`), { uid: 'guest', name: 'Mert' }),
+    );
+  });
+
+  it('lets only the host add and remove bots, start and close the table', async () => {
+    await seedTable({
+      seats: { 0: { uid: 'host', name: 'Ayşe' }, 1: { uid: 'guest', name: 'M' } },
+    });
+    await assertFails(
+      set(ref(as('guest'), `tables/${CODE}/seats/2`), { bot: true, name: 'Bot 1' }),
+    );
+    await assertFails(set(ref(as('guest'), `tables/${CODE}/status`), 'playing'));
+    await assertSucceeds(
+      set(ref(as('host'), `tables/${CODE}/seats/2`), { bot: true, name: 'Bot 1' }),
+    );
+    await assertFails(
+      set(ref(as('host'), `tables/${CODE}/seats/3`), { bot: true, name: 'Bot 2', uid: 'x' }),
+    );
+    await assertSucceeds(remove(ref(as('host'), `tables/${CODE}/seats/2`)));
+    await assertSucceeds(set(ref(as('host'), `tables/${CODE}/status`), 'playing'));
+    await assertFails(set(ref(as('host'), `tables/${CODE}/size`), 3));
+    await assertSucceeds(remove(ref(as('host'), `tables/${CODE}`)));
+  });
+
+  it('lets a seated player leave their own seat and mark only themselves online', async () => {
+    await seedTable({
+      seats: { 0: { uid: 'host', name: 'Ayşe' }, 1: { uid: 'guest', name: 'M' } },
+    });
+    await assertSucceeds(set(ref(as('guest'), `tables/${CODE}/online/guest`), 'abcdef012345'));
+    await assertFails(set(ref(as('guest'), `tables/${CODE}/online/host`), 'abcdef012345'));
+    await assertFails(set(ref(as('stranger'), `tables/${CODE}/online/stranger`), 'abcdef012345'));
+    await assertFails(remove(ref(as('stranger'), `tables/${CODE}/seats/1`)));
+    await assertSucceeds(remove(ref(as('guest'), `tables/${CODE}/seats/1`)));
+  });
+});
+
+describe('tableMoves/{code}', () => {
+  const seats = {
+    0: { uid: 'host', name: 'Ayşe' },
+    1: { uid: 'guest', name: 'M' },
+    2: { bot: true, name: 'Bot 1' },
+  };
+
+  it('lets seated players send moves from their own seat only', async () => {
+    await seedTable({ seats, status: 'playing' });
+    const at = (uid: string) => ref(as(uid), `tableMoves/${CODE}`);
+    await assertSucceeds(pushTo(at('guest'), { from: 'guest', seat: '1', data: '{}' }));
+    await assertFails(pushTo(at('guest'), { from: 'guest', seat: '0', data: '{}' }));
+    await assertFails(pushTo(at('guest'), { from: 'host', seat: '0', data: '{}' }));
+    await assertFails(pushTo(at('guest'), { from: 'guest', seat: '2', data: '{}' }));
+    await assertFails(pushTo(at('stranger'), { from: 'stranger', seat: '1', data: '{}' }));
+    await assertFails(pushTo(at('guest'), { from: 'guest', seat: '1', data: 'x'.repeat(16_001) }));
+  });
+
+  it('lets seated players read moves, never strangers, and only the host clear them', async () => {
+    await seedTable({ seats, status: 'playing' });
+    const id = (
+      await push(ref(as('host'), `tableMoves/${CODE}`), { from: 'host', seat: '0', data: '{}' })
+    ).key;
+    await assertSucceeds(get(ref(as('guest'), `tableMoves/${CODE}`)));
+    await assertFails(get(ref(as('stranger'), `tableMoves/${CODE}`)));
+    await assertFails(remove(ref(as('guest'), `tableMoves/${CODE}/${id}`)));
+    await assertFails(remove(ref(as('guest'), `tableMoves/${CODE}`)));
+    await assertSucceeds(remove(ref(as('host'), `tableMoves/${CODE}`)));
+  });
+});
+
+describe('deleteOldTables', () => {
+  it('removes tables older than the cutoff with their moves', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.database() as unknown as Database;
+      await set(ref(db, 'tables/OLD234'), { ...newTable(), createdAt: Date.now() - 3 * 3600_000 });
+      await set(ref(db, 'tableMoves/OLD234/a'), { from: 'host', seat: '0', data: '{}' });
+      await set(ref(db, `tables/${CODE}`), newTable());
+    });
+    expect(await deleteOldTables(Date.now() - ROOM_TTL_MS)).toBe(1);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.database() as unknown as Database;
+      expect((await get(ref(db, 'tables/OLD234'))).exists()).toBe(false);
+      expect((await get(ref(db, 'tableMoves/OLD234'))).exists()).toBe(false);
+      expect((await get(ref(db, `tables/${CODE}`))).exists()).toBe(true);
     });
   });
 });

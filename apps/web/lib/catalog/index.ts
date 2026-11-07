@@ -130,6 +130,18 @@ export function getMultiplayerGames(): CatalogGame[] {
   return getAllGames().filter((game) => game.multiplayer);
 }
 
+/**
+ * Games for more than two players are played at a table (up to four seats, bots fill the rest;
+ * docs/adr/0015-tables-for-four-with-bots.md); two-player games use a room.
+ */
+export function isTableGame(game: CatalogGame): boolean {
+  return game.manifest.players.max > 2;
+}
+
+export function getTableGames(): CatalogGame[] {
+  return getAllGames().filter((game) => game.multiplayer && isTableGame(game));
+}
+
 // Related games: same category first, then the rest, excluding the game itself; best rated
 // first within each group when rankings are available.
 export function getRelatedGames(

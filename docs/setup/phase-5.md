@@ -67,3 +67,15 @@ Actions as usual.
 
 - Optional check after the deploy: open ayvago.com in a private window. It shows the Minimal
   theme, light or dark like your system. A browser that had Retro selected now shows Arcade.
+
+## 5.12 Game tables for up to four, with bots
+**Nothing to set up.**
+- Merging deploys the web app.
+- The Realtime Database rules (`tables`, `tableMoves`) and the updated `cleanupRooms` function
+  deploy from GitHub Actions as usual.
+- Tables use no TURN credentials.
+
+- Optional check once Turkish Okey is in the catalog (after its "Sync arcade catalog" PR):
+  1. Open Okey and choose "Play at a table".
+  2. Copy the link to a second browser; the friend takes seat 2.
+  3. Add two bots and start the game; both screens show the same table.

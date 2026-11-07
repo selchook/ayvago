@@ -661,3 +661,110 @@
     width: 34px;
   }
 }
+
+/* Game tables (slice 5.12): one row per seat. */
+.seats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.seat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'num name action' 'num tags action';
+  align-items: center;
+  gap: 2px 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+}
+
+.seat[data-kind='empty'] {
+  border-style: dashed;
+  background: transparent;
+}
+
+.seat[data-me] {
+  border-color: var(--accent);
+}
+
+.seatNumber {
+  grid-area: num;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.seatName {
+  grid-area: name;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.seat[data-kind='empty'] .seatName {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.seatName small {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.seatTags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.seatTag {
+  padding: 0 8px;
+  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.seatAction {
+  grid-area: action;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--accent);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seatAction[data-tone='quiet'] {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.seatAction:disabled,
+.friendButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+[data-theme='arcade'] :is(.seat, .seatAction, .seatTag, .seatNumber) {
+  border-radius: 0;
+}

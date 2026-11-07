@@ -29,3 +29,29 @@ export async function deleteOldRooms(cutoff: number): Promise<number> {
   }
   return deleted;
 }
+
+/**
+ * Deletes game tables created before `cutoff` (ms) with their moves; returns the count
+ * (docs/adr/0015-tables-for-four-with-bots.md). Tables live as long as rooms.
+ */
+export async function deleteOldTables(cutoff: number): Promise<number> {
+  let deleted = 0;
+  for (;;) {
+    const page = await rtdb()
+      .ref('tables')
+      .orderByChild('createdAt')
+      .endAt(cutoff)
+      .limitToFirst(PAGE)
+      .get();
+    if (!page.exists()) break;
+    const updates: Record<string, null> = {};
+    page.forEach((table) => {
+      updates[`tables/${table.key}`] = null;
+      updates[`tableMoves/${table.key}`] = null;
+    });
+    await rtdb().ref().update(updates);
+    deleted += page.numChildren();
+    if (page.numChildren() < PAGE) break;
+  }
+  return deleted;
+}

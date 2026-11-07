@@ -1,8 +1,9 @@
 # Spec — Online two-player matches
 
-- Status: Implemented (2026-10-28) — see §8
+- Status: Implemented (2026-10-28); tables for up to four added 2026-11-06 — see §7a and §8
 - Related: [Roadmap §10](../plan/roadmap.md#10-multiplayer--cloudflare-turn--firebase-signaling),
   [ADR 0003](../adr/0003-cloudflare-turn.md), [ADR 0010](../adr/0010-online-matches.md),
+  [ADR 0015](../adr/0015-tables-for-four-with-bots.md) (tables),
   [Phase 4 plan](../plan/phase-4.md)
 
 ## 1. Goals
@@ -97,8 +98,25 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
 - `npm run test:mp` in `ayvago-games` runs every online game twice side by side and plays the
   platform's part.
 
+## 7a. Tables for up to four (protocol 2.3)
+- Games with `players.max > 2` are played at a table, not in a room
+  ([ADR 0015](../adr/0015-tables-for-four-with-bots.md)):
+  - `tables/{code}` holds 2–4 seats (players or bots), `status` and presence;
+  - `/games/{slug}/table` opens one, and `/table/{code}` is the invite link.
+- The host sits in seat 0, adds or removes bots on empty seats and starts the game once every seat
+  is taken. Others take the first free seat from the link while the table is open.
+- Moves go through `tableMoves/{code}` in the database (no WebRTC); a page reads only the moves
+  written after it opened.
+- Game protocol:
+  - `GHA_START.config.seats` (`{ name, character?, bot }` per seat), with this player at
+    `playerIndex`;
+  - `GHA_MOVE_IN.from` (the sender's seat);
+  - `GHA_PEER_LEAVE.seat` and `GHA_PEER_JOIN.seat`;
+  - the adapter's `multiplayer.seats` and seat-aware callbacks.
+- The host's game plays the bot seats and sends their moves.
+
 ## 7. Not covered yet
-- Quick match with strangers, spectators, more than two players, chat.
+- Quick match with strangers, spectators, chat.
 - An unordered channel for real-time games (the ordered channel is enough for two-player pong at
   20–30 updates per second).
 
@@ -108,4 +126,5 @@ the connection, 4.4 the turn order rule, and 4.5 made every match go through TUR
 characters and `peerCharacter` (§3, §5) shipped with Phase 5 slice 5.1
 ([plan](../plan/phase-5.md#51-player-characters-)): the platform sends them, and the studio adds
 support to the games. Slice 5.1b ([plan](../plan/phase-5.md#51b-five-characters-)) cut the list to
-the five human figures.
+the five human figures. Tables for up to four with bots (§7a) shipped with slice 5.12
+([plan](../plan/phase-5.md#512-game-tables-for-up-to-four-with-bots--code)).

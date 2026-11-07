@@ -115,6 +115,41 @@ describe('buildStartConfig', () => {
       playerIndex: 1,
     });
   });
+  it('seats every player of a table game (protocol 2.3)', () => {
+    const base = {
+      theme: 'arcade',
+      colorMode: 'dark',
+      tokens: {},
+      locale: 'en',
+      adsEnabled: false,
+    } as const;
+    const config = buildStartConfig(base, {
+      isHost: false,
+      peerName: '',
+      table: {
+        index: 2,
+        seats: [
+          { name: 'Ayşe', character: 'explorer', bot: false },
+          { name: 'Bot 1', character: 'zombie', bot: true },
+          { name: 'Mert', character: 'not-a-character', bot: false },
+          { name: 'Bot 2', bot: true },
+        ],
+      },
+    });
+    expect(config).toMatchObject({
+      mode: 'multiplayer',
+      isHost: false,
+      playerIndex: 2,
+      playerCount: 4,
+    });
+    // Bots never carry a character; unknown ids are left out.
+    expect(config.seats).toEqual([
+      { name: 'Ayşe', character: 'explorer', bot: false },
+      { name: 'Bot 1', bot: true },
+      { name: 'Mert', bot: false },
+      { name: 'Bot 2', bot: true },
+    ]);
+  });
 });
 
 describe('buildStartConfig characters (protocol 2.2)', () => {

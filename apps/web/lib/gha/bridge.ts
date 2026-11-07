@@ -16,6 +16,9 @@ export type GameMessage =
   | { type: 'openLeaderboard' }
   | { type: 'adRequest'; id: number; format: 'rewarded' | 'interstitial'; placement: string };
 
+/** Protocol 2.3: one seat at a table game (the game plays bot seats on the host's side). */
+export type SeatConfig = { name: string; character?: CharacterId; bot: boolean };
+
 export type StartConfig = {
   mode: 'solo' | 'multiplayer';
   isHost: boolean;
@@ -27,6 +30,8 @@ export type StartConfig = {
   character?: CharacterId;
   /** Protocol 2.2, multiplayer only: the other player's chosen character, when they chose one. */
   peerCharacter?: CharacterId;
+  /** Protocol 2.3, table games only: every seat in order (`playerCount` entries). */
+  seats?: SeatConfig[];
   theme: ThemeId;
   colorMode: ColorMode;
   tokens: Record<string, string>;
@@ -47,10 +52,11 @@ export type PlatformMessage =
       tokens: Record<string, string>;
     }
   | { type: 'GHA_LOCALE_CHANGE'; locale: string }
-  // Online two-player matches (adapter 2.1): moves from the other player, presence changes.
-  | { type: 'GHA_MOVE_IN'; data: unknown }
-  | { type: 'GHA_PEER_LEAVE' }
-  | { type: 'GHA_PEER_JOIN'; name: string }
+  // Online matches (adapter 2.1): moves from another player, presence changes. Tables (2.3)
+  // add the sender's or the player's seat.
+  | { type: 'GHA_MOVE_IN'; data: unknown; from?: number }
+  | { type: 'GHA_PEER_LEAVE'; seat?: number }
+  | { type: 'GHA_PEER_JOIN'; name: string; seat?: number }
   | { type: 'GHA_AD_RESULT'; id: number; shown: boolean; rewarded: boolean };
 
 // Highest score accepted from a game message; larger values are treated as malformed.
@@ -136,6 +142,14 @@ export type MatchSeat = {
   peerName: string;
   /** The other player's character as stored with their seat (null: none chosen). */
   peerCharacter?: string | null;
+  /**
+   * A table game (protocol 2.3): this player's seat and every seat in order. Absent for
+   * two-player rooms, where the host is player 0 and the guest player 1.
+   */
+  table?: {
+    index: number;
+    seats: Array<{ name: string; character?: string | null; bot: boolean }>;
+  };
 };
 
 export function buildStartConfig(
@@ -152,14 +166,24 @@ export function buildStartConfig(
   match?: MatchSeat,
 ): StartConfig {
   const { character, ...rest } = options;
+  const table = match?.table;
   const seat = match
     ? {
         mode: 'multiplayer' as const,
         isHost: match.isHost,
-        playerIndex: match.isHost ? 0 : 1,
-        playerCount: 2,
+        playerIndex: table ? table.index : match.isHost ? 0 : 1,
+        playerCount: table ? table.seats.length : 2,
         peerName: match.peerName,
         ...(isCharacterId(match.peerCharacter) ? { peerCharacter: match.peerCharacter } : {}),
+        ...(table
+          ? {
+              seats: table.seats.map((s): SeatConfig => ({
+                name: s.name,
+                bot: s.bot,
+                ...(!s.bot && isCharacterId(s.character) ? { character: s.character } : {}),
+              })),
+            }
+          : {}),
       }
     : { mode: 'solo' as const, isHost: true, playerIndex: 0, playerCount: 1 };
   return {

@@ -430,5 +430,41 @@
       "failed": "The room could not be opened. Check your connection and try again.",
       "unavailable": "Online play is not available right now."
     }
+  },
+  "table": {
+    "title": "{title} table",
+    "pageTitle": "Play {title} online at a table",
+    "playAtTable": "Play at a table",
+    "playAtTableHint": "Open a table for up to {count} players, invite friends with the link and fill the empty seats with bots.",
+    "createTable": "Open a table",
+    "preparing": "Preparing the table…",
+    "inviteTitle": "Invite your friends",
+    "inviteBody": "Send this link. Everyone who opens it takes a free seat. Fill the other seats with bots and start the game.",
+    "seats": "Seats",
+    "you": "you",
+    "host": "Host",
+    "bot": "Bot",
+    "botName": "Bot {n}",
+    "empty": "Empty seat",
+    "addBot": "Add a bot",
+    "removeBot": "Remove the bot",
+    "removePlayer": "Free the seat",
+    "away": "Away",
+    "start": "Start the game",
+    "startHint": "Fill every seat with a friend or a bot to start.",
+    "waitingHost": "Waiting for {name} to start the game…",
+    "players": "At the table: {names}",
+    "peerAway": "{name} left the table. The game goes on; they can come back with the link.",
+    "tableCode": "Table code: {code}",
+    "newTable": "Open a new table",
+    "error": {
+      "full": "This table is full.",
+      "started": "The game at this table has already started.",
+      "missing": "This table does not exist. Check the link or open a new table.",
+      "closed": "This table is closed.",
+      "expired": "This table has expired. Tables stay open for two hours.",
+      "failed": "The table could not be opened. Check your connection and try again.",
+      "unavailable": "Online play is not available right now."
+    }
   }
 }

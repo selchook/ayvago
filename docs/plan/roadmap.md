@@ -513,6 +513,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Landscape games lock the phone to landscape in fullscreen; portrait games unchanged (slice 5.8)
 - [x] The game stage always fits on screen below the top bar (slice 5.10)
 - [x] Three themes: Retro retired, Minimal in the system's colours by default (slice 5.11, ADR 0014)
+- [x] Game tables for up to four players with bots, protocol 2.3 (slice 5.12, ADR 0015)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

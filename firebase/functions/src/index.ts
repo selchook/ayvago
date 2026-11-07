@@ -14,7 +14,7 @@ import { deleteInactiveGuests, deletePlayerData, mergeGuestAccount as mergeGuest
 import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
 import { reviewScoreFlag as review, setPlayerBan as ban } from './moderation';
 import { recomputeGameScores } from './rankings';
-import { deleteOldRooms, ROOM_TTL_MS } from './rooms';
+import { deleteOldRooms, deleteOldTables, ROOM_TTL_MS } from './rooms';
 import { finishSession as finish, startSession as start } from './sessions';
 import { reserveUsername as reserve } from './usernames';
 import { castVote as vote } from './votes';
@@ -97,10 +97,15 @@ export const cleanupSessions = onSchedule(
   },
 );
 
-/** Online match rooms expire after two hours (docs/adr/0010-online-matches.md). */
+/**
+ * Online match rooms and game tables expire after two hours (docs/adr/0010-online-matches.md,
+ * docs/adr/0015-tables-for-four-with-bots.md).
+ */
 export const cleanupRooms = onSchedule({ schedule: 'every 60 minutes' }, async () => {
-  const deleted = await deleteOldRooms(Date.now() - ROOM_TTL_MS);
-  logger.info('Old online rooms deleted', { deleted });
+  const cutoff = Date.now() - ROOM_TTL_MS;
+  const deleted = await deleteOldRooms(cutoff);
+  const tables = await deleteOldTables(cutoff);
+  logger.info('Old online rooms and tables deleted', { deleted, tables });
 });
 
 /** Weekly seasons end on Monday at 09:00 UTC (docs/specs/leaderboards.md §8). */
