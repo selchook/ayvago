@@ -156,3 +156,6 @@ To play them locally before the deploy: in `ayvago-games`, run
 
 ## 20. Phone search icon (slice 2.20)
 - 🤖 Nothing to set up. Merging deploys the web app.
+
+## 21. Account deletion removes every play stat (slice 2.21)
+- 🤖 Nothing to set up. Merging deploys the functions from GitHub Actions.

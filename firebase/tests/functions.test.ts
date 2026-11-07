@@ -152,14 +152,18 @@ describe('deleteInactiveGuests', () => {
     await seedLibrary(ayla.uid, ['orb-surge']);
     const player = await guest();
     await seedLibrary(player.uid, ['chromashift']);
+    await write(`users/${player.uid}/stats/retiredgame`, { plays: 1, playSeconds: 30 });
+    await write(`users/${ayla.uid}/stats/retiredgame`, { plays: 1, playSeconds: 30 });
 
     // A cutoff in the future makes every guest count as inactive.
     expect(await deleteInactiveGuests(Date.now() + 60_000)).toBe(1);
     expect(await authUserExists(player.uid)).toBe(false);
     expect(await read(`users/${player.uid}`)).toBeUndefined();
     expect(await read(`users/${player.uid}/library/state`)).toBeUndefined();
+    expect(await read(`users/${player.uid}/stats/retiredgame`)).toBeUndefined();
     expect(await authUserExists(ayla.uid)).toBe(true);
     expect(await read(`users/${ayla.uid}/library/state`)).toBeDefined();
+    expect(await read(`users/${ayla.uid}/stats/retiredgame`)).toBeDefined();
   });
 
   it('keeps guests that were active after the cutoff', async () => {

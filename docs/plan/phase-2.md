@@ -31,6 +31,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 2.18 | Arcade is the default theme for new visitors | ✅ code |
 | 2.19 | Platform skill and agents for Claude Code (`ayvago-platform-slice`, `ayvago-platform-dev`, `ayvago-platform-qa`) | ✅ code |
 | 2.20 | Phones: search moves from the bottom bar to an icon next to the theme button | ✅ code |
+| 2.21 | Delete account and guest cleanup remove every play stat: `users/{uid}` is deleted recursively | ✅ code |
 
 ## 2.1 Score sessions and leaderboards ✅
 
@@ -682,6 +683,35 @@ the bottom bar.
 - **Tests:** web unit tests. Production build at 320 px (arcade) and 360 px (two themes): no
   horizontal overflow, the icon visible on phones and hidden on a 1280 px desktop, four bottom
   tabs.
+
+## 2.21 Account deletion removes every play stat ✅
+
+A review found that `deletePlayerData` (used by `deleteMyData`, guest merge and `cleanupGuests`)
+did not delete `users/{uid}/stats/{gameId}` itself, although the accounts spec and the roadmap say
+Delete account removes the player's play statistics.
+- **What was covered:** `removeVotes` deletes the stats, but only for the games in the current
+  catalog (`leaderboardGames()`). Stats of a game that has since left the catalog stayed behind.
+  So did any other subcollection under `users/{uid}` apart from `library/state`. No
+  `onUserDeleted` trigger or recursive delete existed (the trigger is still only planned in the
+  roadmap §2.4).
+- **Fix** (`firebase/functions/src/guests.ts`):
+  1. `deletePlayerData` still removes board rows and votes first. A guest merge needs the
+     per-game pass in `removeVotes` to move play time to the account.
+  2. It then deletes the username reservation.
+  3. Finally it deletes `users/{uid}` with `recursiveDelete`, which takes the profile and every
+     subcollection: library, progress (slice 5.2, which had its own line in the old batch), the
+     stats of every game and any subcollection added later.
+  4. The reservation goes first so that a retry still finds its key if the recursive delete stops
+     halfway.
+- **Not changed:** a ban (`setBan`) keeps the account, so it still removes only the stats of
+  catalog games through `removeVotes`.
+- **Tests:**
+  - `votes.test.ts`: `deleteMyData` removes the stats of a catalog game and of a game no longer in
+    the catalog, the library, an unknown subcollection, the profile and the username reservation.
+  - `functions.test.ts`: guest cleanup removes a guest's stats of a game no longer in the catalog
+    and keeps a registered player's.
+  - Both tests fail against the old `deletePlayerData`.
+  - The full Firebase suite (120 tests) passes.
 
 ## Game fixes during the phase
 

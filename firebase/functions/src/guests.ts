@@ -9,20 +9,22 @@ import {
 } from '../../../packages/shared/src/library';
 import { auth, db } from './admin';
 import { moveScores, syncPlayerRows } from './leaderboards';
-import { moveProgress, progressRef } from './progress';
+import { moveProgress } from './progress';
 import { removeVotes } from './votes';
 
-/** Firestore documents that belong to a player; deleted together with the account. */
+/**
+ * Firestore documents that belong to a player; deleted together with the account. After the
+ * board rows and votes, `users/{uid}` goes with every subcollection under it (library, play stats
+ * of any game, including games no longer in the catalog, and whatever is added there later).
+ */
 export async function deletePlayerData(uid: string) {
   await syncPlayerRows(uid, null);
   await removeVotes(uid);
-  const key = (await db().doc(`users/${uid}`).get()).get('usernameKey') as string | undefined;
-  const batch = db().batch();
-  batch.delete(db().doc(`users/${uid}/library/state`));
-  batch.delete(progressRef(uid));
-  batch.delete(db().doc(`users/${uid}`));
-  if (key) batch.delete(db().doc(`usernames/${key}`));
-  await batch.commit();
+  const profile = db().doc(`users/${uid}`);
+  const key = (await profile.get()).get('usernameKey') as string | undefined;
+  // The reservation first: if the recursive delete stops halfway, a retry still finds the key.
+  if (key) await db().doc(`usernames/${key}`).delete();
+  await db().recursiveDelete(profile);
 }
 
 /**

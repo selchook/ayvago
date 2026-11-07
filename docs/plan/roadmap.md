@@ -199,7 +199,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
-| `deleteMyData` ✅ | Callable | Account deletion, server part: profile, library, progress, username, board rows, votes, stats |
+| `deleteMyData` ✅ | Callable | Account deletion, server part: username, board rows, votes, then `users/{uid}` recursively (profile, library, progress, stats, every subcollection) |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
