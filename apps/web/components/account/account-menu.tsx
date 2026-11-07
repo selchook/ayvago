@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import type { Locale } from '@ayvago/shared';
+import { levelProgress, type Locale } from '@ayvago/shared';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import {
   reconcilePreferences,
@@ -14,10 +14,13 @@ import {
 import { GoogleLogo, UserIcon } from '../icons';
 import popover from '../popover.module.css';
 import { Avatar } from './avatar';
+import { LevelChip, useLevelLabel } from './level-chip';
 import styles from './account.module.css';
 
 export function AccountMenu() {
   const t = useTranslations('account');
+  const tp = useTranslations('progress');
+  const levelLabel = useLevelLabel();
   const locale = useLocale() as Locale;
   const account = useAccount();
   const [busy, setBusy] = useState(false);
@@ -83,16 +86,24 @@ export function AccountMenu() {
 
   const name = account.profile?.username ?? null;
   const avatarId = account.profile?.avatarId ?? null;
+  const xp = account.profile?.xp ?? 0;
+  const progress = levelProgress(xp);
   return (
     // Stays open across a guest upgrade so the player sees the result.
     <details key="signedIn" className={popover.popover} data-popover>
       <summary
-        className={popover.trigger}
-        aria-label={t('menuLabel')}
+        className={`${popover.trigger} ${styles.levelTrigger}`}
+        aria-label={account.profile ? `${t('menuLabel')}, ${levelLabel(xp)}` : t('menuLabel')}
+        title={account.profile ? levelLabel(xp) : undefined}
         data-account={account.isGuest ? 'guest' : 'registered'}
       >
         <Avatar uid={account.uid} name={name} avatarId={avatarId} size={26} />
         <span className={`${popover.triggerText} ${styles.wideOnly} ${styles.name}`}>{name}</span>
+        {account.profile ? (
+          <span className={styles.triggerChip}>
+            <LevelChip xp={xp} size={26} />
+          </span>
+        ) : null}
       </summary>
       <div className={`${popover.panel} ${styles.panel}`}>
         <div className={styles.identity}>
@@ -108,6 +119,22 @@ export function AccountMenu() {
             )}
           </div>
         </div>
+        {account.profile ? (
+          <div className={styles.level} data-testid="account-level">
+            <LevelChip xp={xp} size={34} />
+            <div>
+              <strong>{tp('level', { level: progress.level })}</strong>
+              <span className={styles.provider}>
+                {progress.needed
+                  ? tp('toNext', {
+                      xp: new Intl.NumberFormat(locale).format(progress.needed - progress.into),
+                      next: progress.level + 1,
+                    })
+                  : tp('maxLevel')}
+              </span>
+            </div>
+          </div>
+        ) : null}
         <Link
           href="/profile"
           className={styles.secondaryButton}

@@ -151,3 +151,48 @@
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
+
+/* The player's level in the open menu (docs/adr/0016-achievements-and-xp.md). */
+.level {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+}
+
+.level > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.level strong {
+  font-size: 0.9rem;
+}
+
+[data-theme='arcade'] .level strong {
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+/* The top bar trigger holds the avatar and the level chip; phones keep it compact. */
+.triggerChip {
+  display: inline-flex;
+}
+
+@media (max-width: 639px) {
+  .levelTrigger {
+    gap: 4px;
+    padding-inline: 5px;
+  }
+}
+
+/* The narrowest phones have no room for the chip; the open menu still shows the level. */
+@media (max-width: 359px) {
+  .triggerChip {
+    display: none;
+  }
+}

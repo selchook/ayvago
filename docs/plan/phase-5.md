@@ -5,7 +5,7 @@
   [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md)
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
   [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
-  [ADR 0015](../adr/0015-tables-for-four-with-bots.md)
+  [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -20,7 +20,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 |---|---|---|
 | 5.1 | Player characters: ten free characters picked on the profile page, sent to games in `GHA_START` (protocol 2.2), solo and online | ✅ code |
 | 5.1b | Five characters: the five aliens retired, `adventurer` the default; old stored ids read as "no choice" | ✅ code |
-| 5.2 | Achievements, XP and levels, badges | ⬜ |
+| 5.2 | Achievements, XP and levels, badges: XP and 12 achievements awarded by `finishSession`, a level chip in the header, a Progress section on the profile, rewards shown after a run ([ADR 0016](../adr/0016-achievements-and-xp.md)) | ✅ code |
 | 5.3 | Daily quests, login streaks | ⬜ |
 | 5.4 | FCM web push (localized) | ⬜ |
 | 5.5 | Cloud saves (`GHA.cloud`), coins and a cosmetic store | ⬜ |
@@ -192,6 +192,108 @@ Tests:
 
 Still open: nothing on the platform. Players who had picked an alien play as `adventurer` until
 they pick again.
+
+## 5.2 Achievements, XP and levels ✅ code
+
+Players earn XP and achievement badges for finished runs and climb levels. The rules and the
+reasons are in [ADR 0016](../adr/0016-achievements-and-xp.md).
+
+What shipped:
+- **Rules** (`packages/shared`, pure and unit-tested):
+  - `progress.ts`: `XP_RULES`, `xpForLevel`, `levelForXp`, `levelProgress`, the
+    `ProgressSummary` shape, `readProgress`, `sessionXp`, `applyRun` (caps, counters, unlocks)
+    and `mergeProgress` (guest merge).
+  - `achievements.ts`: the 12 achievements (`first-run`, `runs-25/100/500`,
+    `explorer-5/20/50`, `all-rounder`, `best-10`, `top-10`, `champion`, `marathon`), each with
+    an icon key, a group, a target and a value; `meetsAchievement`, `achievementProgress`,
+    `newlyUnlocked` and `catalogCategories` (the categories the catalog uses, for all-rounder).
+- **Functions** (`firebase/functions/src`):
+  - `progress.ts`: `awardProgress` runs inside the score transaction. `applyScore` in
+    `leaderboards.ts` takes a hook, and its outcomes now carry the player's place in the cached
+    top list before and after the score. The weekly top 10 and #1 are read from that list.
+  - `finishSession` returns `progress: { xpGained, xp, level, levelUp, unlocked }` with a
+    `recorded` result. The other fields are unchanged; flagged and rejected runs earn nothing.
+  - `mergeGuestAccount` joins the guest's summary into the account's (`moveProgress`).
+    `deleteMyData` and guest cleanup delete it.
+  - `games.ts`: each live game knows its categories; `liveCategories()` lists the catalog's.
+- **Data and rules:**
+  - `users/{uid}/progress/summary` (functions-only; the owner and admins read it);
+  - `xp` and `level` copied onto `users/{uid}` when the profile exists. They stay out of the
+    profile's client-writable keys.
+  - No new index.
+- **Web:**
+  - **Level chip** (`components/account/level-chip.tsx`): the level with a ring towards the next
+    level, next to the avatar in the top bar. The trigger's label and tooltip give the XP to the
+    next level, and the open menu shows "Level 5 · 320 XP to level 6". It is hidden below 360 px,
+    where the top bar has no room; the open menu still shows the level.
+  - **Progress section** on the profile page (`progress-section.tsx`): level, XP bar, six counters
+    (games finished, different games, categories, records beaten, play time, achievements) and
+    the 12 badges. Unlocked badges are in colour with their unlock date; locked ones are dimmed
+    with their description and progress ("12/20"). The summary is read live
+    (`lib/progress/summary.ts`).
+  - **After a run** (`components/game/run-rewards.tsx`): "+35 XP", "Level 5!" and
+    "Achievement unlocked: Explorer" appear one after another (1.8 s each) in one strip at the
+    top edge of the stage. They take no clicks, so the game's result screen stays usable. The
+    header chip updates from the response (`applyProgress` in the account store).
+  - **Download my data** includes the progress summary.
+  - Messages: `progress.*` and `achievements.<id>.name` / `.desc` in `en.json` and `tr.json`.
+  - Badge icons are the app's SVG icons, not emoji, so they follow every theme. Motion is
+    turned off under `prefers-reduced-motion`.
+
+Deviations from the spec and the brief:
+- **Personal best.** A best counts (+25 and `best-10`) only when the run beats an earlier
+  all-time best of the game. A game's first score earns the first-play bonus instead, so
+  `best-10` is not just "play 10 games".
+- **Weekly top 10.** The +50 is for *entering*: not in the top 10 of the cached weekly list
+  before the run, in it after. The `top-10` and `champion` achievements need only the place
+  after the run, so a player already at #1 unlocks `champion` on their next run.
+- **Run counters.** Every accepted session counts towards `runs`, `games`, `categories` and
+  `playSeconds`, also those under 20 s; only the 10 run XP needs 20 s. Play time is the server's
+  run length, capped at 3 hours like the play stats.
+- **Response.** `progress` comes only with `recorded` results, because flagged and rejected
+  runs earn nothing.
+- **Merge.** A guest merge unlocks no new achievements by itself; the account's next accepted
+  run does. Unlock times keep the earlier one; the daily caps keep the later day.
+- The accounts spec's first XP sketch (§9: XP per minute, a `50 · n^1.5` curve) was replaced
+  by ADR 0016.
+
+Tests:
+- shared `progress.test.ts` (21):
+  - the level curve and the cap at 99;
+  - session XP and each bonus;
+  - the daily and per-game caps and the new-day reset;
+  - level ups;
+  - each achievement and its progress, never unlocked twice;
+  - all-rounder from the catalog;
+  - `readProgress` and `mergeProgress`;
+- web `lib/progress/notes.test.ts` (5): the run notes, the response guard, and a name and
+  description for every achievement in both languages;
+- Firestore rules (4 new):
+  - the owner and admins read the summary; other players and visitors cannot;
+  - nobody writes it, its owner and admins included;
+  - the owner cannot set, change or remove `xp` or `level` on the profile, while other settings
+    still save;
+- functions in the emulator (5 new):
+  - progress is awarded with an accepted score and mirrored onto the profile;
+  - the personal-best bonus, and no run XP under 20 s;
+  - the weekly top 10 bonus, once;
+  - nothing for flagged or rejected runs;
+  - the guest merge sums the progress;
+  - deleting the account deletes it.
+  - The first `finishSession` test checks the whole response, with `progress`.
+- Screenshots (Playwright against the emulators):
+  - the Progress section, the header chip and the open menu, at 1280 px and 360 px, in minimal
+    light and dark, cartoon and arcade, in English and Turkish;
+  - the run notes on the fixture game.
+
+Owner steps: none. The functions and rules deploy from GitHub Actions; see the setup doc.
+
+Still open:
+- game-defined achievements (`GHA.unlockAchievement`);
+- levels or badges on leaderboard rows and public profiles;
+- daily quests and login streaks (slice 5.3);
+- cosmetics unlocked by levels;
+- no backfill: progress starts at zero for runs played before this slice.
 
 ## 5.6 Equal card heights ✅
 

@@ -8,3 +8,5 @@ export * from './leaderboard';
 export * from './seed-catalog';
 export * from './arcade-catalog';
 export * from './ranking';
+export * from './progress';
+export * from './achievements';

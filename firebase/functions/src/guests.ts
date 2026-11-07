@@ -9,6 +9,7 @@ import {
 } from '../../../packages/shared/src/library';
 import { auth, db } from './admin';
 import { moveScores, syncPlayerRows } from './leaderboards';
+import { moveProgress, progressRef } from './progress';
 import { removeVotes } from './votes';
 
 /** Firestore documents that belong to a player; deleted together with the account. */
@@ -18,6 +19,7 @@ export async function deletePlayerData(uid: string) {
   const key = (await db().doc(`users/${uid}`).get()).get('usernameKey') as string | undefined;
   const batch = db().batch();
   batch.delete(db().doc(`users/${uid}/library/state`));
+  batch.delete(progressRef(uid));
   batch.delete(db().doc(`users/${uid}`));
   if (key) batch.delete(db().doc(`usernames/${key}`));
   await batch.commit();
@@ -26,7 +28,8 @@ export async function deletePlayerData(uid: string) {
 /**
  * mergeGuestAccount({ guestIdToken }): after a guest signs in with a Google account that already
  * exists, the client calls this as that account with the guest's ID token (taken before switching)
- * as proof of ownership. The guest's library joins the account's and the guest account is deleted.
+ * as proof of ownership. The guest's library and progress (XP, achievements) join the account's
+ * and the guest account is deleted.
  */
 export async function mergeGuestAccount(request: CallableRequest<unknown>) {
   const caller = request.auth;
@@ -72,6 +75,7 @@ export async function mergeGuestAccount(request: CallableRequest<unknown>) {
     tx.set(libraryRef, { ...merged, updatedAt: FieldValue.serverTimestamp() });
   });
   await moveScores(guestUid, caller.uid);
+  await moveProgress(guestUid, caller.uid);
   await removeVotes(guestUid, caller.uid);
   await deletePlayerData(guestUid);
   await auth().deleteUser(guestUid);

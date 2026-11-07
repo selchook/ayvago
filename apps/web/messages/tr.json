@@ -466,5 +466,83 @@
       "failed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
       "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
     }
+  },
+  "progress": {
+    "title": "İlerleme",
+    "loading": "İlerlemen yükleniyor…",
+    "level": "Seviye {level}",
+    "chipLabel": "Seviye {level}: {next}. seviyeye {xp} XP kaldı",
+    "chipLabelMax": "Seviye {level}: en üst seviye",
+    "xpOf": "{into} / {needed} XP",
+    "toNext": "{next}. seviyeye {xp} XP kaldı",
+    "maxLevel": "En üst seviyeye ulaştın.",
+    "totalXp": "Toplam {xp} XP",
+    "statRuns": "Bitirilen oyunlar",
+    "statGames": "Farklı oyunlar",
+    "statCategories": "Kategoriler",
+    "statBests": "Kırılan rekorlar",
+    "statPlayTime": "Oyun süresi",
+    "statBadges": "Başarımlar",
+    "playHours": "{hours} sa {minutes} dk",
+    "playMinutes": "{minutes} dk",
+    "count": "{value}/{target}",
+    "badgesTitle": "Rozetler",
+    "unlockedOn": "Açıldı: {date}",
+    "locked": "Kilitli",
+    "howTo": "Oyun bitirerek XP kazan: 20 saniye ya da daha uzun süren her tur, her oyundaki ilk turun, yeni kişisel rekorun ve haftalık ilk 10'a girmen XP getirir. Her başarım da 30 XP kazandırır.",
+    "toastXp": "+{xp} XP",
+    "toastLevel": "Seviye {level}!",
+    "toastAchievement": "Başarım açıldı: {name}",
+    "toasts": "Bu turun ödülleri"
+  },
+  "achievements": {
+    "first-run": {
+      "name": "İlk Tur",
+      "desc": "İlk oyununu bitir."
+    },
+    "runs-25": {
+      "name": "Müdavim",
+      "desc": "25 oyun bitir."
+    },
+    "runs-100": {
+      "name": "Tutkun",
+      "desc": "100 oyun bitir."
+    },
+    "runs-500": {
+      "name": "Salon Efsanesi",
+      "desc": "500 oyun bitir."
+    },
+    "explorer-5": {
+      "name": "Kâşif",
+      "desc": "5 farklı oyun oyna."
+    },
+    "explorer-20": {
+      "name": "Gezgin",
+      "desc": "20 farklı oyun oyna."
+    },
+    "explorer-50": {
+      "name": "Koleksiyoncu",
+      "desc": "50 farklı oyun oyna."
+    },
+    "all-rounder": {
+      "name": "Çok Yönlü",
+      "desc": "Her kategoriden bir oyun oyna."
+    },
+    "best-10": {
+      "name": "Rekor Kıran",
+      "desc": "Kişisel rekorunu 10 kez geç."
+    },
+    "top-10": {
+      "name": "İlk On",
+      "desc": "Herhangi bir oyunda haftalık ilk 10'a gir."
+    },
+    "champion": {
+      "name": "Şampiyon",
+      "desc": "Haftalık bir liderlik tablosunda birinci ol."
+    },
+    "marathon": {
+      "name": "Maraton",
+      "desc": "Toplam 60 dakika oyna."
+    }
   }
 }

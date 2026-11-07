@@ -37,6 +37,7 @@ import { ThemeControls } from '../theme-controls';
 import { Avatar } from './avatar';
 import { AvatarGlyphIcon } from './avatar-glyph';
 import { CharacterPicker } from './character-picker';
+import { ProgressSection } from './progress-section';
 import menuStyles from './account.module.css';
 import styles from './profile.module.css';
 
@@ -47,7 +48,14 @@ export type ProfileGame = {
   scoreLabel: string;
 };
 
-export function ProfileView({ games }: { games: ProfileGame[] }) {
+export function ProfileView({
+  games,
+  categories,
+}: {
+  games: ProfileGame[];
+  /** Categories the catalog uses (the all-rounder achievement). */
+  categories: string[];
+}) {
   const t = useTranslations('profile');
   const account = useAccount();
   const [deleted, setDeleted] = useState(false);
@@ -77,6 +85,7 @@ export function ProfileView({ games }: { games: ProfileGame[] }) {
           account={account}
           profile={account.profile!}
           games={games}
+          categories={categories}
           onDeleted={() => setDeleted(true)}
         />
       )}
@@ -137,11 +146,13 @@ function SignedIn({
   account,
   profile,
   games,
+  categories,
   onDeleted,
 }: {
   account: SignedInAccount;
   profile: NonNullable<SignedInAccount['profile']>;
   games: ProfileGame[];
+  categories: string[];
   onDeleted: () => void;
 }) {
   const t = useTranslations('profile');
@@ -193,6 +204,8 @@ function SignedIn({
           </div>
         </dl>
       </section>
+
+      <ProgressSection uid={account.uid} categories={categories} />
 
       <section className={styles.card} aria-labelledby="bests-heading">
         <h2 id="bests-heading">{t('bestsTitle')}</h2>

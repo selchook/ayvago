@@ -1,5 +1,5 @@
 import type { Locale } from '@ayvago/shared';
-import { pickLocalized } from '@ayvago/shared';
+import { catalogCategories, pickLocalized } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ProfileView, type ProfileGame } from '@/components/account/profile-view';
@@ -25,5 +25,11 @@ export default async function ProfilePage({ params }: Props) {
     scoreFormat: game.manifest.scoring.format,
     scoreLabel: pickLocalized(game.manifest.scoring.label, locale),
   }));
-  return <ProfileView games={games} />;
+  // All-rounder asks for one game in every category the catalog uses.
+  const categories = catalogCategories(
+    getAllGames()
+      .filter((game) => game.status === 'live')
+      .map((game) => game.manifest),
+  );
+  return <ProfileView games={games} categories={categories} />;
 }

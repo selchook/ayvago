@@ -77,17 +77,23 @@ Never interrupt gameplay. Prompts are dismissible, rate-limited (at most one per
 - Privacy setting: public (default for adults) / friends only / private (default for under-13 accounts).
 - Settings page: language, theme and mode, sound default, notifications, privacy, connected sign-in providers, **download my data**, **delete account**.
 
-## 9. Levels and XP (model now, ship in Phase 5)
+## 9. Levels and XP
+
+Shipped in slice 5.2; the rules are in [ADR 0016](../adr/0016-achievements-and-xp.md), which
+replaced the first sketch (XP per minute, a `50 · n^1.5` curve). XP is awarded only by
+`finishSession`, for accepted score sessions:
 
 | Source | XP | Cap |
 |---|---|---|
-| Playing (per full minute) | 1 | 60 per day |
-| First play of a game | 10 | — |
-| Personal best | 5 | 10 per day |
-| Daily quest | 20–50 | per quest |
-| Season placement | 50–500 | per season |
+| An accepted run of at least 20 s | 10 | 600 per UTC day in total, 150 per game |
+| First run of a game | 20 | (same caps) |
+| New personal best (beats an earlier best) | 25 | (same caps) |
+| Entering a game's weekly top 10 | 50 | (same caps) |
+| Each unlocked achievement (12 at launch) | 30 | none |
+| Daily quest, season placement | — | later slices (5.3) |
 
-Level curve: `xpForLevel(n) = 50 · n^1.5` (rounded). Levels unlock cosmetics only.
+Level curve: level n → n+1 costs `100 · n` XP (`xpForLevel(n) = 50 · n · (n − 1)`: L2 = 100,
+L3 = 300, L4 = 600), capped at 99. Levels unlock cosmetics only (later slices).
 
 ## 10. Friends and presence (Phase 5+)
 
@@ -138,5 +144,6 @@ The first slices ran on the Spark plan without Cloud Functions; usernames, guest
 - **Leaderboards (Phase 2):** board rows show the username, avatar and a guest badge. Username changes and avatar changes are copied into the rows by the server; a guest merge moves the guest's better scores to the account; **Delete account** calls `deleteMyData`, which removes the profile, library, username, leaderboard rows and entries, votes and play stats on the server before the client deletes the sign-in.
 - **Bans (Phase 2):** admins (custom claim `admin`) ban and unban players from `/admin`. A ban sets the `banned` claim, which rules and functions check, and revokes the player's sessions. It also removes their leaderboard rows, votes and play stats. The profile records `banned`, `bannedAt` and `bannedBy` for the panel.
 - **Characters (Phase 5, slice 5.1, [ADR 0013](../adr/0013-player-characters.md)):** the profile page has a **Character** section: the five characters of `packages/shared/src/characters.ts` as a radio group of previews (`apps/web/public/characters/<id>.png`), saved on select. The choice is `characterId` on `users/{uid}`. Firestore rules accept only the five ids, or no field at all; the owner may set or remove it, guests included, and banned players may not. The game player sends it as `GHA_START.config.character` (left out without a choice). In online rooms each seat stores its character, and the other player's game gets it as `peerCharacter` ([multiplayer spec §3, §5](multiplayer.md#5-game-protocol-adapter-22)). A guest merged into an existing account keeps that account's character. All five are free. **Slice 5.1b** retired the five alien characters ([ADR 0013 amendment](../adr/0013-player-characters.md#amendment-2026-11-04-five-characters-slice-51b)): a stored id that is not in the list reads as "not chosen", so the profile marks `adventurer` and games get no `character`; the rules check `characterId` only when a write changes it, so such a profile can still update its other fields and overwrite or remove the old value. No data migration.
-- **Not yet:** Apple and email-link sign-in, public profile pages, privacy and notification settings.
+- **Achievements, XP and levels (Phase 5, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)):** `finishSession` awards XP and achievements in the transaction that accepts a score and keeps them in `users/{uid}/progress/summary` (functions-only; the owner and admins read it). It copies `xp` and `level` onto `users/{uid}`; those keys are not client-writable. The callable's `recorded` result carries `progress: { xpGained, xp, level, levelUp, unlocked }`; flagged and rejected runs earn nothing. The header shows a level chip with a ring towards the next level; the profile page has a **Progress** section (level, XP bar, the counters behind it and the 12 badges, locked ones with their progress); the game page shows short notes over the stage after a run. Guests earn XP; `mergeGuestAccount` joins a guest's progress into the account (`mergeProgress`), and `deleteMyData` and guest cleanup delete it. **Download my data** includes the summary.
+- **Not yet:** Apple and email-link sign-in, public profile pages, privacy and notification settings, game-defined achievements (`GHA.unlockAchievement`), level badges on leaderboards.
 - **Testing:** rules tests in `firebase/tests` (emulator, run in CI). The web app can run against the emulators with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`; emulator builds expose a test hook for the Google flow because the real popup needs Google's servers.

@@ -152,6 +152,7 @@ Firestore has no joins and bills per document read, so frequently read data is *
 | `users/{uid}` | Public profile: `username`, `avatarId`, `characterId`, `theme`, `locale`, `xp`, `level`, `country`, `isGuest`, `createdAt` | Owner (restricted fields) |
 | `users/{uid}/private/account` | `birthYear`, notification preferences, consent record | Owner |
 | `users/{uid}/stats/{gameId}` | `bestScore`, `plays`, `playSeconds`, `lastPlayedAt` | **Functions only** |
+| `users/{uid}/progress/summary` | XP, level, achievements and the counters behind them (`runs`, `games`, `categories`, `bests`, `playSeconds`, `top10`, `champion`, daily XP caps); `xp` and `level` are copied onto `users/{uid}` ([ADR 0016](../adr/0016-achievements-and-xp.md)) | **Functions only** |
 | `users/{uid}/favorites/{gameId}` | Favorite | Owner |
 | `usernames/{lowercase}` | Username uniqueness (reserved in a transaction) | Functions |
 | `games/{gameId}` | Catalog: `slug`, `title{en,tr}`, `description{en,tr}`, `category`, `tags`, `originUrl`, `status`, `scoring{}`, `likes`, `dislikes`, `plays`, `rating`, `editorPick`, `thumbUrl` | Admin / Functions |
@@ -194,11 +195,11 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | Function | Type | Purpose |
 |---|---|---|
 | `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored) |
-| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review |
+| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
-| `deleteMyData` ✅ | Callable | Account deletion, server part: profile, library, username, board rows, votes, stats |
+| `deleteMyData` ✅ | Callable | Account deletion, server part: profile, library, progress, username, board rows, votes, stats |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
@@ -206,7 +207,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
-| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge; guest cleanup (30 days); score session cleanup (14 days) |
+| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress); guest cleanup (30 days); score session cleanup (14 days) |
 | `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms older than two hours with their signaling and relay data |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
@@ -504,7 +505,7 @@ Slice plan and status: [Phase 4 plan](phase-4.md) · owner steps: [Phase 4 setup
 ### Phase 5 — Retention (2 weeks) — in progress
 Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup](../setup/phase-5.md)
 - [x] Player characters: five free characters on the profile page, sent to games as `character` / `peerCharacter` in `GHA_START` (protocol 2.2, [ADR 0013](../adr/0013-player-characters.md)) — slice 5.1; 5.1b retired the five alien characters; game support is added in the studio
-- [ ] Achievements, XP/levels, badges
+- [x] Achievements, XP/levels, badges: XP and 12 achievements awarded by `finishSession`, a level chip in the header, a Progress section on the profile ([ADR 0016](../adr/0016-achievements-and-xp.md)) — slice 5.2
 - [ ] Daily quests, login streaks
 - [ ] FCM web push (localized)
 - [ ] Cloud saves (`GHA.cloud`), coins + cosmetic store

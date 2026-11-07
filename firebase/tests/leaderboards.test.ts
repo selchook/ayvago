@@ -69,6 +69,15 @@ describe('finishSession', () => {
         season: { improved: true, best: 5000, rank: 1, previousRank: null },
         all: { improved: true, best: 5000, rank: 1, previousRank: null },
       },
+      // First play (+20), a 60 s run (+10), into the weekly top 10 (+50) and three achievements
+      // (first-run, top-10, champion: +30 each).
+      progress: {
+        xpGained: 170,
+        xp: 170,
+        level: 2,
+        levelUp: true,
+        unlocked: ['first-run', 'top-10', 'champion'],
+      },
     });
     for (const path of [SEASON, ALL]) {
       expect(await top(path)).toEqual([
@@ -170,6 +179,127 @@ describe('finishSession', () => {
   });
 });
 
+describe('progress', () => {
+  const PROGRESS = (uid: string) => `users/${uid}/progress/summary`;
+
+  it('is awarded with an accepted score and mirrored onto the profile', async () => {
+    const player = await guest();
+    await play(player, 500);
+    // Not the first play, no new best, already in the top 10: only the run XP.
+    const second = await play(player, 100);
+    expect(second).toMatchObject({
+      status: 'recorded',
+      progress: { xpGained: 10, xp: 180, level: 2, levelUp: false, unlocked: [] },
+    });
+    const stored = await read(PROGRESS(player.uid));
+    expect(stored).toMatchObject({
+      xp: 180,
+      level: 2,
+      runs: 2,
+      games: [GAME],
+      categories: ['casual'],
+      bests: 0,
+      playSeconds: 120,
+      top10: true,
+      champion: true,
+      xpToday: 90,
+      xpGameToday: { [GAME]: 90 },
+    });
+    expect(Object.keys(stored?.achievements as object).sort()).toEqual([
+      'champion',
+      'first-run',
+      'top-10',
+    ]);
+    expect((stored?.achievements as Record<string, unknown>)['first-run']).toBeInstanceOf(
+      Timestamp,
+    );
+    expect(await read(`users/${player.uid}`)).toMatchObject({ xp: 180, level: 2 });
+
+    // A beaten personal best earns its bonus; a run under 20 s earns no run XP.
+    const best = await play(player, 900, 10);
+    expect(best).toMatchObject({ progress: { xpGained: 25, xp: 205 } });
+    expect(await read(PROGRESS(player.uid))).toMatchObject({ bests: 1, runs: 3 });
+  });
+
+  it('gives a bonus for entering the weekly top 10, once', async () => {
+    const rivals = Array.from({ length: 10 }, (_, i) => ({ uid: `rival${i}` }));
+    for (const [i, rival] of rivals.entries()) {
+      await write(`${SEASON}/entries/${rival.uid}`, {
+        score: 1000 + i,
+        periodKey: seasonKey(Date.now()),
+        achievedAt: Timestamp.now(),
+      });
+    }
+    await write(SEASON, {
+      periodKey: seasonKey(Date.now()),
+      order: 'desc',
+      top: rivals.map((rival, i) => ({
+        uid: rival.uid,
+        username: 'Rival',
+        avatarId: null,
+        isGuest: true,
+        score: 1000 + i,
+        achievedAt: 1,
+        continued: false,
+      })),
+    });
+    const player = await guest();
+    // 11th: first play and run only.
+    expect(await play(player, 500)).toMatchObject({
+      progress: { xpGained: 30 + 30, unlocked: ['first-run'] },
+    });
+    // Into the top 10 with a new best: run, best and top 10 bonuses, plus the top-10 achievement.
+    expect(await play(player, 1005)).toMatchObject({
+      progress: { xpGained: 10 + 25 + 50 + 30, unlocked: ['top-10'] },
+    });
+    // Climbing inside the top 10 earns no second top 10 bonus.
+    expect(await play(player, 1007)).toMatchObject({
+      progress: { xpGained: 10 + 25, unlocked: [] },
+    });
+  });
+
+  it('is not awarded for flagged or rejected runs', async () => {
+    const player = await guest();
+    expect(await play(player, 10, 2)).toEqual({ status: 'rejected', reason: 'too-short' });
+    const session = await start(player);
+    await age(session, 10_000);
+    await player.call('finishSession', { ...session, score: 5_000, durationMs: 200_000 });
+    expect(await read(PROGRESS(player.uid))).toBeUndefined();
+    expect((await read(`users/${player.uid}`))?.xp).toBeUndefined();
+  });
+
+  it("joins the account's when a guest is merged", async () => {
+    const ayla = await registered('ayla@example.com', { username: 'Ayla' });
+    await play(ayla, 300);
+    const player = await guest({ username: 'GuestFox' });
+    await play(player, 800);
+    const accountXp = (await read(PROGRESS(ayla.uid)))?.xp as number;
+    const guestXp = (await read(PROGRESS(player.uid)))?.xp as number;
+    const guestIdToken = await player.user.getIdToken();
+    await ayla.call('mergeGuestAccount', { guestIdToken });
+
+    const merged = await read(PROGRESS(ayla.uid));
+    expect(merged).toMatchObject({
+      xp: accountXp + guestXp,
+      runs: 2,
+      games: [GAME],
+      playSeconds: 120,
+      top10: true,
+      champion: true,
+    });
+    expect(await read(`users/${ayla.uid}`)).toMatchObject({ xp: accountXp + guestXp });
+    expect(await read(PROGRESS(player.uid))).toBeUndefined();
+  });
+
+  it('is deleted with the account', async () => {
+    const ayla = await registered('ayla@example.com');
+    await play(ayla, 400);
+    expect(await read(PROGRESS(ayla.uid))).toBeDefined();
+    await ayla.call('deleteMyData', {});
+    expect(await read(PROGRESS(ayla.uid))).toBeUndefined();
+  });
+});
+
 describe('closeSeasons', () => {
   it('archives finished seasons, resets the board and deletes old entries', async () => {
     const old = previousSeasonKey(Date.now());
@@ -226,6 +356,7 @@ describe('judgeRun', () => {
   const game: LeaderboardGame = {
     gameId: 'g',
     slug: 'g',
+    categories: ['arcade'],
     calibrationEndsAt: 0,
     scoring: {
       metric: 'points',

@@ -26,6 +26,20 @@ character read as "not chosen", and the player can pick again.
 - Optional check after the deploy: **Profile and settings** shows five characters. A player who
   had picked an alien sees Adventurer marked.
 
+## 5.2 Achievements, XP and levels
+**Nothing to set up.** There are no new secrets, env vars, Firebase services or Firestore indexes.
+
+- 🤖 Merging deploys everything automatically:
+  - the web app (level chip, the profile's Progress section, the notes after a run);
+  - the Cloud Functions (`finishSession`, `mergeGuestAccount`, `deleteMyData`, `cleanupGuests`);
+  - the Firestore rules (`users/{uid}/progress/summary`, read-only for its owner and admins).
+- Progress starts at zero for everyone: runs played before the deploy are not counted.
+- Optional check after the deploy:
+  1. Play any game for at least 20 seconds and finish it. "+… XP" and the unlocked
+     achievements appear one after another at the top of the game.
+  2. The level chip next to your avatar in the top bar shows your level.
+  3. **Profile and settings** has a **Progress** section with your level, XP bar and badges.
+
 ## 5.6 Equal card heights
 **Nothing to set up.** CSS only; merging deploys the web app.
 

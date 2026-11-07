@@ -88,6 +88,13 @@ service cloud.firestore {
         allow read: if isOwner(uid) || isAdmin();
       }
 
+      // XP, level and achievements (docs/adr/0016-achievements-and-xp.md), awarded by
+      // finishSession only. Nobody writes it from a client; xp and level on the profile above are
+      // a server-written copy and are not in the profile's writable keys either.
+      match /progress/summary {
+        allow read: if isOwner(uid) || isAdmin();
+      }
+
       // The player's library (favorites, recently played, best scores) as one document, so
       // loading it costs a single read. Limits match packages/shared/src/library.ts. Best scores
       // here are player-reported; leaderboards use server-validated sessions.
