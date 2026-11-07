@@ -31,6 +31,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.10 | The game stage always fits on screen below the top bar (landscape phones cut off the bottom of the game) (owner request) | ✅ code |
 | 5.11 | Three themes: Retro retired (Arcade covers it); new visitors get Minimal in the system's colours (owner request, [ADR 0014](../adr/0014-three-themes-minimal-default.md)) | ✅ code |
 | 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
+| 5.13 | Arcade secondary accent: the top-bar slogan, home spotlight titles and headings read the `--accent2` token | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -569,3 +570,23 @@ Still open:
 - the first table game (Turkish Okey) comes from the studio and reaches the catalog through the
   "Sync arcade catalog" PR;
 - re-hosting when the host leaves for good.
+
+## 5.13 Arcade secondary accent ✅ code
+
+The theme token `accent2` is emitted as `--accent2` (`cssVarName` only hyphenates before capital
+letters), but three stylesheets read `var(--accent-2)`, which nothing defines. The rules fell back to
+the inherited text colour, so under the arcade theme the top-bar slogan, the home spotlight titles
+and the `h1` headings were off-white instead of the intended yellow (`#ffd23f`).
+
+- `apps/web/app/globals.css`, `components/shell/shell.module.css` and `components/page.module.css`
+  now read `var(--accent2)`. The token name is unchanged, so the theme picker swatches and the
+  `GHA_START` tokens sent to games stay the same.
+- New test `apps/web/lib/css-vars.test.ts`: every `var(--name)` in the web app's stylesheets must be
+  defined by the theme CSS, a stylesheet declaration or an inline style in a component. It fails
+  on the three old references.
+
+Checked with `next dev` and Playwright (desktop and Pixel 7, arcade theme): the slogan, the
+spotlight title and the `h1` compute to `rgb(255, 210, 63)`; before the fix they were
+`rgb(243, 242, 242)`.
+
+Owner steps: none.

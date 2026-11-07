@@ -89,7 +89,7 @@ button {
 
 /* Ayvago Arcade headings: yellow with a hard drop shadow, like the games' title screens. */
 [data-theme='arcade'] h1 {
-  color: var(--accent-2);
+  color: var(--accent2);
   text-shadow: 0 4px 0 #000;
 }
 

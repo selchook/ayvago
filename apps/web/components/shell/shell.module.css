@@ -91,7 +91,7 @@
 }
 
 [data-theme='arcade'] .slogan {
-  color: var(--accent-2);
+  color: var(--accent2);
   text-shadow: 0 2px 0 #000;
 }
 

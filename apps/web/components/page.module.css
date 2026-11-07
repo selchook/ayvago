@@ -140,7 +140,7 @@
 }
 
 [data-theme='arcade'] .spotlightBody strong {
-  color: var(--accent-2);
+  color: var(--accent2);
   text-shadow: 0 3px 0 #000;
 }
 
