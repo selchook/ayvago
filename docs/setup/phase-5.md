@@ -79,3 +79,12 @@ Actions as usual.
   1. Open Okey and choose "Play at a table".
   2. Copy the link to a second browser; the friend takes seat 2.
   3. Add two bots and start the game; both screens show the same table.
+
+## Games origin moved to ayvago-games-nine.vercel.app
+The studio now deploys from a new Vercel project under the ayvagogames account
+(`https://ayvago-games-nine.vercel.app`, [ADR 0007](../adr/0007-ayvago-arcade.md)).
+- 🤖 The studio regenerated its manifests and catalog with the new origin; the "Sync arcade
+  catalog" PR brings `ARCADE_ORIGIN` here. The catalog test reads `ARCADE_ORIGIN`, so it follows.
+- ⏳ After the sync PR is merged, open one game on ayvago.com and check that it loads.
+- ⏳ Once the new projects work, disconnect or delete the old Vercel projects (`ayvago-games`,
+  `ayvago-web` under the previous account) so each push deploys only once.

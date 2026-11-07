@@ -1,4 +1,10 @@
-import { ARCADE_GAMES, GAME_CATEGORIES, PARKED_GAMES, resolveAssetUrl } from '@ayvago/shared';
+import {
+  ARCADE_GAMES,
+  ARCADE_ORIGIN,
+  GAME_CATEGORIES,
+  PARKED_GAMES,
+  resolveAssetUrl,
+} from '@ayvago/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 async function loadCatalog() {
@@ -52,7 +58,7 @@ describe('seed catalog', () => {
     vi.stubEnv('NODE_ENV', 'production');
     catalog = await loadCatalog();
     expect(catalog.getGameBySlug('gem-match')?.manifest.entry).toBe(
-      'https://ayvago-games.vercel.app/games/gem-match/',
+      `${ARCADE_ORIGIN}/games/gem-match/`,
     );
   });
 
