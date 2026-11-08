@@ -79,7 +79,12 @@ export type StartConfig = ThemeInfo & {
 /** Protocol 2.6: the difficulty a run was played at. Easy runs are practice (no leaderboard). */
 export type Difficulty = 'easy' | 'normal';
 
-export type GameResult = { score?: number; won?: boolean; message?: string; difficulty?: Difficulty };
+export type GameResult = {
+  score?: number;
+  won?: boolean;
+  message?: string;
+  difficulty?: Difficulty;
+};
 
 /** Largest move payload (serialized JSON, in characters); larger moves are dropped. */
 export const MAX_MOVE_SIZE = 16_000;
@@ -471,7 +476,8 @@ class AyvagoAdapter implements PlatformAdapter {
       typeof result.score === 'number' && Number.isFinite(result.score) ? result.score : null;
     const end: Record<string, unknown> = { score, won: result.won, message: result.message };
     // only a valid value is sent; games that do not offer difficulty send nothing (normal)
-    if (result.difficulty === 'easy' || result.difficulty === 'normal') end.difficulty = result.difficulty;
+    if (result.difficulty === 'easy' || result.difficulty === 'normal')
+      end.difficulty = result.difficulty;
     this.send('GHA_END', end);
   }
 
