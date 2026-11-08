@@ -155,3 +155,9 @@ Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
   - `finishSession` adds `previous` (the board's best before the run, `null` for a first score) to each board of its `recorded` result. The game toolbar shows "Personal best!" only when `boards.all.improved` and `previous` is set.
   - Before a run the toolbar shows the entry live; the browser library is only the fallback.
   - The one-time **Reset progress** workflow backs up, then deletes every board, entry and season archive, with the play stats, progress, XP and levels, and score sessions. Pending score flags are not touched.
+- **Practice runs (Phase 5 slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)):**
+  - Games report the run's difficulty in `GHA_END` (protocol 2.6, `difficulty: 'easy' | 'normal'`; absent means Normal). Online matches are always Normal.
+  - **Practice runs are not ranked.** An Easy run is sent as `finishSession({ ..., practice: true })`. It goes through the same validation (§7), counts in the play stats and earns reduced XP (5 per run, no bonuses, same daily caps), but never writes an entry, a top list or a season archive. The result is `{ status: 'practice', progress }`.
+  - A flagged practice run earns nothing and is not added to `scoreFlags/` (approving it would rank an Easy score); its flags stay on the session, which records `practice: true`.
+  - Boards, ranks and the server best in `GHA_START.config.best` (protocol 2.4) are therefore Normal-only.
+  - The game toolbar shows "Easy mode: not ranked" after an Easy run, never a personal best, and keeps it out of the browser's local best.

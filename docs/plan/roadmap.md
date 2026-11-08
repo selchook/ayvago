@@ -195,7 +195,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | Function | Type | Purpose |
 |---|---|---|
 | `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored) |
-| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)); each board in the result carries the `previous` best, so the toolbar's personal best follows the server (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) |
+| `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)); each board in the result carries the `previous` best, so the toolbar's personal best follows the server (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); `practice: true` (an Easy run, protocol 2.6) is validated the same way but writes no board and earns reduced XP (5 per run, no bonuses), returning `{ status: 'practice', progress }` (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
@@ -283,7 +283,8 @@ The foundation (routing, proxy, message catalogs, language switcher, completenes
 
 ```ts
 // v1-compatible
-GHA.ready() · GHA.onStart(cb) · GHA.startGame() · GHA.endGame({ score, won, message })
+GHA.ready() · GHA.onStart(cb) · GHA.startGame() · GHA.endGame({ score, won, message, difficulty })
+// difficulty: protocol 2.6, 'easy' | 'normal' (absent = normal); easy runs are practice, never ranked (ADR 0018)
 GHA.submitScore(n) · GHA.onPause(cb) · GHA.onResume(cb) · GHA.openLeaderboard()
 GHA.sendMove(data) · GHA.onMove(cb)
 // new in v2
@@ -308,12 +309,14 @@ GHA.track(event, props)                                   // forwarded to Google
 
 ```
 1. GHA_READY            → platform: startSession() callable → { sessionId, token }
-2. GHA_END {score}      → platform checks origin/source
-3. finishSession({ sessionId, token, score, durationMs })
+2. GHA_END {score, difficulty?} → platform checks origin/source
+3. finishSession({ sessionId, token, score, durationMs, practice? })   practice = difficulty 'easy'
 4. Function checks: session belongs to this uid and is open · duration ≥ minDurationMs ·
    score ≤ maxPerSecond × duration · score ≤ maxScore · per-uid rate limit · App Check token
 5. Pass: stats + entries (all/week/day) + top[] if needed, in one transaction
    Suspicious: flagged=true, hidden from leaderboards, reviewed in /admin
+   Practice (Easy, ADR 0018): same checks; stats + reduced XP only, no entries or top[],
+   result { status: 'practice', progress }; a flagged practice run earns nothing and is not queued
 ```
 
 Client-side games can never be fully cheat-proof; this layer stops casual cheating such as fake scores sent from the console. Seed + input replay verification for the top 10 can be added later.
@@ -521,6 +524,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Game tables for up to four players with bots, protocol 2.3 (slice 5.12, ADR 0015)
 - [x] Fresh start: the player's server best in `GHA_START` (protocol 2.4), a server-backed personal best in the toolbar and a one-time "Reset progress" workflow (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); the reset itself is an owner step
 - [x] One sound switch: the game's own sound button and the player's toolbar button stay in sync (protocol 2.5, slice 5.14)
+- [x] Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice, counted for play stats and reduced XP but never ranked (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

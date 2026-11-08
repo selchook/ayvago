@@ -19,7 +19,10 @@ export async function countStart(gameId: string, now: number) {
   await dailyRef(gameId, now).set({ started: FieldValue.increment(1) }, { merge: true });
 }
 
-/** Records a finished run; called for every run that reached GHA_END, accepted or not. */
+/**
+ * Records a finished run; called for every run that reached GHA_END, accepted or not, practice
+ * runs (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md) included.
+ */
 export async function countFinish(uid: string, gameId: string, runMs: number, now: number) {
   const seconds = Math.round(Math.min(Math.max(runMs, 0), MAX_COUNTED_RUN_MS) / 1000);
   const batch = db().batch();

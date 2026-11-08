@@ -28,6 +28,14 @@ export type RunResult =
       boards: { season: BoardResult; all: BoardResult };
       /** XP, level and achievements the run earned (docs/adr/0016-achievements-and-xp.md). */
       progress?: RunProgress;
+    }
+  | {
+      /**
+       * A practice run (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md): accepted
+       * for play stats and XP, never ranked. Only answered to `practice: true`.
+       */
+      status: 'practice';
+      progress?: RunProgress;
     };
 
 /** Fired on window after a score reached the boards, so leaderboard views can refresh ranks. */
@@ -41,9 +49,15 @@ async function call<T>(name: string, data: unknown): Promise<T> {
   return (await httpsCallable<unknown, T>(functions, name)(data)).data;
 }
 
+export type FinishOptions = {
+  continues?: number;
+  /** The run was played on Easy (protocol 2.6): practice, never ranked. */
+  practice?: boolean;
+};
+
 export type Run = {
   /** Submits the final score; null when the run was not registered or the call failed. */
-  finish(score: number, continues?: number): Promise<RunResult | null>;
+  finish(score: number, options?: FinishOptions): Promise<RunResult | null>;
 };
 
 /**
@@ -63,7 +77,7 @@ export function beginRun(gameId: string, identity: Promise<unknown>): Run {
 
   let finished = false;
   return {
-    async finish(score, continues = 0) {
+    async finish(score, { continues = 0, practice = false } = {}) {
       if (finished) return null;
       finished = true;
       const current = await session;
@@ -74,9 +88,14 @@ export function beginRun(gameId: string, identity: Promise<unknown>): Run {
           score,
           durationMs: Date.now() - startedAt,
           continues,
+          // Sent only for practice, so a normal run's request is unchanged.
+          ...(practice ? { practice: true } : {}),
         });
-        if (result.status === 'recorded') {
+        if (result.status === 'recorded' || result.status === 'practice') {
           if (!isRunProgress(result.progress)) delete result.progress;
+        }
+        // Practice runs leave the boards as they were: nothing for leaderboard views to refresh.
+        if (result.status === 'recorded') {
           window.dispatchEvent(new CustomEvent(SCORE_RECORDED_EVENT, { detail: { gameId } }));
         }
         return result;

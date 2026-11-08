@@ -51,7 +51,26 @@ describe('parseGameMessage', () => {
       type: 'end',
       score: null,
       won: false,
+      difficulty: 'normal',
     });
+  });
+
+  it('reads the run difficulty from GHA_END (protocol 2.6)', () => {
+    expect(parseGameMessage({ type: 'GHA_END', score: 40, difficulty: 'easy' })).toEqual({
+      type: 'end',
+      score: 40,
+      won: null,
+      difficulty: 'easy',
+    });
+    expect(parseGameMessage({ type: 'GHA_END', score: 40, difficulty: 'normal' })).toMatchObject({
+      difficulty: 'normal',
+    });
+    // Older games send nothing; anything other than 'easy' is a normal (ranked) run.
+    for (const difficulty of [undefined, null, 'EASY', 'hard', 1, true, { easy: true }]) {
+      expect(parseGameMessage({ type: 'GHA_END', score: 40, difficulty })).toMatchObject({
+        difficulty: 'normal',
+      });
+    }
   });
 
   it("reads the game's sound switch and rejects malformed ones", () => {

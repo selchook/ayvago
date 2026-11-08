@@ -47,6 +47,7 @@
     <div class="row">
       <button id="add" type="button">+10</button>
       <button id="end" type="button">End game</button>
+      <button id="easy" type="button">End on Easy</button>
       <button id="board" type="button">Leaderboard</button>
     </div>
     <p id="status" data-testid="status">waiting for platform</p>
@@ -104,12 +105,21 @@
           render();
           send({ type: 'GHA_SCORE', score: score });
         });
-        document.getElementById('end').addEventListener('click', function () {
-          send({ type: 'GHA_END', score: score, won: false });
-          status.textContent = 'ended with ' + score;
+        function end(difficulty) {
+          var message = { type: 'GHA_END', score: score, won: false };
+          // Protocol 2.6: a run played on Easy is practice (not ranked); Normal sends nothing.
+          if (difficulty) message.difficulty = difficulty;
+          send(message);
+          status.textContent = 'ended with ' + score + (difficulty ? ' (' + difficulty + ')' : '');
           running = false;
           score = 0;
           render();
+        }
+        document.getElementById('end').addEventListener('click', function () {
+          end(null);
+        });
+        document.getElementById('easy').addEventListener('click', function () {
+          end('easy');
         });
         document.getElementById('board').addEventListener('click', function () {
           send({ type: 'GHA_OPEN_LEADERBOARD' });

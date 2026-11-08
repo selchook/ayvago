@@ -91,6 +91,7 @@
     "runRank": "#{rank} this week",
     "runRankUp": "#{rank} this week (up from #{previous})",
     "runFlagged": "Your score is being reviewed before it appears on the leaderboard.",
+    "runPractice": "Easy mode: not ranked",
     "runTooShort": "Runs this short do not count for the leaderboard."
   },
   "leaderboard": {

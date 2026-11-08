@@ -8,7 +8,7 @@ import { requirePlayer } from './appcheck';
 import { fail } from './errors';
 import { leaderboardGame, type LeaderboardGame } from './games';
 import { applyScore, boardRef, playerCard, rankOf } from './leaderboards';
-import { awardProgress, type ProgressResult } from './progress';
+import { awardPracticeProgress, awardProgress, type ProgressResult } from './progress';
 import { countFinish, countStart, MAX_COUNTED_RUN_MS } from './stats';
 
 // Score sessions (docs/specs/leaderboards.md §7). A run starts with startSession when the game
@@ -82,6 +82,15 @@ export type FinishResult =
       >;
       /** XP, level and achievements the run earned (docs/adr/0016-achievements-and-xp.md). */
       progress: ProgressResult;
+    }
+  | {
+      /**
+       * An accepted practice run (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md):
+       * validated like any run, counted in the play stats and progress, but never on a board.
+       * Only returned when the caller sent `practice: true`, so older clients never see it.
+       */
+      status: 'practice';
+      progress: ProgressResult;
     };
 
 type Verdict = { reject: string | null; flags: string[] };
@@ -134,12 +143,17 @@ export function judgeRun(options: {
   return { reject: null, flags };
 }
 
-/** finishSession({ sessionId, token, score, durationMs, continues }) → FinishResult */
+/**
+ * finishSession({ sessionId, token, score, durationMs, continues, practice? }) → FinishResult.
+ * `practice: true` marks a run played on Easy (protocol 2.6): it goes through the same checks,
+ * then earns reduced progress and no board (docs/adr/0018-difficulty-easy-is-practice.md).
+ */
 export async function finishSession(request: CallableRequest<unknown>): Promise<FinishResult> {
   const caller = await requirePlayer(request);
   const data = (request.data ?? {}) as Record<string, unknown>;
   const { sessionId, token, score, durationMs } = data;
   const continues = data.continues ?? 0;
+  const practice = data.practice ?? false;
   if (typeof sessionId !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(sessionId)) {
     throw fail('invalid-argument', 'session');
   }
@@ -151,6 +165,7 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     throw fail('invalid-argument', 'duration');
   }
   if (continues !== 0 && continues !== 1) throw fail('invalid-argument', 'continues');
+  if (typeof practice !== 'boolean') throw fail('invalid-argument', 'practice');
 
   const now = Date.now();
   const sessionRef = db().doc(`sessions/${sessionId}`);
@@ -169,7 +184,14 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
   const serverMs = now - (session.startedAt as Timestamp).toMillis();
   const game = leaderboardGame(session.gameId as string);
   const close = (fields: Record<string, unknown>) =>
-    sessionRef.update({ score, durationMs, serverDurationMs: serverMs, continues, ...fields });
+    sessionRef.update({
+      score,
+      durationMs,
+      serverDurationMs: serverMs,
+      continues,
+      ...(practice ? { practice: true } : {}),
+      ...fields,
+    });
 
   if (!game) {
     await close({ status: 'rejected', reason: 'unknown-game' });
@@ -198,6 +220,13 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     await close({ status: 'rejected', reason: verdict.reject, flags: verdict.flags });
     return { status: 'rejected', reason: verdict.reject };
   }
+  if (verdict.flags.length > 0 && practice) {
+    // Same checks, but nothing to review: approving a flag would rank an Easy score. The flags
+    // stay on the session for audits and the run earns nothing, like any flagged run.
+    await close({ status: 'flagged', flags: verdict.flags });
+    logger.warn('Practice run flagged', { sessionId, gameId: game.gameId, flags: verdict.flags });
+    return { status: 'flagged' };
+  }
   if (verdict.flags.length > 0) {
     const profile = await db().doc(`users/${caller.uid}`).get();
     await db()
@@ -224,6 +253,15 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     return { status: 'flagged' };
   }
 
+  const seconds = Math.round(Math.min(serverMs, MAX_COUNTED_RUN_MS) / 1000);
+  if (practice) {
+    // Practice: progress only (reduced XP, no board bonuses), no applyScore and no board.
+    const progress = await awardPracticeProgress({ uid: caller.uid, game, seconds, now });
+    await close({ status: 'finished', improved: false });
+    logUnlocked(caller.uid, game.gameId, progress);
+    return { status: 'practice', progress };
+  }
+
   // The accepted score and its progress (XP, level, achievements) commit together.
   const earned: { progress?: ProgressResult } = {};
   const outcomes = await applyScore({
@@ -236,7 +274,7 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
     hook: awardProgress({
       uid: caller.uid,
       game,
-      seconds: Math.round(Math.min(serverMs, MAX_COUNTED_RUN_MS) / 1000),
+      seconds,
       now,
       onResult: (result) => {
         earned.progress = result;
@@ -245,18 +283,18 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
   });
   await close({ status: 'finished', improved: outcomes.some((o) => o.improved) });
   const progress = earned.progress!;
-  if (progress.unlocked.length > 0) {
-    logger.info('Achievements unlocked', {
-      uid: caller.uid,
-      gameId: game.gameId,
-      unlocked: progress.unlocked,
-    });
-  }
+  logUnlocked(caller.uid, game.gameId, progress);
   return {
     status: 'recorded',
     boards: await describeBoards(game, outcomes, score, now),
     progress,
   };
+}
+
+function logUnlocked(uid: string, gameId: string, progress: ProgressResult) {
+  if (progress.unlocked.length > 0) {
+    logger.info('Achievements unlocked', { uid, gameId, unlocked: progress.unlocked });
+  }
 }
 
 async function describeBoards(

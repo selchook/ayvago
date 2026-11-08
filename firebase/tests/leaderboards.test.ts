@@ -305,6 +305,118 @@ describe('progress', () => {
   });
 });
 
+describe('practice runs (difficulty Easy)', () => {
+  const PROGRESS = (uid: string) => `users/${uid}/progress/summary`;
+  const practice = { practice: true };
+
+  it('write no leaderboard entry but count as plays and earn 5 XP', async () => {
+    const player = await guest();
+    const result = await play(player, 5000, 60, practice);
+    // 5 XP for the run (no first-play or top 10 bonus) plus first-run (+30).
+    expect(result).toEqual({
+      status: 'practice',
+      progress: { xpGained: 35, xp: 35, level: 1, levelUp: false, unlocked: ['first-run'] },
+    });
+    expect(await read(ALL)).toBeUndefined();
+    expect(await read(SEASON)).toBeUndefined();
+    expect(await read(`${ALL}/entries/${player.uid}`)).toBeUndefined();
+    expect(await read(`users/${player.uid}/stats/${GAME}`)).toMatchObject({
+      plays: 1,
+      playSeconds: 60,
+    });
+    expect(await read(PROGRESS(player.uid))).toMatchObject({
+      xp: 35,
+      runs: 1,
+      games: [GAME],
+      bests: 0,
+      playSeconds: 60,
+      top10: false,
+      champion: false,
+      xpGameToday: { [GAME]: 5 },
+    });
+
+    // A second practice run earns only the run XP; one under 20 s earns nothing.
+    expect(await play(player, 100, 60, practice)).toMatchObject({
+      status: 'practice',
+      progress: { xpGained: 5, xp: 40 },
+    });
+    expect(await play(player, 100, 10, practice)).toMatchObject({ progress: { xpGained: 0 } });
+    expect(await read(`users/${player.uid}/stats/${GAME}`)).toMatchObject({ plays: 3 });
+    expect(await read(PROGRESS(player.uid))).toMatchObject({ runs: 3, xp: 40 });
+  });
+
+  it('never count as a personal best and leave the ranked best alone', async () => {
+    const player = await guest();
+    await play(player, 500);
+    const easy = await play(player, 9000, 60, practice);
+    expect(easy).toMatchObject({ status: 'practice', progress: { xpGained: 5 } });
+    expect(easy).not.toHaveProperty('boards');
+    expect(await read(`${ALL}/entries/${player.uid}`)).toMatchObject({ score: 500 });
+    expect((await top(ALL)).map((row) => row.score)).toEqual([500]);
+    expect(await read(PROGRESS(player.uid))).toMatchObject({ bests: 0, runs: 2 });
+    // A ranked run is still compared with the ranked best only.
+    expect(await play(player, 600)).toMatchObject({
+      status: 'recorded',
+      boards: { all: { improved: true, best: 600, previous: 500 } },
+    });
+  });
+
+  it('go through the same checks; a flagged one earns nothing and is not queued', async () => {
+    const player = await guest();
+    expect(await play(player, 10, 2, practice)).toEqual({
+      status: 'rejected',
+      reason: 'too-short',
+    });
+    const session = await start(player);
+    await age(session, 10_000);
+    const flagged = await player.call('finishSession', {
+      ...session,
+      score: 5_000,
+      durationMs: 200_000,
+      practice: true,
+    });
+    expect(flagged).toEqual({ status: 'flagged' });
+    expect(await read(`sessions/${session.sessionId}`)).toMatchObject({
+      status: 'flagged',
+      practice: true,
+      flags: ['duration-mismatch'],
+    });
+    expect(await read(`scoreFlags/${session.sessionId}`)).toBeUndefined();
+    expect(await read(PROGRESS(player.uid))).toBeUndefined();
+  });
+
+  it('reject a malformed practice value without closing the session', async () => {
+    const player = await guest();
+    const session = await start(player);
+    await age(session, 60_000);
+    const finish = (value: unknown) =>
+      outcome(
+        player.call('finishSession', {
+          ...session,
+          score: 100,
+          durationMs: 60_000,
+          practice: value,
+        }),
+      );
+    for (const value of ['yes', 1, 0, {}, 'true']) {
+      expect(await finish(value)).toBe('practice');
+    }
+    expect(await read(`sessions/${session.sessionId}`)).toMatchObject({ status: 'open' });
+    // `null` and `false` mean a normal run.
+    expect(await finish(false)).toBe('ok');
+    const other = await start(player);
+    await age(other, 60_000);
+    expect(
+      await player.call('finishSession', {
+        ...other,
+        score: 50,
+        durationMs: 60_000,
+        practice: null,
+      }),
+    ).toMatchObject({ status: 'recorded' });
+  });
+});
+
 describe('closeSeasons', () => {
   it('archives finished seasons, resets the board and deletes old entries', async () => {
     const old = previousSeasonKey(Date.now());

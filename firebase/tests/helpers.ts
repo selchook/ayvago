@@ -139,7 +139,12 @@ export async function age(session: Session, ms: number) {
 }
 
 /** Starts a run, lets it last `seconds` and finishes it with `score`. */
-export async function play(player: Player, score: number, seconds = 60) {
+export async function play(
+  player: Player,
+  score: number,
+  seconds = 60,
+  extra: Record<string, unknown> = {},
+) {
   const session = await start(player);
   await age(session, seconds * 1000);
   return player.call<Record<string, unknown>>('finishSession', {
@@ -147,6 +152,7 @@ export async function play(player: Player, score: number, seconds = 60) {
     score,
     durationMs: seconds * 1000,
     continues: 0,
+    ...extra,
   });
 }
 
