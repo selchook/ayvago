@@ -1,4 +1,4 @@
-import { isCharacterId, type CharacterId } from '@ayvago/shared';
+import { isCharacterId, type CharacterId, type TableSettings } from '@ayvago/shared';
 import type { ColorMode, ThemeId } from '@ayvago/themes';
 
 // Platform side of the game SDK protocol (v1-compatible GHA_* messages, protocol 2).
@@ -28,6 +28,12 @@ export type GameMessage =
 /** Protocol 2.3: one seat at a table game (the game plays bot seats on the host's side). */
 export type SeatConfig = { name: string; character?: CharacterId; bot: boolean };
 
+/**
+ * Protocol 2.7, table games: the host's settings and the host's seat (0 unless a hand-over moved
+ * it; docs/adr/0020-quick-play-settings-host-handover.md).
+ */
+export type TableConfig = { settings: TableSettings; hostSeat: number };
+
 export type StartConfig = {
   mode: 'solo' | 'multiplayer';
   isHost: boolean;
@@ -41,6 +47,8 @@ export type StartConfig = {
   peerCharacter?: CharacterId;
   /** Protocol 2.3, table games only: every seat in order (`playerCount` entries). */
   seats?: SeatConfig[];
+  /** Protocol 2.7, table games only: settings and the host's seat. */
+  table?: TableConfig;
   /**
    * Protocol 2.4: the player's best score for this game on the platform's all-time board;
    * `null` when they have none yet. Absent when the platform does not know it (Firebase off,
@@ -72,6 +80,8 @@ export type PlatformMessage =
   | { type: 'GHA_MOVE_IN'; data: unknown; from?: number }
   | { type: 'GHA_PEER_LEAVE'; seat?: number }
   | { type: 'GHA_PEER_JOIN'; name: string; seat?: number }
+  // Protocol 2.7, tables: another player took over as host (the host's page was gone).
+  | { type: 'GHA_HOST_CHANGE'; hostSeat: number }
   | { type: 'GHA_AD_RESULT'; id: number; shown: boolean; rewarded: boolean };
 
 // Highest score accepted from a game message; larger values are treated as malformed.
@@ -168,6 +178,9 @@ export type MatchSeat = {
   table?: {
     index: number;
     seats: Array<{ name: string; character?: string | null; bot: boolean }>;
+    /** Protocol 2.7: the table's settings and the host's seat when the game starts. */
+    settings?: TableSettings;
+    hostSeat?: number;
   };
 };
 
@@ -206,6 +219,19 @@ export function buildStartConfig(
                 bot: s.bot,
                 ...(!s.bot && isCharacterId(s.character) ? { character: s.character } : {}),
               })),
+              ...(table.settings
+                ? {
+                    table: {
+                      settings: { ...table.settings },
+                      hostSeat:
+                        typeof table.hostSeat === 'number' &&
+                        table.hostSeat >= 0 &&
+                        table.hostSeat < table.seats.length
+                          ? table.hostSeat
+                          : 0,
+                    },
+                  }
+                : {}),
             }
           : {}),
       }

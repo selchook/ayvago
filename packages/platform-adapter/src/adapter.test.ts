@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.6.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.7.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -331,6 +331,88 @@ describe('multiplayer', () => {
     deliver({ type: 'GHA_PEER_JOIN', name: 'Ayşe', seat: 0 });
     // An out-of-range seat falls back to the default (the other player of a two-player room).
     expect(got).toEqual(['draw@0', 'bad@0', 'leave@0', 'join:Ayşe@0']);
+  });
+});
+
+describe('table settings and host hand-over (protocol 2.7)', () => {
+  const TABLE: StartConfig = {
+    ...START,
+    mode: 'multiplayer',
+    isHost: false,
+    playerIndex: 1,
+    playerCount: 4,
+    seats: [
+      { name: 'Ayşe', bot: false },
+      { name: 'Mehmet', bot: false },
+      { name: 'Bot 1', bot: true },
+      { name: 'Can', bot: false },
+    ],
+    table: { settings: { hands: 11, turnSeconds: 15, bots: true }, hostSeat: 0 },
+  };
+
+  it('exposes the settings and the host seat', async () => {
+    const { adapter } = await connected(TABLE);
+    expect(adapter.multiplayer.table).toEqual({
+      settings: { hands: 11, turnSeconds: 15, bots: true },
+      hostSeat: 0,
+    });
+    expect(adapter.multiplayer.hostSeat).toBe(0);
+    expect(adapter.multiplayer.isHost).toBe(false);
+  });
+
+  it('follows a hand-over to this player and to another one', async () => {
+    const { adapter, deliver } = await connected(TABLE);
+    const changes: string[] = [];
+    adapter.multiplayer.onHostChange((seat) =>
+      changes.push(`${seat}:${String(adapter.multiplayer.isHost)}`),
+    );
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 1 });
+    expect(adapter.multiplayer.hostSeat).toBe(1);
+    expect(adapter.multiplayer.isHost).toBe(true);
+    expect(adapter.config?.table?.hostSeat).toBe(1);
+    // The same seat again, seats outside the table, junk and other origins change nothing.
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 1 });
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 4 });
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: '3' });
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 3 }, 'https://evil.example');
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 3 });
+    expect(adapter.multiplayer.isHost).toBe(false);
+    expect(adapter.multiplayer.hostSeat).toBe(3);
+    expect(changes).toEqual(['1:true', '3:false']);
+  });
+
+  it('ignores host changes in two-player rooms and drops a malformed table config', async () => {
+    const room = await connected({
+      ...START,
+      mode: 'multiplayer',
+      isHost: false,
+      playerIndex: 1,
+      playerCount: 2,
+      peerName: 'Ayşe',
+    });
+    const changes: number[] = [];
+    room.adapter.multiplayer.onHostChange((seat) => changes.push(seat));
+    room.deliver({ type: 'GHA_HOST_CHANGE', hostSeat: 1 });
+    expect(changes).toEqual([]);
+    expect(room.adapter.multiplayer.table).toBeNull();
+    expect(room.adapter.multiplayer.hostSeat).toBe(0);
+
+    const bad = await connected({
+      ...TABLE,
+      table: { settings: { hands: 11, turnSeconds: 15 }, hostSeat: 7 } as never,
+    });
+    expect(bad.adapter.multiplayer.table).toBeNull();
+    expect(bad.adapter.config && 'table' in bad.adapter.config).toBe(false);
+  });
+
+  it('is inactive offline', async () => {
+    const adapter = await createPlatformAdapter({
+      gameId: 'okey',
+      env: fakeEnv({ embedded: false }).env,
+    });
+    expect(adapter.multiplayer.table).toBeNull();
+    expect(adapter.multiplayer.hostSeat).toBe(0);
+    expect(adapter.multiplayer.onHostChange(() => undefined)).toBeTypeOf('function');
   });
 });
 

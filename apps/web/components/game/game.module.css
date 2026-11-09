@@ -788,3 +788,87 @@
 .fullWidth {
   width: 100%;
 }
+
+/* Slice 5.19: quick play next to the lobby link, the auto-start countdown and the host notice. */
+.tableActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.tableActions [role='alert'] {
+  flex-basis: 100%;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--accent);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.secondaryButton:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.countdown {
+  justify-self: stretch;
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.card .countdownText {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdownBar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) no-repeat left / calc(var(--countdown, 0) * 100%)
+      100%,
+    color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .countdownBar {
+    transition: background-size 0.5s linear;
+  }
+}
+
+.hostNotice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  font-weight: 600;
+}
+
+[data-theme='arcade'] :is(.secondaryButton, .countdown, .countdownBar, .hostNotice) {
+  border-radius: 0;
+}
+
+[data-theme='cartoon'] .secondaryButton {
+  border-color: var(--border);
+}

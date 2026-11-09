@@ -1,4 +1,5 @@
 import {
+  DEFAULT_TABLE_SETTINGS,
   INVITE_TTL_MS,
   LOBBY_TABLE_TTL_MS,
   type LobbyPresence,
@@ -15,6 +16,10 @@ import {
   minutesSince,
   outgoingStatus,
   playerCount,
+  QUICK_PLAY_FRESH_MS,
+  QUICK_PLAY_MAX_AGE_MS,
+  quickPlayOrder,
+  readQuickPlayPointer,
 } from './lobby-data';
 
 const NOW = 10_000_000;
@@ -37,6 +42,8 @@ function table(code: string, changes: Partial<LobbyTable> = {}, free = 1): Lobby
     hostCharacter: null,
     seats,
     online: 1,
+    settings: DEFAULT_TABLE_SETTINGS,
+    autoStart: false,
     ...changes,
   };
 }
@@ -70,7 +77,7 @@ describe('lobbyTables', () => {
     const list = lobbyTables(
       [
         table('OLD222', { createdAt: NOW - LOBBY_TABLE_TTL_MS }),
-        table('GONE22', { online: 0 }),
+        table('GONE22', { online: 0, createdAt: NOW - QUICK_PLAY_FRESH_MS - 1 }),
         table('MINE22', { online: 0 }),
         table('LIVE22'),
       ],
@@ -146,5 +153,61 @@ describe('outgoingStatus', () => {
     for (const status of ['sending', 'pending', 'accepted'] as const) {
       expect(canInviteAgain(status)).toBe(false);
     }
+  });
+});
+
+describe('quick play (slice 5.19)', () => {
+  const humans = (n: number, free: number): LobbyTable['seats'] => [
+    ...Array.from({ length: n }, () => ({ kind: 'player' as const, name: 'P', character: null })),
+    ...Array.from({ length: free }, () => ({ kind: 'empty' as const })),
+    ...Array.from({ length: 4 - n - free }, () => ({ kind: 'bot' as const, name: 'Bot' })),
+  ];
+
+  it('tries the tables with the most players first, then the oldest', () => {
+    const order = quickPlayOrder(
+      [
+        table('AAAAAA', { seats: humans(1, 3), createdAt: NOW - 50_000 }),
+        table('BBBBBB', { seats: humans(3, 1), createdAt: NOW - 10_000 }),
+        table('CCCCCC', { seats: humans(2, 2), createdAt: NOW - 20_000 }),
+        table('DDDDDD', { seats: humans(2, 1), createdAt: NOW - 90_000 }),
+      ],
+      NOW,
+    );
+    expect(order).toEqual(['BBBBBB', 'DDDDDD', 'CCCCCC', 'AAAAAA']);
+  });
+
+  it('leaves out full, started, abandoned and nearly expired tables', () => {
+    const order = quickPlayOrder(
+      [
+        table('FULL22', { seats: humans(2, 0) }),
+        table('PLAY22', { status: 'playing' }),
+        table('GONE22', { online: 0, createdAt: NOW - QUICK_PLAY_FRESH_MS - 1 }),
+        table('OLD222', { createdAt: NOW - QUICK_PLAY_MAX_AGE_MS - 1 }),
+        table('GOOD22'),
+      ],
+      NOW,
+    );
+    expect(order).toEqual(['GOOD22']);
+  });
+
+  it('counts a brand-new table as attended before its host page is there', () => {
+    // Quick play just opened it; the host's table page has not marked them present yet.
+    const opener: LobbyTable['seats'] = [
+      { kind: 'player', name: 'Ayşe', character: null },
+      { kind: 'empty' },
+      { kind: 'empty' },
+      { kind: 'empty' },
+    ];
+    const fresh = { online: 0, createdAt: NOW - 2_000 };
+    expect(quickPlayOrder([table('NEW222', { ...fresh, seats: opener })], NOW)).toEqual(['NEW222']);
+    // A new table that everyone has left already is abandoned all the same.
+    expect(quickPlayOrder([table('LEFT22', fresh)], NOW)).toEqual([]);
+  });
+
+  it('reads the quick-play pointer', () => {
+    expect(readQuickPlayPointer({ code: 'ABC234', at: 5 })).toEqual({ code: 'ABC234', at: 5 });
+    expect(readQuickPlayPointer({ code: 'abc234', at: 5 })).toBeNull();
+    expect(readQuickPlayPointer({ code: 'ABC234' })).toBeNull();
+    expect(readQuickPlayPointer(null)).toBeNull();
   });
 });

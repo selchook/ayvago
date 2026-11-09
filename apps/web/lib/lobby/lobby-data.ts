@@ -96,3 +96,49 @@ export function canInviteAgain(status: OutgoingStatus | undefined): boolean {
     status === 'limit'
   );
 }
+
+/** Quick play leaves out tables that would expire soon after it seats someone. */
+export const QUICK_PLAY_MAX_AGE_MS = LOBBY_TABLE_TTL_MS - 15 * 60_000;
+
+/**
+ * A table this new with only its opener seated counts as attended even before the opener's page
+ * has marked them present (the page is still loading when another quick player looks).
+ */
+export const QUICK_PLAY_FRESH_MS = 15_000;
+
+/**
+ * Quick play (docs/adr/0020): the tables to try, best first. Only open tables with a free seat
+ * that someone has open (or that its opener opened in the last 15 seconds) and that are not about to expire;
+ * the most players seated first (the game starts soonest and with the fewest bots), then the
+ * oldest, then by code.
+ */
+export function quickPlayOrder(tables: LobbyTable[], now: number): string[] {
+  return tables
+    .filter(
+      (table) =>
+        canSit(table) &&
+        (table.online > 0 ||
+          (playerCount(table) === 1 && now - table.createdAt < QUICK_PLAY_FRESH_MS)) &&
+        now - table.createdAt < QUICK_PLAY_MAX_AGE_MS,
+    )
+    .sort(
+      (a, b) =>
+        playerCount(b) - playerCount(a) ||
+        a.createdAt - b.createdAt ||
+        a.code.localeCompare(b.code),
+    )
+    .map((table) => table.code);
+}
+
+/** The quick-play pointer quickPlay/{gameId}: the table quick play opened last. */
+export type QuickPlayPointer = { code: string; at: number };
+
+export function readQuickPlayPointer(value: unknown): QuickPlayPointer | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const v = value as Record<string, unknown>;
+  return typeof v.code === 'string' &&
+    /^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{6}$/.test(v.code) &&
+    typeof v.at === 'number'
+    ? { code: v.code, at: v.at }
+    : null;
+}

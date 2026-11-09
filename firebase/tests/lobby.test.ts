@@ -380,7 +380,7 @@ describe('cleanup', () => {
     expect(await readAdmin('lobby/okey/tables/OLD234')).toBeNull();
   });
 
-  it('deleteStaleLobbyData removes old lobby entries, invites and quotas only', async () => {
+  it('deleteStaleLobbyData removes old lobby entries, invites, quotas and pointers only', async () => {
     const now = Date.now();
     // Codes no other test uses, so a late trigger run from an earlier test cannot touch them.
     await seed('lobby/okey/tables/STA234', { slug: 'okey', createdAt: now - 3 * 3600_000 });
@@ -389,11 +389,17 @@ describe('cleanup', () => {
     await seed('invites/mert/new', { fromUid: 'new', createdAt: now - 60_000 });
     await seed('inviteQuota/old', { start: now - 2 * 3600_000, count: 5 });
     await seed('inviteQuota/new', { start: now - 30_000, count: 2 });
+    // Quick-play pointers (slice 5.19) go with their table's lifetime.
+    await seed('quickPlay/okey', { code: 'STA234', at: now - 3 * 3600_000 });
+    await seed('quickPlay/other', { code: 'NEW234', at: now - 60_000 });
     expect(await deleteStaleLobbyData(now - ROOM_TTL_MS, now)).toEqual({
       entries: 1,
       invites: 1,
       quotas: 1,
+      pointers: 1,
     });
+    expect(await readAdmin('quickPlay/okey')).toBeNull();
+    expect(await readAdmin('quickPlay/other')).not.toBeNull();
     expect(await readAdmin('lobby/okey/tables/STA234')).toBeNull();
     expect(await readAdmin('lobby/okey/tables/NEW234')).not.toBeNull();
     expect(await readAdmin('invites/mert/old')).toBeNull();

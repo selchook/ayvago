@@ -6,6 +6,7 @@ import { CoverArt } from '@/components/catalog/cover-art';
 import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
 import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
+import { QuickPlayButton } from '@/components/lobby/quick-play-button';
 import styles from '@/components/game/game.module.css';
 import { TrophyIcon, UsersIcon } from '@/components/icons';
 import { Link } from '@/i18n/navigation';
@@ -23,6 +24,7 @@ import {
 } from '@/lib/catalog';
 import { getRankings } from '@/lib/catalog/rankings';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
+import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 
 type Props = { params: Promise<{ locale: Locale; slug: string }> };
@@ -135,14 +137,24 @@ export default async function GamePage({ params }: Props) {
                   <UsersIcon />
                   {t('table.playAtTable')}
                 </h2>
+                <p>{t('lobby.quickPlayHint')}</p>
+                <div className={styles.tableActions}>
+                  <QuickPlayButton
+                    gameId={manifest.id}
+                    slug={game.slug}
+                    gamePath={gamePath(game)}
+                    size={Math.min(MAX_TABLE_SIZE, manifest.players.max)}
+                    className={styles.friendButton}
+                  />
+                  <Link
+                    href={`${gamePath(game)}/lobby`}
+                    className={styles.secondaryButton}
+                    prefetch={false}
+                  >
+                    {t('lobby.enter')}
+                  </Link>
+                </div>
                 <p>{t('lobby.enterHint')}</p>
-                <Link
-                  href={`${gamePath(game)}/lobby`}
-                  className={styles.friendButton}
-                  prefetch={false}
-                >
-                  {t('lobby.enter')}
-                </Link>
                 <p>
                   {t('lobby.privateTableHint')}{' '}
                   <Link href={`${gamePath(game)}/table`} prefetch={false}>

@@ -223,6 +223,29 @@ No secrets, env vars or indexes are needed.
   5. **Katıl** seats the second player at the table.
   6. A third browser sees the table under **Masalar** and can sit down with **Otur**.
 
+## 5.19 Quick play, table settings and host hand-over
+Nothing to set up on the platform. Merging deploys the web app, and the usual workflows publish the rest:
+- **"Deploy Firestore and Realtime Database rules":** `tables/*/settings`, `startAt`, the
+  hand-over rule on `hostUid`, and the new `quickPlay/{gameId}` pointer.
+- **"Deploy Cloud Functions":** `syncLobbyTable` now lists the settings, and `cleanupRooms` also
+  removes old quick-play pointers.
+
+No new function, secret, env var or index is needed. (The one-time IAM step of 5.18 must be done
+for `syncLobbyTable` to run.)
+- ⏳ Then merge the studio PR in `selchook/ayvago-games` that copies adapter 2.7.0. The studio's
+  adapter check fails until its copy matches. The same PR (or a later one) makes Okey use the
+  settings, take over the bots after `GHA_HOST_CHANGE` and play a leaver's seat as a bot. Until
+  then Okey keeps its own 5 hands and no turn timer, and a hand-over during a game leaves the bots
+  unplayed (multiplayer spec §7c).
+
+Optional check after the deploy:
+1. Open `https://ayvago.com/tr/games/okey` in two browsers and press **Hızlı oyna** in both at about
+   the same time. Both land at the same table, which counts down from 20 and starts with two bots.
+2. Open a table from the lobby with **Masa aç**, pick 11 el / Rahat · 60 sn. The other browser sees
+   "11 el · Hamle başına 60 sn" on the table in the lobby.
+3. With two players at a table, close the host's browser. After about 15 seconds the other one
+   sees "Masa sahibi ayrıldı, artık masanın sahibi sensin".
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

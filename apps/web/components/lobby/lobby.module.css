@@ -128,7 +128,7 @@
 .table {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'host action' 'seats seats';
+  grid-template-areas: 'host action' 'seats seats' 'settings settings';
   align-items: center;
   gap: 10px 12px;
   padding: 10px 12px;
@@ -148,7 +148,7 @@
 @media (min-width: 640px) {
   .table {
     grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'host seats action';
+    grid-template-areas: 'host seats action' 'settings settings settings';
   }
 }
 
@@ -222,6 +222,72 @@
 .stateTag[data-state='lobby'] {
   border-color: var(--success);
   color: var(--text);
+}
+
+/* Slice 5.19: each table's settings, quick play and the "open a table" form. */
+.tableSettings {
+  grid-area: settings;
+  min-width: 0;
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.quickText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.quickText h2,
+.quickText p {
+  margin: 0;
+}
+
+.quickText p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.quickAction {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.quickAction [role='alert'] {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.setup {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) dashed var(--border);
+}
+
+.setup h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.setupActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Players */
@@ -304,7 +370,9 @@
     .myTable,
     .notice,
     .seatIcon,
-    .face
+    .face,
+    .quick,
+    .setup
   ) {
   border-radius: 0;
 }

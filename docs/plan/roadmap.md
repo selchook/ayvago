@@ -184,9 +184,10 @@ Season key: `s-2026-W42` (weekly seasons, Monday 09:00 UTC). Old season entries 
 rooms/{code}                           { gameId, slug, hostUid, hostName, hostCharacter, guestUid, guestName, guestCharacter, createdAt, status, online/{uid} }  ✅ ← room code + invite link
 signals/{code}/{toUid}/{id}            { from, kind: hello|offer|answer|ice, data }  ✅ ← WebRTC handshake inbox
 relay/{code}/{pushId}                  { from, data }                                ✅ ← fallback when WebRTC is not open
-tables/{code}                          { gameId, slug, hostUid, size, status, visibility, createdAt, seats/{i}, online/{uid} }  ✅ ← game tables for up to four (ADR 0015)
+tables/{code}                          { gameId, slug, hostUid, size, status, visibility, settings, startAt?, createdAt, seats/{i}, online/{uid} }  ✅ ← game tables for up to four (ADR 0015); settings, auto start, hand-over (ADR 0020)
 tableMoves/{code}/{pushId}             { from, seat, data }                          ✅ ← moves at a table
-lobby/{gameId}/tables/{code}           { slug, size, status, createdAt, hostName, seats, online }  ✅ ← public table list, no uids; syncLobbyTable trigger only (ADR 0019)
+lobby/{gameId}/tables/{code}           { slug, size, status, createdAt, hostName, seats, online, settings, autoStart? }  ✅ ← public table list, no uids; syncLobbyTable trigger only (ADR 0019)
+quickPlay/{gameId}                     { code, at }                                  ✅ ← the table quick play opened last; moved by transaction (ADR 0020)
 presence/lobbies/{gameId}/{uid}        { name, character?, level?, state, since, dnd? }  ✅ ← who is in a game's lobby; onDisconnect → removed
 invites/{toUid}/{fromUid}              { fromName, gameId, slug, tableCode, createdAt, answer? }  ✅ ← one pending invite per pair
 inviteQuota/{uid}                      { start, count }                              ✅ ← five invites per minute (rules)
@@ -194,7 +195,7 @@ presence/{uid}                         { state: 'online', gameId, lastChanged } 
 matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md). Details: [multiplayer spec](../specs/multiplayer.md).
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md). Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -214,8 +215,8 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
 | `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress); guest cleanup (30 days); score session cleanup (14 days) |
-| `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms and tables older than two hours with their signaling, relay and move data; since slice 5.18 also stale lobby entries, invites and invite quotas |
-| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) |
+| `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms and tables older than two hours with their signaling, relay and move data; since slice 5.18 also stale lobby entries, invites and invite quotas, since slice 5.19 old quick-play pointers |
+| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)); since slice 5.19 with the table's settings and auto start |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
 | `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16) |
@@ -536,6 +537,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Admin "Players and plays" report: registered and guest players and which game each played how often, on demand with CSV downloads (`getPlayReport`, slice 5.16)
 - [x] Home spotlight carousel: the three games trending today (`todayScore` from the hourly `recomputeRankings`), swipeable and advancing by itself, filled up with this week's trend and the featured games (slice 5.17)
 - [x] Lobby for table games (Okey first): public tables to sit at, who is online, invites with a notification on every page, "do not disturb" on the profile (`syncLobbyTable`, slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md))
+- [x] Quick play, table settings (hands, turn time, bots) and host hand-over; auto-starting tables; protocol 2.7 (`config.table`, `GHA_HOST_CHANGE`) (slice 5.19, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

@@ -38,6 +38,11 @@ function watchServerOffset(): Promise<void> {
   return offsetWatch;
 }
 
+/** Starts following the database clock (tables count down by it); resolves with the first answer. */
+export function syncServerClock(): Promise<void> {
+  return watchServerOffset();
+}
+
 /** The database's clock as far as this page knows it (the device's until the first answer). */
 export function serverNow(): number {
   return Date.now() + offset;

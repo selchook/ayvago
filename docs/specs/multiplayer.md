@@ -189,8 +189,98 @@ inviteQuota/{uid}                    { start, count }        ← at most 5 invit
 - invites older than 20 minutes;
 - quotas whose window ended an hour ago.
 
+## 7c. Quick play, table settings and host hand-over (protocol 2.7)
+Decision and reasons: [ADR 0020](../adr/0020-quick-play-settings-host-handover.md).
+
+**Quick play.** A button on the lobby and on the game page.
+- One tap seats the player at the best open public table of the game that has a free seat:
+  - the tables tried are open, have someone present (or were opened in the last 15 seconds by a
+    player who is the only one seated), and have at least 15 minutes left;
+  - the most players seated first, then the oldest.
+- If no table takes the player, it opens a public table with the default settings that **starts
+  by itself**.
+- Players who tap at the same moment meet through `quickPlay/{gameId}`, which only moves by
+  transaction.
+
+**Auto start.**
+- Quick-play tables, and public tables whose host ticks "Start by itself", count down 20 s.
+- Everyone at the table sees the countdown, by the database's clock.
+- Every player who sits down leaves at least 10 s.
+- When the countdown ends, the host's page fills the empty seats with bots (if the table allows
+  them) and starts, in one transaction. With bots off it starts once every seat has a player.
+- The host can start earlier with "Start now with bots".
+
+**Settings.**
+- Chosen in the "Open a table" form (lobby: public by default; game page: private by default).
+- The host changes them while the table is open. Others see them as tags on the table page and in
+  the lobby row:
+  - hands per match: 5 or 11;
+  - time per turn: 15 s fast, 30 s normal, 60 s relaxed;
+  - bots: allowed or players only.
+- Defaults: 5 hands, 30 s, bots allowed. Tables from before 5.19 read as the defaults.
+
+**Host hand-over.**
+- When the host's table page has been gone for 15 s, the present seated player in the lowest seat
+  becomes host. Each next one waits 5 s more, in case the first is stuck.
+- The page shows "You are the host now" or "X is the host now".
+- The returning old host is a normal player in their old seat.
+
+**Data.**
+```
+tables/{code}/settings     { hands: 5|11, turnSeconds: 15|30|60, bots }   ← host, changes only while open
+tables/{code}/startAt      number (server ms)                             ← host, only while open, ≤ now + 2 min
+tables/{code}/hostUid      a seated, present player may set it to themself when the host is not present
+quickPlay/{gameId}         { code, at }                                   ← host of that open public table, at = now
+lobby/{gameId}/tables/{code}   + settings, autoStart?                     ← syncLobbyTable
+```
+Rules (emulator tests in `firebase/tests/table-play.test.ts`):
+- settings: valid values only, host only, a change only while the table is open;
+- no bot seats at a table without bots, and bots cannot be turned off while one is seated;
+- `startAt`: host only, while open, at most two minutes ahead;
+- hand-over: only to oneself, only when seated and present, only when the host is not present,
+  only while the table is open or playing;
+- quick-play pointer: only for one's own open public table of that game; nobody deletes it.
+  `cleanupRooms` removes pointers older than two hours.
+
+**Game protocol 2.7** (adapter 2.7.0; the contract for the studio):
+- `GHA_START.config.table`, for table games only (absent in rooms, solo runs and from platforms
+  before 2.7):
+  ```ts
+  table?: {
+    settings: { hands: 5 | 11; turnSeconds: 15 | 30 | 60; bots: boolean };
+    hostSeat: number; // the host's seat when the game starts (0 unless a hand-over happened before)
+  }
+  ```
+  - `isHost` equals `hostSeat === playerIndex`.
+  - `bots: false` means every seat is a player (`seats[i].bot` is false for all).
+  - A game should play `hands` hands and give each turn `turnSeconds` seconds. When the time runs
+    out, the game plays an automatic move for that seat, decided by the host's game for bot seats
+    and by the player's own game for theirs.
+- `GHA_HOST_CHANGE { hostSeat: number }`, platform → game, during a table game only:
+  - The host left (their page was gone for 15 s) and the player in `hostSeat` took over. Every
+    game at the table receives it, including the new host's.
+  - From then on the new host's game plays the bot seats and resyncs players who come back.
+    Before it, the games get `GHA_PEER_LEAVE { seat }` for the old host as usual.
+  - The new host's game should take over from the last state it knows (every move went to every
+    player, so all games have the same state).
+- The old host's seat stays theirs. They can come back (`GHA_PEER_JOIN { seat }`), now as a normal
+  player. Their game restarts on reload, with `isHost: false` and the current `hostSeat` in
+  `GHA_START`.
+- A non-host player who leaves during a game changes nothing on the platform except
+  `GHA_PEER_LEAVE { seat }`. The host's game may play that seat as a bot until
+  `GHA_PEER_JOIN { seat }`.
+- Adapter API:
+  - `multiplayer.table: TableConfig | null` (settings and host seat; null in rooms, solo and
+    offline);
+  - `multiplayer.hostSeat: number` (0 outside tables);
+  - `multiplayer.isHost` follows hand-overs;
+  - `multiplayer.onHostChange((hostSeat) => …)` runs after `isHost` and `hostSeat` have changed.
+- The adapter ignores a malformed `table` (as if absent) and a `GHA_HOST_CHANGE` with a seat
+  outside the table, with the current host seat, or outside a table game.
+
 ## 7. Not covered yet
-- Quick match with strangers, spectators, chat (tables: see ADR 0019 "Next").
+- Quick match with strangers in two-player rooms, spectators, chat (tables: see ADR 0019 and
+  ADR 0020 "Next").
 - An unordered channel for real-time games (the ordered channel is enough for two-player pong at
   20–30 updates per second).
 
@@ -203,4 +293,7 @@ support to the games. Slice 5.1b ([plan](../plan/phase-5.md#51b-five-characters-
 the five human figures. Tables for up to four with bots (§7a) shipped with slice 5.12
 ([plan](../plan/phase-5.md#512-game-tables-for-up-to-four-with-bots--code)). The lobby with
 public tables, presence and invites (§7b) shipped with slice 5.18
-([plan](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)).
+([plan](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)). Quick play, table
+settings, auto start, host hand-over and protocol 2.7 (§7c) shipped with slice 5.19
+([plan](../plan/phase-5.md#519-quick-play-table-settings-and-host-hand-over--code)) on the
+platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey.

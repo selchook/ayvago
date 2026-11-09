@@ -1,6 +1,12 @@
 'use client';
 
-import type { Locale, LobbyPresence } from '@ayvago/shared';
+import {
+  DEFAULT_TABLE_SETTINGS,
+  type Locale,
+  type LobbyPresence,
+  type TableSettings,
+  type TableVisibility,
+} from '@ayvago/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ensureGuest, useAccount } from '@/lib/account/store';
@@ -8,16 +14,30 @@ import { firebaseEnabled } from '@/lib/firebase/client';
 import type { PlatformMessage } from '@/lib/gha/bridge';
 import { parseRoomCode } from '@/lib/netcode/room-code';
 import { lobbyPlayers } from '@/lib/lobby/lobby-data';
-import { rememberTable, watchLobbyPlayers } from '@/lib/lobby/lobby';
+import { rememberTable, serverNow, syncServerClock, watchLobbyPlayers } from '@/lib/lobby/lobby';
 import { invitePlayer, useOutgoingInvites } from '@/lib/lobby/outgoing';
 import { useLobbyPresence } from '@/lib/lobby/use-presence';
-import { nextBotNumber, seatOf, seatedUids, tableReady } from '@/lib/netcode/table-data';
+import {
+  canStart,
+  extendedStart,
+  handoverDelay,
+  hostSeat,
+  nextBotNumber,
+  seatOf,
+  seatedUids,
+  secondsLeft,
+  tableReady,
+} from '@/lib/netcode/table-data';
 import {
   addBot,
+  claimHost,
   clearSeat,
   createTable,
   joinTable,
+  moveStart,
   openTableChannel,
+  setAutoStart,
+  setTableSettings,
   setTableVisibility,
   startTable,
   trackTablePresence,
@@ -30,11 +50,20 @@ import { CopyIcon, ShareIcon, UsersIcon } from '../icons';
 import { OnlinePlayers } from '../lobby/online-players';
 import lobbyStyles from '../lobby/lobby.module.css';
 import { GamePlayer, type GamePlayerProps, type MatchBinding } from './game-player';
+import { TableSettingsFields, TableSettingsSummary } from './table-settings';
 import styles from './game.module.css';
 
 type TableError = 'full' | 'started' | 'missing' | 'closed' | 'expired' | 'failed' | 'unavailable';
 
-type View = { kind: 'loading' } | { kind: 'error'; reason: TableError } | { kind: 'table' };
+type View =
+  | { kind: 'loading' }
+  | { kind: 'error'; reason: TableError }
+  /** "Open a table": the player picks the settings first (docs/adr/0020). */
+  | { kind: 'setup' }
+  | { kind: 'table' };
+
+/** Shown when another player took over as host. */
+type HostNotice = { kind: 'you' } | { kind: 'other'; name: string } | null;
 
 export type TableViewProps = Omit<GamePlayerProps, 'match' | 'comingSoon'> & {
   /** null: open a new table and move to its address. */
@@ -48,6 +77,8 @@ export type TableViewProps = Omit<GamePlayerProps, 'match' | 'comingSoon'> & {
 const NAME_WAIT_MS = 3000;
 // A short drop (a phone switching networks) is not a leave yet.
 const LEAVE_GRACE_MS = 4000;
+// The auto-start countdown on screen.
+const TICK_MS = 500;
 
 /**
  * A game table for up to four (docs/adr/0015-tables-for-four-with-bots.md): open or join, invite
@@ -62,7 +93,11 @@ export function TableView(props: TableViewProps) {
   const account = useAccount();
 
   const [view, setView] = useState<View>(() =>
-    firebaseEnabled() ? { kind: 'loading' } : { kind: 'error', reason: 'unavailable' },
+    !firebaseEnabled()
+      ? { kind: 'error', reason: 'unavailable' }
+      : code === null
+        ? { kind: 'setup' }
+        : { kind: 'loading' },
   );
   const [table, setTable] = useState<Table | null>(null);
   const [nameTimedOut, setNameTimedOut] = useState(false);
@@ -76,6 +111,13 @@ export function TableView(props: TableViewProps) {
   const [inviteNotice, setInviteNotice] = useState<'inviteLimit' | 'inviteFailed' | null>(null);
   const outgoing = useOutgoingInvites();
   const tLobby = useTranslations('lobby');
+  // "Open a table": the settings chosen before the table exists.
+  const [draft, setDraft] = useState<TableSettings>(DEFAULT_TABLE_SETTINGS);
+  const [draftVisibility, setDraftVisibility] = useState<TableVisibility>('private');
+  const [creating, setCreating] = useState(false);
+  // Re-renders the auto-start countdown.
+  const [, setTick] = useState(0);
+  const [hostNotice, setHostNotice] = useState<HostNotice>(null);
 
   const startedRef = useRef(false);
   const channelRef = useRef<TableChannel | null>(null);
@@ -90,6 +132,8 @@ export function TableView(props: TableViewProps) {
   const isHost = !!table && !!uid && table.hostUid === uid;
   const mySeat = table && uid ? seatOf(table, uid) : -1;
   const playing = table?.status === 'playing' && mySeat >= 0;
+  const tableRef = useRef<Table | null>(null);
+  tableRef.current = table;
 
   // In the game's lobby list while seated here (docs/adr/0019): "at a table", then "playing".
   useLobbyPresence(
@@ -113,17 +157,33 @@ export function TableView(props: TableViewProps) {
     // Runs once per page; the locale does not change while a table is open.
   }, []);
 
-  // Open the table, or take a seat at the one from the link.
-  useEffect(() => {
-    if (!uid || !name || startedRef.current || view.kind !== 'loading') return;
-    startedRef.current = true;
-    if (code === null) {
-      // A table from "Open a private table" is reached only through its link and invites.
-      createTable({ uid, name, gameId, slug, size, character: myCharacter, visibility: 'private' })
-        .then((created) => router.replace(`${gamePath}/table/${created}`))
-        .catch(() => setView({ kind: 'error', reason: 'failed' }));
-      return;
+  // "Open a table" from the game page: private by default (reached through its link and
+  // invites), with the settings the player picked.
+  async function openNewTable() {
+    if (!uid || !name || creating) return;
+    setCreating(true);
+    try {
+      const created = await createTable({
+        uid,
+        name,
+        gameId,
+        slug,
+        size,
+        character: myCharacter,
+        visibility: draftVisibility,
+        settings: draft,
+      });
+      rememberTable(gameId, created);
+      router.replace(`${gamePath}/table/${created}`);
+    } catch {
+      setView({ kind: 'error', reason: 'failed' });
     }
+  }
+
+  // Take a seat at the table from the link.
+  useEffect(() => {
+    if (!uid || !name || startedRef.current || view.kind !== 'loading' || code === null) return;
+    startedRef.current = true;
     if (!tableCode) {
       setView({ kind: 'error', reason: 'missing' });
       return;
@@ -157,6 +217,8 @@ export function TableView(props: TableViewProps) {
       else setView({ kind: 'error', reason: 'closed' });
     }).then((stop) => (cancelled ? stop() : stops.push(stop)));
     trackTablePresence(tableCode, uid).then((stop) => (cancelled ? stop() : stops.push(stop)));
+    // The auto-start countdown runs on the database's clock.
+    syncServerClock().catch(() => undefined);
     setInviteUrl(`${window.location.origin}${window.location.pathname}`);
     setCanShare(typeof navigator.share === 'function');
     return () => {
@@ -197,6 +259,96 @@ export function TableView(props: TableViewProps) {
     else if (status === 'failed') setInviteNotice('inviteFailed');
     setInviting(null);
   }
+
+  // ---- Auto start (docs/adr/0020) ------------------------------------------------------------
+  const counting = view.kind === 'table' && table?.status === 'open' && table.startAt !== null;
+  useEffect(() => {
+    if (!counting) return;
+    const timer = window.setInterval(() => setTick((n) => n + 1), TICK_MS);
+    return () => window.clearInterval(timer);
+  }, [counting]);
+
+  // The players this page has seen sit down. The host gives each new one at least
+  // AUTO_START_JOIN_MS of the countdown.
+  const knownRef = useRef<Set<string> | null>(null);
+  const humansKey = table ? seatedUids(table).join(',') : '';
+  useEffect(() => {
+    const current = tableRef.current;
+    if (view.kind !== 'table' || !current) return;
+    const humans = seatedUids(current);
+    const known = knownRef.current;
+    knownRef.current = new Set([...(known ?? []), ...humans]);
+    if (!known || !isHost || current.status !== 'open' || current.startAt === null) return;
+    if (!humans.some((player) => !known.has(player))) return;
+    const later = extendedStart(current.startAt, serverNow());
+    if (later !== null) {
+      moveStart(current.code, later).catch((error) =>
+        console.warn('[netcode] countdown update failed', error),
+      );
+    }
+  }, [view.kind, humansKey, isHost]);
+
+  // The host's page starts the table when the countdown ends: empty seats get bots (when the
+  // table allows them) in the same transaction.
+  const seatsShape = table ? table.seats.map((seat) => seat?.kind ?? '-').join('') : '';
+  const startAt = table?.status === 'open' ? (table?.startAt ?? null) : null;
+  useEffect(() => {
+    if (view.kind !== 'table' || !isHost || startAt === null || !tableCode) return;
+    let cancelled = false;
+    const timer = window.setTimeout(
+      () => {
+        startTable(tableCode, (n) => t('botName', { n }), knownRef.current ?? new Set())
+          .then((result) => {
+            const current = tableRef.current;
+            if (cancelled || result !== 'newPlayer' || !current?.startAt) return;
+            // Someone sat down this very moment: give them the countdown first.
+            const later = extendedStart(current.startAt, serverNow());
+            if (later !== null) return moveStart(tableCode, later);
+          })
+          .catch((error) => console.warn('[netcode] auto start failed', error));
+      },
+      Math.max(0, startAt - serverNow()),
+    );
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    // seatsShape: with bots off, a new attempt once more seats are taken.
+  }, [view.kind, isHost, startAt, tableCode, seatsShape, t]);
+
+  // ---- Host hand-over (docs/adr/0020) --------------------------------------------------------
+  // When the host's table page has been gone for HOST_HANDOVER_MS, the present seated player in
+  // the lowest seat takes over (the next ones a little later, in case the first is stuck).
+  const delay = table && uid && view.kind === 'table' ? handoverDelay(table, uid) : null;
+  const hostUid = table?.hostUid ?? null;
+  useEffect(() => {
+    if (delay === null || !hostUid || !tableCode || !uid) return;
+    const timer = window.setTimeout(() => {
+      const current = tableRef.current;
+      if (!current || current.hostUid !== hostUid || handoverDelay(current, uid) === null) return;
+      claimHost(tableCode, hostUid, uid).catch((error) =>
+        console.warn('[netcode] host hand-over failed', error),
+      );
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [delay, hostUid, tableCode, uid]);
+
+  // Tell the player (and, during a game, the game) when the host changes.
+  const shownHostRef = useRef<string | null>(null);
+  useEffect(() => {
+    const current = tableRef.current;
+    if (!hostUid || !current) return;
+    const previous = shownHostRef.current;
+    shownHostRef.current = hostUid;
+    if (previous === null || previous === hostUid) return;
+    const seat = hostSeat(current);
+    const host = current.seats[seat];
+    setHostNotice(
+      hostUid === uid
+        ? { kind: 'you' }
+        : { kind: 'other', name: host?.kind === 'player' ? host.name : '' },
+    );
+  }, [hostUid, uid]);
 
   // The move channel, once the game is on.
   useEffect(() => {
@@ -263,18 +415,28 @@ export function TableView(props: TableViewProps) {
     return () => Object.values(timers).forEach((timer) => window.clearTimeout(timer));
   }, []);
 
-  // The seats as they were when the game started go into GHA_START (protocol 2.3).
+  // The seats as they were when the game started go into GHA_START (protocol 2.3), with the
+  // settings and the host's seat (protocol 2.7). A later hand-over goes to the game as
+  // GHA_HOST_CHANGE, so the binding (and the running game) stays the same.
   const seatsKey = playing && table ? JSON.stringify(table.seats) : '';
+  const startHostRef = useRef(-1);
   const match = useMemo<MatchBinding | null>(() => {
-    if (!seatsKey || !table) return null;
-    const seats = table.seats.map((seat) =>
+    const current = tableRef.current;
+    if (!seatsKey || !current) return null;
+    const seats = current.seats.map((seat) =>
       seat?.kind === 'player'
         ? { name: seat.name, character: seat.character, bot: false }
         : { name: seat?.name ?? '', bot: true },
     );
-    const me = table.seats[mySeat];
+    const me = current.seats[mySeat];
+    const host = Math.max(0, hostSeat(current));
+    startHostRef.current = host;
     return {
-      seat: { isHost, peerName: '', table: { index: mySeat, seats } },
+      seat: {
+        isHost: host === mySeat,
+        peerName: '',
+        table: { index: mySeat, seats, settings: current.settings, hostSeat: host },
+      },
       character: me?.kind === 'player' ? me.character : null,
       send: (json) => channelRef.current?.send(json),
       attach(post) {
@@ -286,7 +448,15 @@ export function TableView(props: TableViewProps) {
       },
     };
     // The binding changes only when the seats do.
-  }, [seatsKey, mySeat, isHost]);
+  }, [seatsKey, mySeat]);
+
+  // Protocol 2.7: the game hears about a new host while it runs.
+  const hostSeatNow = playing && table ? hostSeat(table) : -1;
+  useEffect(() => {
+    if (!match || hostSeatNow < 0 || hostSeatNow === startHostRef.current) return;
+    startHostRef.current = hostSeatNow;
+    deliver({ type: 'GHA_HOST_CHANGE', hostSeat: hostSeatNow });
+  }, [match, hostSeatNow, deliver]);
 
   useEffect(() => {
     if (!copied) return;
@@ -322,11 +492,19 @@ export function TableView(props: TableViewProps) {
     }
   }
 
-  const hostName = table?.seats[0]?.name ?? '';
+  const hostIndex = table ? hostSeat(table) : -1;
+  const hostName = (hostIndex >= 0 ? table?.seats[hostIndex]?.name : null) ?? '';
+  const autoStart = table?.status === 'open' && table.startAt !== null;
+  const left = autoStart && table?.startAt != null ? secondsLeft(table.startAt, serverNow()) : null;
+  const ready = table ? tableReady(table) : false;
   const awayNames = away.map((index) => table?.seats[index]?.name).filter(Boolean);
 
   return (
-    <div className={styles.room} data-room-state={playing ? 'playing' : view.kind}>
+    <div
+      className={styles.room}
+      data-room-state={playing ? 'playing' : view.kind}
+      data-host={isHost || undefined}
+    >
       <header className={styles.titleRow}>
         <h1>
           <UsersIcon /> {t('title', { title })}
@@ -339,6 +517,14 @@ export function TableView(props: TableViewProps) {
           <Link href={gamePath}>{tOnline('backToGame', { title })}</Link>
         </p>
       </header>
+
+      {hostNotice && view.kind === 'table' ? (
+        <p className={styles.hostNotice} role="status" data-host-notice={hostNotice.kind}>
+          {hostNotice.kind === 'you'
+            ? t('youAreHost')
+            : t('hostChanged', { name: hostNotice.name })}
+        </p>
+      ) : null}
 
       {view.kind === 'loading' ? (
         <section className={styles.card} aria-busy="true">
@@ -359,8 +545,49 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
+      {view.kind === 'setup' ? (
+        <section className={styles.card} aria-labelledby="table-setup-heading">
+          <h2 id="table-setup-heading">{t('setupTitle')}</h2>
+          <p>{t('setupBody')}</p>
+          <TableSettingsFields
+            id="new-table"
+            settings={draft}
+            onChange={setDraft}
+            visibility={draftVisibility}
+            onVisibility={setDraftVisibility}
+            disabled={creating}
+          />
+          <button
+            type="button"
+            className={styles.friendButton}
+            disabled={!uid || !name || creating}
+            onClick={openNewTable}
+          >
+            {creating ? tLobby('opening') : t('createTable')}
+          </button>
+        </section>
+      ) : null}
+
       {view.kind === 'table' && table && !playing ? (
         <section className={styles.card} aria-labelledby="table-heading">
+          {autoStart && left !== null ? (
+            <div className={styles.countdown} data-countdown={left}>
+              <p role="timer" className={styles.countdownText}>
+                {left > 0
+                  ? t('countdown', { seconds: left })
+                  : ready || table.settings.bots
+                    ? t('starting')
+                    : t('waitingPlayers')}
+              </p>
+              <span
+                className={styles.countdownBar}
+                aria-hidden="true"
+                style={{ '--countdown': Math.min(1, left / 20) } as React.CSSProperties}
+              />
+              <p>{table.settings.bots ? t('countdownBots') : t('countdownNoBots')}</p>
+            </div>
+          ) : null}
+
           <h2 id="table-heading">{t('inviteTitle')}</h2>
           <p>{t('inviteBody')}</p>
           <div className={styles.inviteRow}>
@@ -399,7 +626,9 @@ export function TableView(props: TableViewProps) {
                     {index === mySeat ? <small> ({t('you')})</small> : null}
                   </span>
                   <span className={styles.seatTags}>
-                    {index === 0 ? <span className={styles.seatTag}>{t('host')}</span> : null}
+                    {index === hostIndex ? (
+                      <span className={styles.seatTag}>{t('host')}</span>
+                    ) : null}
                     {seat?.kind === 'bot' ? (
                       <span className={styles.seatTag}>{t('bot')}</span>
                     ) : null}
@@ -407,20 +636,22 @@ export function TableView(props: TableViewProps) {
                       <span className={styles.seatTag}>{t('away')}</span>
                     ) : null}
                   </span>
-                  {isHost && index !== 0 ? (
+                  {isHost && index !== hostIndex ? (
                     seat === null ? (
-                      <button
-                        type="button"
-                        className={styles.seatAction}
-                        disabled={busy}
-                        onClick={() =>
-                          hostAction(() =>
-                            addBot(table.code, index, t('botName', { n: nextBotNumber(table) })),
-                          )
-                        }
-                      >
-                        {t('addBot')}
-                      </button>
+                      table.settings.bots ? (
+                        <button
+                          type="button"
+                          className={styles.seatAction}
+                          disabled={busy}
+                          onClick={() =>
+                            hostAction(() =>
+                              addBot(table.code, index, t('botName', { n: nextBotNumber(table) })),
+                            )
+                          }
+                        >
+                          {t('addBot')}
+                        </button>
+                      ) : null
                     ) : (
                       <button
                         type="button"
@@ -443,12 +674,19 @@ export function TableView(props: TableViewProps) {
               <button
                 type="button"
                 className={styles.friendButton}
-                disabled={busy || !tableReady(table)}
-                onClick={() => hostAction(() => startTable(table.code))}
+                disabled={busy || !canStart(table)}
+                onClick={() =>
+                  hostAction(async () => {
+                    await startTable(table.code, (n) => t('botName', { n }));
+                  })
+                }
+                data-start
               >
-                {t('start')}
+                {ready ? t('start') : t('startWithBots')}
               </button>
-              {!tableReady(table) ? <p>{t('startHint')}</p> : null}
+              {!ready ? (
+                <p>{table.settings.bots ? t('startHintBots') : t('startHintNoBots')}</p>
+              ) : null}
               <label className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -464,12 +702,49 @@ export function TableView(props: TableViewProps) {
                 <span>{t('visibilityLabel')}</span>
               </label>
               <p id="table-visibility-hint">{t('visibilityHint')}</p>
+              {table.visibility === 'public' ? (
+                <>
+                  <label className={styles.toggle}>
+                    <input
+                      type="checkbox"
+                      checked={autoStart}
+                      disabled={busy}
+                      aria-describedby="table-autostart-hint"
+                      onChange={(event) =>
+                        hostAction(() => setAutoStart(table.code, event.target.checked))
+                      }
+                      data-auto-start
+                    />
+                    <span>{t('autoStartLabel')}</span>
+                  </label>
+                  <p id="table-autostart-hint">{t('autoStartHint')}</p>
+                </>
+              ) : null}
             </>
-          ) : (
+          ) : !autoStart ? (
             <p className={styles.waiting} role="status">
               <span className={styles.spinner} aria-hidden="true" />
               {t('waitingHost', { name: hostName })}
             </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {view.kind === 'table' && table && !playing ? (
+        <section className={styles.card} aria-labelledby="table-settings-heading">
+          <h2 id="table-settings-heading">{t('settings.title')}</h2>
+          {isHost ? (
+            <>
+              <p>{t('settingsHostHint')}</p>
+              <TableSettingsFields
+                id="table"
+                settings={table.settings}
+                disabled={busy}
+                onChange={(next) => hostAction(() => setTableSettings(table, next))}
+              />
+            </>
+          ) : (
+            <TableSettingsSummary settings={table.settings} autoStart={autoStart} />
           )}
         </section>
       ) : null}
@@ -501,16 +776,17 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
-      {playing && match ? (
+      {playing && match && table ? (
         <>
-          <p className={styles.matchStatus} aria-live="polite">
+          <div className={styles.matchStatus} aria-live="polite">
             <strong>
               {t('players', {
-                names: (table?.seats ?? []).map((seat) => seat?.name ?? '').join(' · '),
+                names: table.seats.map((seat) => seat?.name ?? '').join(' · '),
               })}
             </strong>
+            <TableSettingsSummary settings={table.settings} />
             {awayNames.length ? <span>{t('peerAway', { name: awayNames.join(', ') })}</span> : null}
-          </p>
+          </div>
           <GamePlayer {...props} comingSoon={false} match={match} />
         </>
       ) : null}

@@ -8,7 +8,9 @@
 //   presence/lobbies/{gameId}/{uid}      who is in the lobby or at a table of this game
 //   invites/{toUid}/{fromUid}            one pending invite per pair of players
 //   inviteQuota/{uid}                    the sender's invites in the current minute
+//   quickPlay/{gameId}                   { code, at }: the table quick play fills now (ADR 0020)
 import { readCharacterId, type CharacterId } from './characters';
+import { readTableSettings, type TableSettings } from './tables';
 
 /** Tables live two hours (ADR 0015); the lobby never lists older ones. */
 export const LOBBY_TABLE_TTL_MS = 2 * 60 * 60 * 1000;
@@ -48,6 +50,10 @@ export type LobbyTable = {
   seats: LobbySeat[];
   /** Seated players whose table page is open right now. */
   online: number;
+  /** The host's choices (defaults for tables from before slice 5.19). */
+  settings: TableSettings;
+  /** The table starts by itself after a countdown (quick play, or the host turned it on). */
+  autoStart: boolean;
 };
 
 /** The stored form of a lobby entry (what the trigger writes under lobby/{gameId}/tables). */
@@ -66,6 +72,8 @@ export type LobbyTableRecord = {
     | { kind: 'empty' }
   >;
   online: number;
+  settings: TableSettings;
+  autoStart?: true;
 };
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
@@ -108,7 +116,11 @@ export function summarizeTable(value: unknown): LobbyTableRecord | null {
       seats[String(i)] = { kind: 'empty' };
     }
   }
-  const host = seats['0'];
+  // The host sits in seat 0 until a hand-over moves the role to another seated player.
+  const hostIndex = Array.from({ length: size }, (_, i) => asRecord(rawSeats[String(i)])).findIndex(
+    (seat) => seat?.bot !== true && seat?.uid === v.hostUid,
+  );
+  const host = seats[String(hostIndex)];
   if (host?.kind !== 'player') return null;
   return {
     gameId: v.gameId,
@@ -120,6 +132,8 @@ export function summarizeTable(value: unknown): LobbyTableRecord | null {
     ...(host.character ? { hostCharacter: host.character } : {}),
     seats,
     online: onlineCount,
+    settings: readTableSettings(v.settings),
+    ...(v.status === 'open' && typeof v.startAt === 'number' ? { autoStart: true as const } : {}),
   };
 }
 
@@ -156,6 +170,8 @@ export function readLobbyTable(code: string, value: unknown): LobbyTable | null 
     hostCharacter: readCharacterId(v.hostCharacter),
     seats,
     online: typeof v.online === 'number' && v.online >= 0 ? v.online : 0,
+    settings: readTableSettings(v.settings),
+    autoStart: v.autoStart === true,
   };
 }
 

@@ -9,7 +9,8 @@
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md),
   [ADR 0017](../adr/0017-server-best-and-fresh-start.md),
   [ADR 0018](../adr/0018-difficulty-easy-is-practice.md),
-  [ADR 0019](../adr/0019-table-lobby-presence-invites.md)
+  [ADR 0019](../adr/0019-table-lobby-presence-invites.md),
+  [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -41,6 +42,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.16 | "Players and plays" report in the admin panel: registered and guest players, and which game each played how often, computed on demand by the admin-only `getPlayReport` function, with CSV downloads (owner request) | ✅ code |
 | 5.17 | Home spotlight: a swipeable, self-advancing carousel of the three games trending today (`todayScore` from the hourly ranking job), filled up with this week's trend and the featured games (owner request) | ✅ code |
 | 5.18 | A lobby for table games, Okey first: public tables to sit at, who is online, invites with a notification on every page (owner request, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) | ✅ code · ⏳ first trigger deploy |
+| 5.19 | Quick play, table settings and host hand-over: one tap to a table that starts by itself, hands and turn time chosen when a table opens, another player takes over when the host leaves (protocol 2.7; owner request, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)) | ✅ code · ⏳ studio adapter 2.7 |
 
 ## 5.1 Player characters ✅
 
@@ -1124,3 +1126,126 @@ Still open:
 - The lobby is per game and the notifier listens only after a lobby visit; site-wide presence,
   friends and web push are in ADR 0019 "Next".
 - A player with two tabs on the same game shares one presence entry.
+
+## 5.19 Quick play, table settings and host hand-over ✅ code
+
+Step 2 of the lobby, approved by the owner:
+- **Quick play:** one tap to a table that starts by itself.
+- **Table settings:** chosen when a table opens.
+- **Host hand-over:** another player takes over when the host is gone.
+
+Design and reasons: [ADR 0020](../adr/0020-quick-play-settings-host-handover.md); behaviour and
+the studio contract: [multiplayer spec §7c](../specs/multiplayer.md#7c-quick-play-table-settings-and-host-hand-over-protocol-27).
+
+What shipped:
+- **Quick play** (`lib/lobby/quick-play.ts`, `components/lobby/quick-play-button.tsx`) on the lobby
+  and on the game page (the table card: "Quick play" next to "Go to the lobby"):
+  - it tries the open public tables with a free seat, the most players first, then the oldest
+    (`quickPlayOrder` in `lib/lobby/lobby-data.ts`);
+  - otherwise it opens a public table with the default settings that starts by itself;
+  - simultaneous players meet through the new pointer `quickPlay/{gameId}` `{ code, at }`, moved
+    only by transaction; the player who loses the race sits at the winner's table and deletes
+    their own.
+- **Auto start** (`tables/{code}/startAt`):
+  - a 20-second countdown on the table page for everyone, by the database's clock;
+  - every new player leaves at least 10 s;
+  - when it ends, the host's page fills the empty seats with bots and starts, in one transaction
+    (`startTable`, `planStart`);
+  - the host's "Start by itself" switch on public tables; "Start now with bots" starts earlier.
+- **Table settings** (`tables/{code}/settings`, `packages/shared/src/tables.ts`):
+  - hands 5 or 11, turn 15, 30 or 60 s, bots yes or no, defaults 5 / 30 s / yes;
+  - chosen in an "Open a table" form in the lobby (with visibility, public by default) and on the
+    new-table page (private by default);
+  - the host changes them while the table is open (`components/game/table-settings.tsx`);
+  - shown as tags in the lobby row and on the table page, and during the game;
+  - with bots off the table hides "Add a bot" and starts only when every seat has a player.
+- **Host hand-over:**
+  - after the host's table presence has been gone for 15 s, the present seated player in the
+    lowest seat takes `hostUid` with a compare-and-set transaction (`claimHost`, `handoverDelay`);
+    each next player waits 5 s more;
+  - everyone sees "You are the host now" or "X is the host now";
+  - the host tag, the host's controls and the lobby summary follow `hostUid` instead of seat 0.
+- **Protocol 2.7** (adapter 2.7.0):
+  - `GHA_START.config.table` `{ settings, hostSeat }` for table games;
+  - `GHA_HOST_CHANGE { hostSeat }` during a game;
+  - adapter `multiplayer.table`, `multiplayer.hostSeat`, `multiplayer.onHostChange()`, and
+    `isHost` follows the hand-over;
+  - the web bridge (`lib/gha/bridge.ts`) builds and types them.
+- **Lobby summary:** `syncLobbyTable` now also writes `settings` and `autoStart`, and names the
+  host by `hostUid`.
+- **Cleanup:** `cleanupRooms` also deletes quick-play pointers older than two hours.
+- **Messages:** new keys in `table` (settings, countdown, hand-over notices, setup form) and
+  `lobby` (quick play, the open-table form) in `en.json` and `tr.json`.
+
+Decisions and deviations from the brief:
+- **No new Cloud Function.** Quick play runs on the client with a transaction on a pointer, so
+  the slice needs no deploy step beyond the usual workflows.
+- **"Start now"** fills the empty seats with bots in one step (when bots are allowed), instead of
+  requiring the host to add every bot first. "Add a bot" is still there.
+- **A just-opened table counts as attended.** Quick play also tries a table opened in the last 15
+  seconds whose opener is the only one seated, even before the opener's page has marked them
+  present.
+  - Without this, a second quick player a few seconds later did not see the first one's table
+    (found in the browser test).
+  - Fifteen seconds rather than a minute, so a table its opener closed at once is not handed to
+    the next quick player.
+- **The 15-second wait is a client convention.** The rules only check that the host is not
+  present right now (ADR 0020).
+- **Auto start only on public tables**, as the owner described: turning a table private turns the
+  auto start off.
+
+Tests:
+- shared (3 new):
+  - `tables.test.ts`: allowed values, and settings read field by field with defaults;
+  - `lobby.test.ts`: the summary carries settings and `autoStart` and follows a hand-over.
+- web (13 new):
+  - `table-data.test.ts`: settings and `startAt` read, countdown seconds, the 10-second extension,
+    the start plan (bots, new player, bots off), hand-over delays in seat order;
+  - `lobby-data.test.ts`: quick-play order and filters, the fresh-table rule, the pointer reader;
+  - `bridge.test.ts`: `config.table` for tables, a host seat outside the table falls back to 0,
+    and no `table` in rooms and solo.
+- adapter (4 new): settings and host seat, hand-over to this player and to another (and ignored
+  junk), ignored in rooms and malformed configs, offline.
+- RTDB emulator `firebase/tests/table-play.test.ts` (15):
+  - settings: valid values only, host only, only while open; no bots at a table without bots,
+    and bots off only together with freeing the bot seats;
+  - `startAt`: host only, at most two minutes ahead, only while open, and the start removes it in
+    the same write; also as a client transaction;
+  - hand-over: allowed for a seated, present player when the host is gone, with the host rights
+    following; refused while the host is present, for players who are away, strangers, other
+    uids, closed tables, and the old host claiming back. Two players racing by transaction: one
+    wins;
+  - quick-play pointer: own open public table of that game only, `at` = server time, no extra
+    fields, signed-in read, no delete; two players by transaction meet at the first one's table;
+  - `syncLobbyTable` lists settings and auto start and the host after a hand-over.
+- `lobby.test.ts`: `deleteStaleLobbyData` also removes old quick-play pointers.
+- Full run: shared 96, web 130, themes 16, adapter 29, firebase 167 passed and 1 skipped (the
+  opt-in live-trigger test).
+- In the browser (`next start` with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`, the live trigger opted
+  in, Okey pointed at the fixture game with `AYVAGO_DEV_ENTRY_OVERRIDES`, Playwright recording
+  every message the game frame receives):
+  - **1 player:** quick play from the game page opens a table. The countdown shows 20, and the
+    game starts after 20 s with three bots. `GHA_START.config.table` =
+    `{ settings: { hands: 5, turnSeconds: 30, bots: true }, hostSeat: 0 }`.
+  - **2 players at the same moment:** both land at the same table (2 players, 2 bots).
+  - **3 players:** two at once and a third later all land at one table. A late player with 6 s
+    left resets the countdown to 10 s, and the game starts with one bot.
+  - **Settings:** a table opened from the lobby form with 11 hands, 60 s and players only shows
+    "11 hands · 60 s per turn · No bots" in another player's lobby and on a Turkish guest's
+    table page ("11 el · Hamle başına 60 sn · Botsuz").
+  - **Hand-over while open:** after the host's browser closed, the next player became host after
+    15 s with the host controls, and the third saw "X is the host now".
+  - **Hand-over during a game:** after the host's browser closed, both other games received
+    `GHA_PEER_LEAVE { seat: 0 }` and, 15 s later, `GHA_HOST_CHANGE { hostSeat: 1 }`.
+  - **Screenshots:** game page, lobby with the open-table form, and table with the countdown, in
+    minimal light and dark, cartoon and arcade, English and Turkish, on a 1366×900 desktop and a
+    Pixel 7. No horizontal overflow, and no console errors besides blocked external images.
+
+Owner steps: nothing on the platform. Merging deploys the web app, and the usual workflows
+publish the rules and the updated `cleanupRooms`. Then merge the studio PR that copies adapter
+2.7.0 ([setup](../setup/phase-5.md#519-quick-play-table-settings-and-host-hand-over)).
+
+Still open:
+- **Studio:** Okey reads `config.table` (hands, turn timer), takes over the bots on
+  `GHA_HOST_CHANGE`, and plays a leaver's seat as a bot until they return.
+- Spectating, site-wide presence, quick-chat and web push stay in ADR 0019 "Next".

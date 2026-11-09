@@ -81,6 +81,7 @@
           ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,64}$/) && (!data.exists() || newData.val() === data.val())"
         },
         "hostUid": {
+          ".write": "auth != null && data.exists() && newData.val() === auth.uid && data.val() !== auth.uid && (root.child('tables').child($code).child('status').val() === 'open' || root.child('tables').child($code).child('status').val() === 'playing') && !root.child('tables').child($code).child('online').child(data.val()).exists() && root.child('tables').child($code).child('online').child(auth.uid).exists() && (root.child('tables').child($code).child('seats').child('0').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('1').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('2').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('3').child('uid').val() === auth.uid)",
           ".validate": "newData.isString()"
         },
         "size": {
@@ -95,7 +96,7 @@
         "seats": {
           "$i": {
             ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid && !newData.child('bot').exists() && root.child('tables').child($code).child('status').val() === 'open' && root.child('tables').child($code).child('hostUid').val() !== auth.uid && !(root.child('tables').child($code).child('seats').child('0').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('1').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('2').child('uid').val() === auth.uid || root.child('tables').child($code).child('seats').child('3').child('uid').val() === auth.uid)) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || newData.child('uid').val() === auth.uid)))",
-            ".validate": "($i === '0' || ($i === '1' && newData.parent().parent().child('size').val() >= 2) || ($i === '2' && newData.parent().parent().child('size').val() >= 3) || ($i === '3' && newData.parent().parent().child('size').val() >= 4)) && newData.hasChildren(['name']) && (newData.child('bot').exists() ? !newData.child('uid').exists() && !newData.child('character').exists() : newData.child('uid').exists())",
+            ".validate": "($i === '0' || ($i === '1' && newData.parent().parent().child('size').val() >= 2) || ($i === '2' && newData.parent().parent().child('size').val() >= 3) || ($i === '3' && newData.parent().parent().child('size').val() >= 4)) && newData.hasChildren(['name']) && (newData.child('bot').exists() ? !newData.child('uid').exists() && !newData.child('character').exists() : newData.child('uid').exists()) && (!newData.child('bot').exists() || newData.parent().parent().child('settings').child('bots').val() !== false)",
             "uid": {
               ".validate": "newData.isString()"
             },
@@ -121,6 +122,24 @@
         },
         "visibility": {
           ".validate": "newData.isString() && newData.val().matches(/^(public|private)$/)"
+        },
+        "settings": {
+          ".validate": "newData.hasChildren(['hands', 'turnSeconds', 'bots'])",
+          "hands": {
+            ".validate": "(newData.val() === 5 || newData.val() === 11) && (newData.val() === data.val() || newData.parent().parent().child('status').val() === 'open')"
+          },
+          "turnSeconds": {
+            ".validate": "(newData.val() === 15 || newData.val() === 30 || newData.val() === 60) && (newData.val() === data.val() || newData.parent().parent().child('status').val() === 'open')"
+          },
+          "bots": {
+            ".validate": "newData.isBoolean() && (newData.val() === data.val() || newData.parent().parent().child('status').val() === 'open') && (newData.val() === true || !(newData.parent().parent().child('seats').child('0').child('bot').exists() || newData.parent().parent().child('seats').child('1').child('bot').exists() || newData.parent().parent().child('seats').child('2').child('bot').exists() || newData.parent().parent().child('seats').child('3').child('bot').exists()))"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "startAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 120000 && newData.parent().child('status').val() === 'open'"
         },
         "$other": {
           ".validate": false
@@ -235,6 +254,22 @@
         },
         "count": {
           ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "quickPlay": {
+      "$gameId": {
+        ".read": "auth != null && $gameId.matches(/^[a-z0-9]{3,32}$/)",
+        ".write": "auth != null && newData.exists() && newData.child('code').isString() && root.child('tables').child(newData.child('code').val()).child('hostUid').val() === auth.uid && root.child('tables').child(newData.child('code').val()).child('gameId').val() === $gameId && root.child('tables').child(newData.child('code').val()).child('status').val() === 'open' && root.child('tables').child(newData.child('code').val()).child('visibility').val() === 'public'",
+        ".validate": "newData.hasChildren(['code', 'at'])",
+        "code": {
+          ".validate": "newData.isString() && newData.val().matches(/^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{6}$/)"
+        },
+        "at": {
+          ".validate": "newData.isNumber() && newData.val() === now"
         },
         "$other": {
           ".validate": false
