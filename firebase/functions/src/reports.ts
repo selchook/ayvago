@@ -1,6 +1,6 @@
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
-import type { CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError, type CallableRequest } from 'firebase-functions/v2/https';
 import {
   buildPlayReport,
   type DailyInput,
@@ -149,5 +149,13 @@ export async function playReport(now = Date.now()): Promise<PlayReport> {
 export async function getPlayReport(request: CallableRequest<unknown>) {
   const admin = requireAdmin(request);
   logger.info('Play report requested', { by: admin.uid });
-  return playReport();
+  try {
+    return await playReport();
+  } catch (err) {
+    logger.error('Play report failed', err);
+    // Only admins get here, and the reason lets them see what broke without opening the logs.
+    const e = err as { code?: unknown; message?: unknown };
+    const reason = String(e.message ?? err).slice(0, 300);
+    throw new HttpsError('internal', `play-report: ${reason}`, { code: String(e.code ?? '') });
+  }
 }

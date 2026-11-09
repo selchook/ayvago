@@ -18,14 +18,23 @@ export function PlayReportPanel({ titles }: { titles: Record<string, string> }) 
   const [report, setReport] = useState<PlayReport | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [detail, setDetail] = useState('');
 
   async function run() {
     setBusy(true);
     setFailed(false);
+    setDetail('');
     try {
       setReport(await playReport());
     } catch (e) {
       console.warn('[admin] play report failed', e);
+      // the function's own reason (admins only), so a failure can be fixed without the logs
+      const err = e as { code?: unknown; message?: unknown; details?: unknown };
+      const extra =
+        err.details && typeof err.details === 'object' ? JSON.stringify(err.details) : '';
+      setDetail(
+        [err.code, err.message, extra].filter(Boolean).map(String).join(' · ').slice(0, 500),
+      );
       setFailed(true);
     } finally {
       setBusy(false);
@@ -57,9 +66,14 @@ export function PlayReportPanel({ titles }: { titles: Record<string, string> }) 
         </p>
       ) : null}
       {failed ? (
-        <p role="alert" className={styles.message}>
-          {t('failed')}
-        </p>
+        <div role="alert">
+          <p className={styles.message}>{t('failed')}</p>
+          {detail ? (
+            <p className={styles.note}>
+              {t('failedDetail')} <code>{detail}</code>
+            </p>
+          ) : null}
+        </div>
       ) : null}
       {report ? <Report report={report} titles={titles} /> : null}
     </section>

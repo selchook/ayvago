@@ -875,6 +875,12 @@ Tests:
   cartoon and arcade, English and Turkish, at 1366×900, Pixel 7 and 360×780. On phones the
   tables scroll sideways inside the card, like the panel's Games table.
 
+Follow-up (the first production run failed with only the generic message):
+- `getPlayReport` now logs the error and returns its reason in the `internal` error
+  (`play-report: …`, with the original code in `details`); admins are the only callers, so the
+  reason is safe to show. The panel shows the code and message under the failure text
+  (`admin.report.failedDetail`), so the next failure can be fixed without opening the logs.
+
 Owner steps: none beyond merging; the functions deploy publishes `getPlayReport`. See the
 [setup doc](../setup/phase-5.md#516-players-and-plays-report).
 
