@@ -6,12 +6,19 @@ import type { ColorMode, ThemeId } from '@ayvago/themes';
 
 export const PROTOCOL_VERSION = 2;
 
+/**
+ * Protocol 2.6: the difficulty a run was played at. Easy runs are practice: recorded for play
+ * stats and XP, never ranked (docs/adr/0018-difficulty-easy-is-practice.md).
+ */
+export type Difficulty = 'easy' | 'normal';
+
 export type GameMessage =
   | { type: 'ready' }
   | { type: 'sessionStart' }
   | { type: 'loading'; progress: number }
   | { type: 'score'; score: number }
-  | { type: 'end'; score: number | null; won: boolean | null }
+  /** `difficulty` is 'normal' unless the game said 'easy' (older games send nothing). */
+  | { type: 'end'; score: number | null; won: boolean | null; difficulty: Difficulty }
   | { type: 'moveOut'; data: unknown }
   | { type: 'openLeaderboard' }
   /** Protocol 2.5: the game's own sound switch, so the player's sound button can match it. */
@@ -122,6 +129,8 @@ export function parseGameMessage(data: unknown): GameMessage | null {
         type: 'end',
         score: scoreValue(msg.score),
         won: typeof msg.won === 'boolean' ? msg.won : null,
+        // Only an explicit 'easy' makes a run practice; a game can only lower its own rewards.
+        difficulty: msg.difficulty === 'easy' ? 'easy' : 'normal',
       };
     case 'GHA_MOVE_OUT':
       return { type: 'moveOut', data: msg.data };

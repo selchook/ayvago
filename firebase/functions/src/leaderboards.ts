@@ -16,7 +16,9 @@ import { leaderboardGames, type LeaderboardGame } from './games';
 //   leaderboards/{gameId}/boards/{season|all}              { periodKey, order, top[100], updatedAt }
 //   leaderboards/{gameId}/boards/{season|all}/entries/{uid} { score, achievedAt, periodKey, continued, sessionId }
 //   leaderboards/{gameId}/seasons/{seasonKey}               { periodKey, order, top, closedAt }
-// Entries only ever hold accepted scores; flagged scores wait in scoreFlags/ for review.
+// Entries only ever hold accepted scores; flagged scores wait in scoreFlags/ for review. Practice
+// runs (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md) never reach a board, so
+// boards and the server best they hold (GHA_START `best`, protocol 2.4) are Normal-only.
 
 export const boardRef = (gameId: string, board: BoardKey) =>
   db().doc(`leaderboards/${gameId}/boards/${board}`);

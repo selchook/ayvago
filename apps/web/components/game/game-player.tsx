@@ -95,7 +95,12 @@ export function GamePlayer(props: GamePlayerProps) {
   const [muted, setMuted] = useState(false);
   const [theater, setTheater] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [result, setResult] = useState<{ score: number; improved: boolean } | null>(null);
+  // The last run's score; `practice` marks a run played on Easy (protocol 2.6, never ranked).
+  const [result, setResult] = useState<{
+    score: number;
+    improved: boolean;
+    practice: boolean;
+  } | null>(null);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   // The post-run "rate this game" nudge (docs/specs/voting.md §2), shown at most once per game.
   const [votePrompt, setVotePrompt] = useState(false);
@@ -191,24 +196,29 @@ export function GamePlayer(props: GamePlayerProps) {
           runRef.current = null;
           if (message.score !== null) {
             const score = message.score;
-            // The browser's own best stays up to date as the fallback for unrecorded runs.
-            const localImproved = recordBestScore(slug, score, scoreOrder);
+            // A run played on Easy is practice (docs/adr/0018-difficulty-easy-is-practice.md):
+            // it earns reduced XP, but is never ranked and is never a personal best.
+            const practice = message.difficulty === 'easy';
+            // The browser's own best stays up to date as the fallback for unrecorded runs;
+            // practice runs never touch it.
+            const localImproved = practice ? false : recordBestScore(slug, score, scoreOrder);
             // A registered run waits for the server's verdict before it is called a personal
             // best; without one (Firebase off, not registered) the browser's answer stands.
-            const shown = { score, improved: run ? false : localImproved };
+            const shown = { score, improved: run ? false : localImproved, practice };
             setResult(shown);
-            run?.finish(score).then((finished) => {
+            run?.finish(score, { practice }).then((finished) => {
               setRunResult(finished);
               const improved =
                 finished === null
                   ? localImproved
-                  : finished.status === 'recorded' && isPersonalBest(finished.boards.all);
+                  : !practice &&
+                    finished.status === 'recorded' &&
+                    isPersonalBest(finished.boards.all);
               // Only this run's result changes; a newer run or a replay keeps its own.
-              setResult((current) => (current === shown ? { score, improved } : current));
+              setResult((current) => (current === shown ? { ...shown, improved } : current));
               // XP, level and achievements: the header chip and the stage notes follow.
-              if (finished?.status === 'recorded' && finished.progress) {
-                applyProgress(finished.progress);
-              }
+              const earned = runProgress(finished);
+              if (earned) applyProgress(earned);
             });
           }
           if (shouldPromptVote(slug, Date.now() - runStartedRef.current)) setVotePrompt(true);
@@ -389,11 +399,7 @@ export function GamePlayer(props: GamePlayerProps) {
           />
         ) : null}
 
-        {phase === 'playing' ? (
-          <RunRewards
-            progress={runResult?.status === 'recorded' ? (runResult.progress ?? null) : null}
-          />
-        ) : null}
+        {phase === 'playing' ? <RunRewards progress={runProgress(runResult)} /> : null}
 
         {phase !== 'playing' ? (
           <div className={styles.overlay}>
@@ -459,7 +465,14 @@ export function GamePlayer(props: GamePlayerProps) {
               </span>
             </span>
           ) : null}
-          {runResult ? <RunNote result={runResult} /> : null}
+          {/* An Easy run says so whatever the server answered: it is never ranked. */}
+          {result?.practice ? (
+            <span className={styles.runNote} data-testid="run-practice">
+              {t('game.runPractice')}
+            </span>
+          ) : runResult ? (
+            <RunNote result={runResult} />
+          ) : null}
           {toast ? <span className={styles.toast}>{toast}</span> : null}
         </div>
         {comingSoon ? null : (
@@ -536,9 +549,18 @@ function shouldPromptVote(slug: string, runMs: number): boolean {
   }
 }
 
+/** XP, level and achievements a finished run earned, ranked or practice; null otherwise. */
+function runProgress(result: RunResult | null) {
+  return result?.status === 'recorded' || result?.status === 'practice'
+    ? (result.progress ?? null)
+    : null;
+}
+
 /** What happened to the last run on the leaderboard, next to the score. */
 function RunNote({ result }: { result: RunResult }) {
   const t = useTranslations('game');
+  // Practice runs show their own note (game.runPractice) instead.
+  if (result.status === 'practice') return null;
   if (result.status === 'flagged') return <span className={styles.runNote}>{t('runFlagged')}</span>;
   if (result.status === 'rejected') {
     return result.reason === 'too-short' ? (

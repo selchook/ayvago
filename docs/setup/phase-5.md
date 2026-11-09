@@ -142,3 +142,10 @@ The studio now deploys from a new Vercel project under the ayvagogames account
 ## 5.14 One sound switch
 **Nothing to set up.** Merge this PR, then the studio PR that adopts adapter 2.5.0.
 
+## 5.15 Difficulty: easy runs are practice
+**Nothing to set up** beyond merging this PR: merging deploys the web app and the Cloud
+Functions (`finishSession` accepts `practice`) through GitHub Actions as usual. No rules,
+indexes or secrets change.
+- ⏳ Then merge the studio PR in `selchook/ayvago-games` that adopts adapter 2.6.0 and adds the
+  Easy / Normal choice to the games' menus. Until it is merged, every run is Normal and ranked,
+  as before.

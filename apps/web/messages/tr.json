@@ -91,6 +91,7 @@
     "runRank": "Bu hafta #{rank}",
     "runRankUp": "Bu hafta #{rank} (önceki: #{previous})",
     "runFlagged": "Skorun liderlik tablosunda görünmeden önce inceleniyor.",
+    "runPractice": "Kolay mod: sıralamaya girmez",
     "runTooShort": "Bu kadar kısa oyunlar liderlik tablosuna sayılmaz."
   },
   "leaderboard": {

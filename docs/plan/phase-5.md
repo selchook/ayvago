@@ -6,7 +6,8 @@
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
   [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md),
-  [ADR 0017](../adr/0017-server-best-and-fresh-start.md)
+  [ADR 0017](../adr/0017-server-best-and-fresh-start.md),
+  [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -34,6 +35,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.12 | Game tables for up to four players; the host fills empty seats with bots (protocol 2.3) — first game: Turkish Okey (owner request, [ADR 0015](../adr/0015-tables-for-four-with-bots.md)) | ✅ code |
 | 5.13 | Fresh start: progress reset and server-synced bests. Games get the player's server best in `GHA_START` (protocol 2.4), the toolbar's personal best follows the server, and a "Reset progress" workflow clears all progress once (owner request, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) | ✅ code · ✅ reset run 2026-11-07 |
 | 5.14 | One sound switch: muting in the game's own menu also mutes the toolbar's sound button and the other way round (protocol 2.5, owner request) | ✅ code |
+| 5.15 | Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice: play stats and reduced XP, never on a leaderboard (owner request, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -713,3 +715,88 @@ Tests: adapter (`reportMute` posts `GHA_MUTE_STATE` to the platform origin only)
 Still open: the platform does not remember the sound choice between visits; the game's own
 switch (kept in the game's browser storage) is what carries over.
 
+## 5.15 Difficulty: easy runs are practice ✅ code
+
+Studio games are getting an optional two-level difficulty, Easy and Normal, chosen on the game's
+own menu. Normal is the default; online matches always play on Normal. Decided with the owner:
+- leaderboards stay Normal-only;
+- Easy runs are practice: recorded for play stats and XP, never on a leaderboard, and they earn
+  reduced XP.
+
+Decision record: [ADR 0018](../adr/0018-difficulty-easy-is-practice.md).
+
+What shipped:
+- **Protocol 2.6** (`packages/platform-adapter` 2.6.0, earlier commits of this branch):
+  `GameResult.difficulty?: 'easy' | 'normal'`; `endGame` sends `difficulty` in `GHA_END` only
+  when it is one of the two. Older games send nothing, which means Normal.
+- **Bridge** (`lib/gha/bridge.ts`): the `end` message carries `difficulty`. `'easy'` gives
+  `'easy'`; anything else, or nothing, gives `'normal'`. The `Difficulty` type is exported.
+- **Game player** (`components/game/game-player.tsx`, `lib/leaderboard/session.ts`):
+  - an Easy run calls `finishSession` with `practice: true` (`Run.finish(score, { continues,
+    practice })`; normal runs send no `practice` field, so their request is unchanged);
+  - the toolbar shows "Easy mode: not ranked" ("Kolay mod: sıralamaya girmez",
+    `game.runPractice`) in the run-note area after an Easy run, in place of the rank note, from
+    the moment the run ends and whatever the server answers;
+  - an Easy run is never marked "Personal best!", and it is not written to the browser's local
+    best (the fallback when the server cannot answer);
+  - the XP, level and achievement notes and the header chip follow a practice run's `progress`
+    like a ranked run's; leaderboard views are not refreshed, since no board changed.
+- **`finishSession`** (`firebase/functions/src/sessions.ts`, `progress.ts`):
+  - accepts an optional boolean `practice`. Missing or `null` means `false`; any other
+    non-boolean is refused with `invalid-argument` (`practice`) before the session is touched.
+  - A practice run goes through exactly the same checks as a ranked run. When accepted, it
+    skips `applyScore` (no board, entry or archive) and awards progress with
+    `awardPracticeProgress` in a transaction of its own. Play stats (`countFinish`) count it as
+    before.
+  - It returns `{ status: 'practice', progress }`. Rejected and flagged practice runs return
+    the usual `rejected` and `flagged`.
+  - The session document records `practice: true`.
+- **XP rules** (`packages/shared/src/progress.ts`): `XP_RULES.practiceRun = 5`. `applyRun` takes
+  `practice` in its run facts: 5 XP for a run of at least 20 s, no first-play, personal-best or
+  weekly top 10 bonus; it counts towards runs, games, categories and play time but never
+  towards bests, the weekly top 10 or #1 (board facts passed with a practice run are ignored);
+  the same daily caps apply.
+- **Server best** (`GHA_START.config.best`, protocol 2.4) is unchanged: it is the all-time board
+  entry, so it is Normal-only, which matches what games should compare a Normal run with.
+- **Fixture game** (`tools/fixture-game`): an "End on Easy" button sends `GHA_END` with
+  `difficulty: 'easy'`, for local end-to-end checks.
+
+Result shape: a new `practice` status rather than `recorded` with `boards: null`. A `recorded`
+result keeps non-null boards, so nothing that reads `boards.all` can break, and only callers
+that send `practice: true` ever receive the new status. The web app's `RunResult` mirrors it.
+
+Deviations from the brief:
+- **Flagged practice runs are not queued for review.** They return `flagged`, keep their flags
+  on the session and earn nothing, like any flagged run, but write no `scoreFlags` document:
+  approving one in `/admin` would put an Easy score on the boards.
+- **The first play of a game on Easy uses up its first-play bonus.** The run counts towards
+  games (as asked), so the game joins the played list and a later Normal run is not a first
+  play.
+- **The practice note replaces the rank, flag and too-short notes** for an Easy run, so the
+  phone toolbar keeps one note.
+
+Tests:
+- `progress.test.ts` (4 new): 5 XP and no bonuses for practice (and 0 under 20 s); a first
+  practice run counts runs, games, categories and play time and unlocks `first-run`; board facts
+  passed with a practice run never count towards `best-10`, `top-10` or `champion`; the daily
+  caps apply;
+- bridge (1 new): `difficulty: 'easy'` is read, `'normal'`, missing and malformed values give
+  `'normal'`; the existing `GHA_END` test expects `difficulty: 'normal'`;
+- Firestore emulator (4 new): a practice run writes no board or entry, counts in the play stats
+  and earns 5 XP (35 with `first-run`), then 5, then 0 under 20 s; it does not count as a
+  personal best and leaves the ranked best and the next ranked comparison alone; a too-short one
+  is rejected and a flagged one earns nothing and writes no `scoreFlags` document; malformed
+  `practice` (`'yes'`, `1`, `0`, `{}`, `'true'`) is refused without closing the session, while
+  `false` and `null` mean a normal run;
+- in the browser (`next dev` on the emulators, the fixture game, Playwright): an Easy run shows
+  "Easy mode: not ranked" / "Kolay mod: sıralamaya girmez", no personal best and +XP notes, and
+  the leaderboard stays empty; a Normal run afterwards ranks as before. Checked in minimal light
+  and dark, cartoon and arcade, on desktop and on a phone.
+
+Owner steps: none beyond merging. See the [setup doc](../setup/phase-5.md#515-difficulty-easy-runs-are-practice).
+
+Still open:
+- The studio adopts adapter 2.6 and adds the Easy / Normal choice to its games' menus; until
+  then every run is Normal.
+- The profile shows no separate count of practice runs; sessions carry `practice: true` if one
+  is wanted later.

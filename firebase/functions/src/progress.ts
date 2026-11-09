@@ -10,7 +10,8 @@ import { liveCategories, type LeaderboardGame } from './games';
 import type { BoardOutcome, ScoreHook } from './leaderboards';
 
 // Achievements, XP and levels (docs/adr/0016-achievements-and-xp.md). Awarded only here, inside
-// the transaction that accepts a score in finishSession; flagged and rejected sessions earn
+// the transaction that accepts a score in finishSession (or, for a practice run, its own
+// transaction: docs/adr/0018-difficulty-easy-is-practice.md); flagged and rejected sessions earn
 // nothing. users/{uid}/progress/summary is written by the functions only, and xp and level are
 // mirrored onto users/{uid} for the header.
 
@@ -56,9 +57,11 @@ export function awardProgress(options: {
   game: LeaderboardGame;
   seconds: number;
   now: number;
+  /** A practice run (difficulty Easy): reduced XP, no board bonuses (applyRun's `practice`). */
+  practice?: boolean;
   onResult: (result: ProgressResult) => void;
 }): ScoreHook {
-  const { uid, game, seconds, now, onResult } = options;
+  const { uid, game, seconds, now, practice = false, onResult } = options;
   return async (tx) => {
     const [stored, profile] = await Promise.all([
       tx.get(progressRef(uid)),
@@ -78,6 +81,7 @@ export function awardProgress(options: {
           weeklyPlaceBefore: season?.previousPlace ?? null,
           weeklyPlace: season?.place ?? null,
           now,
+          practice,
         },
         { categories: liveCategories() },
       );
@@ -91,6 +95,31 @@ export function awardProgress(options: {
       });
     };
   };
+}
+
+/**
+ * Progress for a practice run (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md):
+ * the same award in a transaction of its own, since no board is written.
+ */
+export async function awardPracticeProgress(options: {
+  uid: string;
+  game: LeaderboardGame;
+  seconds: number;
+  now: number;
+}): Promise<ProgressResult> {
+  let result: ProgressResult | undefined;
+  const hook = awardProgress({
+    ...options,
+    practice: true,
+    onResult: (earned) => {
+      result = earned;
+    },
+  });
+  await db().runTransaction(async (tx) => {
+    const finish = await hook(tx);
+    finish([]);
+  });
+  return result!;
 }
 
 /** Guest merge: the guest's progress joins the account's. The guest's own copy is deleted later. */

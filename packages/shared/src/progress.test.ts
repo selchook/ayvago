@@ -95,6 +95,18 @@ describe('sessionXp', () => {
       XP_RULES.firstPlay + XP_RULES.personalBest + XP_RULES.weeklyTop10,
     );
   });
+
+  it('gives a practice run half the run XP and no bonuses', () => {
+    expect(XP_RULES.practiceRun).toBe(XP_RULES.run / 2);
+    expect(sessionXp(run({ practice: true }), false)).toBe(5);
+    expect(sessionXp(run({ practice: true, seconds: 19 }), false)).toBe(0);
+    expect(
+      sessionXp(
+        run({ practice: true, personalBest: true, weeklyPlaceBefore: 30, weeklyPlace: 1 }),
+        true,
+      ),
+    ).toBe(5);
+  });
 });
 
 describe('applyRun', () => {
@@ -205,6 +217,59 @@ describe('applyRun', () => {
     expect(award.unlocked).toContain('all-rounder');
     state = award.summary;
     expect(state.categories).toEqual(['arcade', 'casual', 'puzzle', 'strategy']);
+  });
+
+  it('counts a practice run for runs, games, categories and play time only', () => {
+    const award = applyRun(EMPTY_PROGRESS, run({ practice: true }), CONTEXT);
+    // 5 XP for the run, no first-play bonus; first-run is unlocked (+30, outside the caps).
+    expect(award.unlocked).toEqual(['first-run']);
+    expect(award.xpGained).toBe(5 + XP_RULES.achievement);
+    expect(award.summary).toMatchObject({
+      xp: 35,
+      runs: 1,
+      games: ['orbsurge'],
+      categories: ['arcade'],
+      playSeconds: 60,
+      bests: 0,
+      top10: false,
+      champion: false,
+      xpToday: 5,
+      xpGameToday: { orbsurge: 5 },
+    });
+  });
+
+  it('never counts a practice run towards best-10, top-10 or champion', () => {
+    const state = summary({
+      runs: 4,
+      bests: 9,
+      games: ['orbsurge'],
+      achievements: { 'first-run': 1 },
+    });
+    // A caller passing board facts for a practice run is ignored.
+    const award = applyRun(
+      state,
+      run({ practice: true, personalBest: true, weeklyPlaceBefore: 12, weeklyPlace: 1 }),
+      CONTEXT,
+    );
+    expect(award.unlocked).toEqual([]);
+    expect(award.xpGained).toBe(5);
+    expect(award.summary).toMatchObject({ bests: 9, top10: false, champion: false, runs: 5 });
+  });
+
+  it('applies the daily caps to practice runs too', () => {
+    const state = summary({
+      xpDay: '2026-11-07',
+      xpToday: 100,
+      xpGameToday: { orbsurge: 148 },
+      games: ['orbsurge'],
+      runs: 3,
+      achievements: { 'first-run': 1 },
+    });
+    const award = applyRun(state, run({ practice: true }), CONTEXT);
+    expect(award.xpGained).toBe(2);
+    expect(applyRun(award.summary, run({ practice: true }), CONTEXT).xpGained).toBe(0);
+    const capped = summary({ ...state, xpToday: 600, xpGameToday: {} });
+    expect(applyRun(capped, run({ practice: true }), CONTEXT).xpGained).toBe(0);
   });
 
   it('stops remembering games at the cap', () => {

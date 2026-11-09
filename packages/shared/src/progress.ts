@@ -8,6 +8,11 @@ import { newlyUnlocked, type AchievementContext } from './achievements';
 export const XP_RULES = {
   /** An accepted session that lasted at least `minRunSeconds`. */
   run: 10,
+  /**
+   * The same for a practice run (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md),
+   * which earns no bonuses.
+   */
+  practiceRun: 5,
   minRunSeconds: 20,
   /** The player's first session of a game. */
   firstPlay: 20,
@@ -169,6 +174,13 @@ export type RunFacts = {
   weeklyPlaceBefore: number | null;
   weeklyPlace: number | null;
   now: number;
+  /**
+   * A practice run (difficulty Easy, docs/adr/0018-difficulty-easy-is-practice.md): it never
+   * reached a board, so it earns only XP_RULES.practiceRun (no first-play, personal-best or
+   * weekly top 10 bonus) and counts towards runs, games, categories and play time but never
+   * towards bests, the weekly top 10 or #1.
+   */
+  practice?: boolean;
 };
 
 export type RunAward = {
@@ -182,7 +194,9 @@ const inTop10 = (place: number | null) => place !== null && place <= 10;
 
 /** XP a session earns before the daily caps. */
 export function sessionXp(run: RunFacts, firstPlay: boolean): number {
-  let xp = run.seconds >= XP_RULES.minRunSeconds ? XP_RULES.run : 0;
+  const long = run.seconds >= XP_RULES.minRunSeconds;
+  if (run.practice) return long ? XP_RULES.practiceRun : 0;
+  let xp = long ? XP_RULES.run : 0;
   if (firstPlay) xp += XP_RULES.firstPlay;
   if (run.personalBest) xp += XP_RULES.personalBest;
   if (inTop10(run.weeklyPlace) && !inTop10(run.weeklyPlaceBefore)) xp += XP_RULES.weeklyTop10;
@@ -191,13 +205,17 @@ export function sessionXp(run: RunFacts, firstPlay: boolean): number {
 
 /**
  * Adds an accepted session to the summary: session XP within the daily caps, the counters, and
- * the achievements it unlocks (each worth XP_RULES.achievement, outside the caps).
+ * the achievements it unlocks (each worth XP_RULES.achievement, outside the caps). A practice
+ * run's board facts are ignored, whatever the caller passed.
  */
 export function applyRun(
   previous: ProgressSummary,
-  run: RunFacts,
+  facts: RunFacts,
   context: AchievementContext,
 ): RunAward {
+  const run: RunFacts = facts.practice
+    ? { ...facts, personalBest: false, weeklyPlaceBefore: null, weeklyPlace: null }
+    : facts;
   const day = utcDay(run.now);
   const sameDay = previous.xpDay === day;
   const today = sameDay ? previous.xpToday : 0;
