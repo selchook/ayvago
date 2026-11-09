@@ -211,6 +211,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms older than two hours with their signaling and relay data |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
+| `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16) |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
 
@@ -525,6 +526,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Fresh start: the player's server best in `GHA_START` (protocol 2.4), a server-backed personal best in the toolbar and a one-time "Reset progress" workflow (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); the reset itself is an owner step
 - [x] One sound switch: the game's own sound button and the player's toolbar button stay in sync (protocol 2.5, slice 5.14)
 - [x] Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice, counted for play stats and reduced XP but never ranked (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md))
+- [x] Admin "Players and plays" report: registered and guest players and which game each played how often, on demand with CSV downloads (`getPlayReport`, slice 5.16)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

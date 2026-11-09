@@ -10,3 +10,4 @@ export * from './arcade-catalog';
 export * from './ranking';
 export * from './progress';
 export * from './achievements';
+export * from './play-report';

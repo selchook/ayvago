@@ -1,6 +1,11 @@
 'use client';
 
-import { NEGATIVE_REASONS, usernameKey, type NegativeReason } from '@ayvago/shared';
+import {
+  NEGATIVE_REASONS,
+  usernameKey,
+  type NegativeReason,
+  type PlayReport,
+} from '@ayvago/shared';
 import { loadFirestore, loadFunctions } from '@/lib/firebase/client';
 
 // Admin panel data (docs/plan/phase-2.md §2.3). Reads go straight to Firestore under admin-only
@@ -188,3 +193,6 @@ export const appCheckStatus = () => call<AppCheckStatus>('getAppCheckStatus', {}
 
 export const setAppCheckMode = (mode: 'monitor' | 'enforce', force = false) =>
   call<AppCheckStatus>('setAppCheckMode', { mode, force });
+
+/** "Players and plays" report (slice 5.16), computed by the function on every call. */
+export const playReport = () => call<PlayReport>('getPlayReport', {});

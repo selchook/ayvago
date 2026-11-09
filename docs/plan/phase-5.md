@@ -36,6 +36,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.13 | Fresh start: progress reset and server-synced bests. Games get the player's server best in `GHA_START` (protocol 2.4), the toolbar's personal best follows the server, and a "Reset progress" workflow clears all progress once (owner request, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)) | ✅ code · ✅ reset run 2026-11-07 |
 | 5.14 | One sound switch: muting in the game's own menu also mutes the toolbar's sound button and the other way round (protocol 2.5, owner request) | ✅ code |
 | 5.15 | Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice: play stats and reduced XP, never on a leaderboard (owner request, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) | ✅ code |
+| 5.16 | "Players and plays" report in the admin panel: registered and guest players, and which game each played how often, computed on demand by the admin-only `getPlayReport` function, with CSV downloads (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -800,3 +801,87 @@ Still open:
   then every run is Normal.
 - The profile shows no separate count of practice runs; sessions carry `practice: true` if one
   is wanted later.
+
+## 5.16 Players and plays report ✅ code
+
+The owner asked for a report they can open whenever they want: the players who have played so
+far, registered and guest, and which game each of them played how many times. It lives in the
+admin panel (`/{locale}/admin`, the `admin` claim), is computed when the admin presses a button,
+and nothing runs on a schedule.
+
+What shipped:
+- **`getPlayReport`** (callable, admin claim; `firebase/functions/src/reports.ts`, 300 s timeout,
+  512 MiB): read-only, no input. It reads with the Admin SDK and returns a `PlayReport`
+  (`packages/shared/src/play-report.ts`):
+  - `generatedAt`; `statsSince` = `STATS_SINCE` (`'2026-11-07'`, the day the slice 5.13 reset
+    deleted every `users/*/stats/*`); `allTimeSince`, the earliest day in `games/*/daily`;
+  - `summary` per player kind (google, registered, guest, unknown): profiles in total, players
+    with at least one stats document, plays and play time;
+  - `games`: per game, the all-time sums of `games/{gameId}/daily` (finished runs, starts, play
+    time) and, since `statsSince`, plays, play time, plays and distinct players per kind;
+  - `players`: at most 500 (most plays first; ties: the one who played last first), each with
+    username, a five-character uid suffix (`tag`, to tell same-named guests apart), kind, plays,
+    play time, last played and plays per game; `playerCount` and `truncated` count the rest.
+    No uid, e-mail address or provider data leaves the function.
+- **Player kinds** match the Progress report workflow (`firebase/functions/scripts/progress-report.mjs`):
+  `isGuest` on the profile makes a guest; a non-guest profile whose Firebase Auth user lists
+  `google.com` is "google", other non-guest profiles are "registered"; stats without a profile
+  are "unknown".
+- **Reads per run** (P players with stats, R non-guest profiles, S stats documents, D daily
+  documents): one `count()` of guest profiles (1 read per 1000), R reads for the non-guest
+  profiles (two fields), S for `collectionGroup('stats')`, up to P for the other players'
+  profiles (`getAll`, 300 per call, two fields), D for `collectionGroup('daily')`, and R / 100
+  Auth `getUsers` calls. A few hundred players cost a few thousand reads, well under a cent.
+  Collection-group results outside `users/{uid}/stats` and `games/{gameId}/daily` are skipped.
+- **Aggregation** is the pure `buildPlayReport` in `packages/shared`, so it is unit-tested
+  without Firebase.
+- **Admin panel** (`components/admin/play-report.tsx`): a **Players and plays** tab with
+  **Run report** ("Running…" and a hint while it works, **Run again** afterwards with the time
+  it was generated), a line that says per-player numbers start on the fresh start date while the
+  all-time columns go back to the first recorded day, a note on the four kinds, then three
+  tables: summary by kind (with a total row), per game (game titles from the catalog, also for
+  games no longer live; "All time" and "Since …" column groups) and per player (a `<details>`
+  list of "Game × plays" for players with more than one game). Per game and per player have
+  **Download CSV** (`lib/admin/csv.ts`, built in the browser: UTF-8 with a byte order mark,
+  RFC 4180 quoting, cells that start like a formula get a leading apostrophe; headers and kind
+  names in the UI language; play time in seconds, last played in UTC ISO).
+- Text in `en.json` and `tr.json` (`admin.tabs.report`, `admin.report.*`).
+
+Deviations from the brief:
+- **Profiles in total** come from a `count()` of guest profiles plus the list of non-guest
+  profiles, instead of reading every profile: guests are the large group and only need a count.
+  The `getAll` profile reads are kept for players with stats who are not among the non-guest
+  profiles (guests and unknown players).
+- **`statsSince` is a constant**, not the earliest `lastPlayedAt`: `lastPlayedAt` is the latest
+  run per player and game, so the earliest of them is not where the stats begin. The reset wrote
+  no marker document.
+- **App Check** is not required, like the other admin callables (`requireAdmin`).
+
+Tests:
+- shared `play-report.test.ts` (6): range labels, the summary per kind, per-game all-time sums
+  and recent plays and players per kind (a game with only old daily counters included), the
+  player order, tags and no full uid in the output, the cap with `truncated`, malformed counts;
+- web `lib/admin/play-report.test.ts` (4): CSV quoting and formula guard, hours and minutes,
+  per-game and per-player CSV rows;
+- Firestore and Auth emulator `firebase/tests/play-report.test.ts` (3): signed-out, guest and
+  registered non-admin callers are refused (`signed-out`, `admin-only`); with a Google admin, a
+  Google player and a guest who play real runs through `startSession` / `finishSession`, an
+  e-mail/password player and a profile-less uid with seeded stats, an idle guest, daily
+  counters and decoy `stats` / `daily` collections elsewhere, the summary, per-game and
+  per-player numbers are exact and no uid or e-mail address is in the result; an empty project
+  gives empty lists;
+- in the browser (`next dev` on the emulators, 18 seeded profiles, Playwright): run, loading
+  state, tables, expanded game list and both CSV downloads; checked in minimal light and dark,
+  cartoon and arcade, English and Turkish, at 1366×900, Pixel 7 and 360×780. On phones the
+  tables scroll sideways inside the card, like the panel's Games table.
+
+Owner steps: none beyond merging; the functions deploy publishes `getPlayReport`. See the
+[setup doc](../setup/phase-5.md#516-players-and-plays-report).
+
+Still open:
+- Per-player numbers start at the fresh start (2026-11-07); runs before it survive only in the
+  per-game all-time columns, without a split by player kind.
+- The per-player table and its CSV stop at 500 players; past that the summary still counts
+  everyone and the report says how many were left out.
+- Guests inactive for 30 days are deleted with their stats by `cleanupGuests`, so they drop out
+  of the per-player numbers (the per-game all-time columns keep their runs).

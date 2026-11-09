@@ -150,6 +150,22 @@ indexes or secrets change.
   Easy / Normal choice to the games' menus. Until it is merged, every run is Normal and ranked,
   as before.
 
+## 5.16 Players and plays report
+**Nothing to set up** beyond merging this PR: merging deploys the web app, and the "Deploy Cloud
+Functions" workflow publishes the new `getPlayReport` function (the change touches
+`firebase/functions/**` and `packages/shared/src/**`). No rules, indexes, secrets or roles change.
+
+To open the report:
+1. Sign in on ayvago.com with an account that has the `admin` role (granted with
+   `firebase/functions/scripts/set-admin.mjs`, see the Phase 2 setup checklist).
+2. Go to `/admin` (for example `https://ayvago.com/tr/admin`) and open the **Players and plays**
+   tab ("Oyuncular ve oynanma").
+3. Press **Run report**. It reads the live data each time (a few seconds); **Download CSV** saves
+   the per-game and per-player tables.
+
+Per-player numbers start on 2026-11-07, the day of the progress reset; the per-game all-time
+columns count every run since launch.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

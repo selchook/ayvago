@@ -296,6 +296,7 @@
     "tabs": {
       "flags": "İşaretli skorlar",
       "games": "Oyunlar",
+      "report": "Oyuncular ve oynanma",
       "feedback": "Geri bildirim",
       "players": "Oyuncular",
       "appCheck": "App Check"
@@ -330,6 +331,79 @@
       "votes": "Oylar",
       "quality": "Kalite",
       "trend": "Trend"
+    },
+    "report": {
+      "title": "Oyuncular ve oynanma",
+      "intro": "Kimlerin oynadığı (hesapla ya da misafir olarak) ve hangi oyunu kaç kez oynadığı. Rapor her çalıştırıldığında güncel verilerden hesaplanır; zamanlanmış bir iş yoktur.",
+      "run": "Raporu çalıştır",
+      "rerun": "Yeniden çalıştır",
+      "running": "Çalışıyor…",
+      "runningHint": "Tüm oyuncuların oynanma istatistikleri okunuyor. Bu birkaç saniye sürer.",
+      "failed": "Rapor oluşturulamadı. Tekrar dene; hata sürerse getPlayReport fonksiyonunun kayıtlarına bak.",
+      "generated": "Oluşturulma: {time}",
+      "ranges": "Oyuncu başına sayılar, herkesin ilerlemesinin sıfırlandığı {since} tarihinden (sıfırdan başlangıç) itibaren tutulur. Tüm zamanlar sütunları, tur kaydının olduğu ilk gün olan {allTime} tarihinden bu yana her turu sayar.",
+      "rangesNoAllTime": "Oyuncu başına sayılar, herkesin ilerlemesinin sıfırlandığı {since} tarihinden (sıfırdan başlangıç) itibaren tutulur. Henüz kayıtlı tur yok.",
+      "kindsNote": "Google: Google ile giriş yapmış. Kayıtlı: başka bir yolla giriş yapmış. Misafir: hesapsız oynuyor. Bilinmiyor: oynanma istatistiği var ama profili silinmiş.",
+      "kinds": {
+        "google": "Google",
+        "registered": "Kayıtlı",
+        "guest": "Misafir",
+        "unknown": "Bilinmiyor"
+      },
+      "duration": {
+        "hours": "{hours} sa {minutes} dk",
+        "minutes": "{minutes} dk"
+      },
+      "summary": {
+        "title": "Oyuncu türüne göre özet",
+        "kind": "Oyuncu türü",
+        "profiles": "Profiller",
+        "players": "Oynayan",
+        "plays": "Oynanma",
+        "time": "Oynama süresi",
+        "total": "Toplam"
+      },
+      "games": {
+        "title": "Oyun başına",
+        "game": "Oyun",
+        "allTime": "Tüm zamanlar ({allTime} tarihinden beri)",
+        "sinceGroup": "{since} tarihinden beri",
+        "allTimeRuns": "Biten turlar",
+        "allTimeStarts": "Başlatılan turlar",
+        "plays": "{since} tarihinden beri oynanma",
+        "playsShort": "Oynanma",
+        "time": "Oynama süresi",
+        "playersGroup": "{since} tarihinden beri oyuncular",
+        "empty": "Henüz kayıtlı tur yok."
+      },
+      "players": {
+        "title": "{since} tarihinden beri oyuncu başına ({count})",
+        "truncated": "{count} oyuncu içinden en çok oynayan {shown} oyuncu gösteriliyor.",
+        "empty": "{since} tarihinden beri hiçbir oyuncu bir turu bitirmedi.",
+        "rank": "#",
+        "player": "Oyuncu",
+        "kind": "Tür",
+        "plays": "Oynanma",
+        "time": "Oynama süresi",
+        "lastPlayed": "Son oynama",
+        "games": "Oyunlar",
+        "noName": "(profil yok)",
+        "gameLine": "{game} × {count}",
+        "gamesSummary": "{count} oyun: {first} …"
+      },
+      "csv": {
+        "download": "CSV indir",
+        "gameId": "Oyun kimliği",
+        "allTimeFinished": "Biten turlar, tüm zamanlar",
+        "allTimeStarted": "Başlatılan turlar, tüm zamanlar",
+        "allTimeSeconds": "Oynama süresi, tüm zamanlar (saniye)",
+        "seconds": "{since} tarihinden beri oynama süresi (saniye)",
+        "playsKind": "Oynanma: {kind}",
+        "playersKind": "Oyuncular: {kind}",
+        "tag": "Etiket",
+        "playerSeconds": "Oynama süresi (saniye)",
+        "lastPlayed": "Son oynama (UTC)"
+      }
     },
     "feedback": {
       "title": "Olumsuz geri bildirim (son 14 gün)",

@@ -21,17 +21,25 @@ import {
 import { refreshClaims, useAccount } from '@/lib/account/store';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import styles from './admin.module.css';
+import { PlayReportPanel } from './play-report';
 
 export type AdminGame = { gameId: string; title: string; scoreFormat: ScoreFormat };
 
-type Tab = 'flags' | 'games' | 'feedback' | 'players' | 'appCheck';
+type Tab = 'flags' | 'games' | 'report' | 'feedback' | 'players' | 'appCheck';
 // Reasons finishSession records on a flag (firebase/functions/src/sessions.ts judgeRun).
 const FLAG_REASONS = ['too-fast', 'max-score', 'duration-mismatch', 'outlier'] as const;
 type FlagReason = (typeof FLAG_REASONS)[number];
-const TABS: Tab[] = ['flags', 'games', 'feedback', 'players', 'appCheck'];
+const TABS: Tab[] = ['flags', 'games', 'report', 'feedback', 'players', 'appCheck'];
 
 /** Admin panel v1 (docs/plan/phase-2.md §2.3). Visible only with the `admin` claim. */
-export function AdminView({ games }: { games: AdminGame[] }) {
+export function AdminView({
+  games,
+  titles,
+}: {
+  games: AdminGame[];
+  /** Titles of every catalog game by id, live or not (the play report covers retired games too). */
+  titles: Record<string, string>;
+}) {
   const t = useTranslations('admin');
   const account = useAccount();
   const [tab, setTab] = useState<Tab>('flags');
@@ -80,6 +88,7 @@ export function AdminView({ games }: { games: AdminGame[] }) {
       </div>
       {tab === 'flags' ? <Flags games={games} /> : null}
       {tab === 'games' ? <Games games={games} /> : null}
+      {tab === 'report' ? <PlayReportPanel titles={titles} /> : null}
       {tab === 'feedback' ? <FeedbackPanel games={games} /> : null}
       {tab === 'players' ? <Players /> : null}
       {tab === 'appCheck' ? <AppCheckPanel /> : null}
