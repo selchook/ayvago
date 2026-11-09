@@ -296,6 +296,7 @@
     "tabs": {
       "flags": "Flagged scores",
       "games": "Games",
+      "report": "Players and plays",
       "feedback": "Feedback",
       "players": "Players",
       "appCheck": "App Check"
@@ -330,6 +331,79 @@
       "votes": "Votes",
       "quality": "Quality",
       "trend": "Trend"
+    },
+    "report": {
+      "title": "Players and plays",
+      "intro": "Who has played, with an account or as a guest, and which games how often. The numbers are computed from the live data each time you run the report; nothing runs on a schedule.",
+      "run": "Run report",
+      "rerun": "Run again",
+      "running": "Running…",
+      "runningHint": "Reading every player's play stats. This takes a few seconds.",
+      "failed": "The report could not be built. Try again; if it keeps failing, check the getPlayReport function logs.",
+      "generated": "Generated {time}",
+      "ranges": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). The all-time columns count every run since {allTime}, the first day with recorded runs.",
+      "rangesNoAllTime": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). No runs are recorded yet.",
+      "kindsNote": "Google: signed in with Google. Registered: signed in another way. Guest: plays without an account. Unknown: has play stats, but the profile was deleted.",
+      "kinds": {
+        "google": "Google",
+        "registered": "Registered",
+        "guest": "Guest",
+        "unknown": "Unknown"
+      },
+      "duration": {
+        "hours": "{hours} h {minutes} min",
+        "minutes": "{minutes} min"
+      },
+      "summary": {
+        "title": "Summary by player kind",
+        "kind": "Player kind",
+        "profiles": "Profiles",
+        "players": "Players",
+        "plays": "Plays",
+        "time": "Play time",
+        "total": "Total"
+      },
+      "games": {
+        "title": "Per game",
+        "game": "Game",
+        "allTime": "All time (since {allTime})",
+        "sinceGroup": "Since {since}",
+        "allTimeRuns": "Finished runs",
+        "allTimeStarts": "Starts",
+        "plays": "Plays since {since}",
+        "playsShort": "Plays",
+        "time": "Play time",
+        "playersGroup": "Players since {since}",
+        "empty": "No runs recorded yet."
+      },
+      "players": {
+        "title": "Per player since {since} ({count})",
+        "truncated": "Showing the {shown} players with the most plays out of {count}.",
+        "empty": "No player has finished a run since {since}.",
+        "rank": "#",
+        "player": "Player",
+        "kind": "Kind",
+        "plays": "Plays",
+        "time": "Play time",
+        "lastPlayed": "Last played",
+        "games": "Games",
+        "noName": "(no profile)",
+        "gameLine": "{game} × {count}",
+        "gamesSummary": "{count, plural, one {# game} other {# games}}: {first} …"
+      },
+      "csv": {
+        "download": "Download CSV",
+        "gameId": "Game id",
+        "allTimeFinished": "Finished runs, all time",
+        "allTimeStarted": "Starts, all time",
+        "allTimeSeconds": "Play time, all time (seconds)",
+        "seconds": "Play time since {since} (seconds)",
+        "playsKind": "Plays: {kind}",
+        "playersKind": "Players: {kind}",
+        "tag": "Tag",
+        "playerSeconds": "Play time (seconds)",
+        "lastPlayed": "Last played (UTC)"
+      }
     },
     "feedback": {
       "title": "Negative feedback (last 14 days)",

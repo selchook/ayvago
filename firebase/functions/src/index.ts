@@ -14,6 +14,7 @@ import { deleteInactiveGuests, deletePlayerData, mergeGuestAccount as mergeGuest
 import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
 import { reviewScoreFlag as review, setPlayerBan as ban } from './moderation';
 import { recomputeGameScores } from './rankings';
+import { getPlayReport as playReportCall } from './reports';
 import { deleteOldRooms, deleteOldTables, ROOM_TTL_MS } from './rooms';
 import { finishSession as finish, startSession as start } from './sessions';
 import { reserveUsername as reserve } from './usernames';
@@ -42,6 +43,8 @@ export const reviewScoreFlag = onCall(review);
 export const setPlayerBan = onCall(ban);
 export const getAppCheckStatus = onCall(appCheckStatusCall);
 export const setAppCheckMode = onCall(appCheckModeCall);
+/** "Players and plays" report (slice 5.16): reads every play stat, so it gets more time and memory. */
+export const getPlayReport = onCall({ timeoutSeconds: 300, memory: '512MiB' }, playReportCall);
 
 /** syncLeaderboardProfile(): copies the caller's current name and avatar into their board rows. */
 export const syncLeaderboardProfile = onCall(async (request) => {

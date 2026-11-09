@@ -17,12 +17,14 @@ export default async function AdminPage({ params }: Props) {
   setRequestLocale(locale);
   // Access is decided in the browser from the `admin` claim; the data itself is protected by
   // Firestore rules and the admin-only functions.
-  const games: AdminGame[] = getAllGames()
+  const all = getAllGames();
+  const games: AdminGame[] = all
     .filter((game) => game.status === 'live')
     .map((game) => ({
       gameId: game.manifest.id,
       title: gameTitle(game, locale),
       scoreFormat: game.manifest.scoring.format,
     }));
-  return <AdminView games={games} />;
+  const titles = Object.fromEntries(all.map((game) => [game.manifest.id, gameTitle(game, locale)]));
+  return <AdminView games={games} titles={titles} />;
 }
