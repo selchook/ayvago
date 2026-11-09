@@ -340,6 +340,7 @@
       "running": "Çalışıyor…",
       "runningHint": "Tüm oyuncuların oynanma istatistikleri okunuyor. Bu birkaç saniye sürer.",
       "failed": "Rapor oluşturulamadı. Tekrar dene; hata sürerse getPlayReport fonksiyonunun kayıtlarına bak.",
+      "failedDetail": "Ayrıntı:",
       "generated": "Oluşturulma: {time}",
       "ranges": "Oyuncu başına sayılar, herkesin ilerlemesinin sıfırlandığı {since} tarihinden (sıfırdan başlangıç) itibaren tutulur. Tüm zamanlar sütunları, tur kaydının olduğu ilk gün olan {allTime} tarihinden bu yana her turu sayar.",
       "rangesNoAllTime": "Oyuncu başına sayılar, herkesin ilerlemesinin sıfırlandığı {since} tarihinden (sıfırdan başlangıç) itibaren tutulur. Henüz kayıtlı tur yok.",

@@ -340,6 +340,7 @@
       "running": "Running…",
       "runningHint": "Reading every player's play stats. This takes a few seconds.",
       "failed": "The report could not be built. Try again; if it keeps failing, check the getPlayReport function logs.",
+      "failedDetail": "Details:",
       "generated": "Generated {time}",
       "ranges": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). The all-time columns count every run since {allTime}, the first day with recorded runs.",
       "rangesNoAllTime": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). No runs are recorded yet.",
