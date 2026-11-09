@@ -4,12 +4,28 @@
 // (docs/adr/0015-tables-for-four-with-bots.md). tables/{code} holds the seats; players take a
 // free seat from the invite link, the host fills the others with bots and starts the game. Moves
 // go through tableMoves/{code}: tables are for turn-based games, so the database is fast enough
-// and no peer-to-peer connection is needed.
-import type { CharacterId, TableVisibility } from '@ayvago/shared';
+// and no peer-to-peer connection is needed. Settings, auto start and host hand-over:
+// docs/adr/0020-quick-play-settings-host-handover.md.
+import {
+  AUTO_START_MS,
+  DEFAULT_TABLE_SETTINGS,
+  type CharacterId,
+  type TableSettings,
+  type TableVisibility,
+} from '@ayvago/shared';
 import type { Unsubscribe } from 'firebase/database';
 import { loadDatabase } from '@/lib/firebase/client';
+import { serverNow, syncServerClock } from '@/lib/lobby/lobby';
 import { generateRoomCode } from './room-code';
-import { freeSeat, seatOf, toTable, type Table } from './table-data';
+import {
+  freeSeat,
+  nextBotNumbers,
+  planStart,
+  seatOf,
+  toTable,
+  type StartPlan,
+  type Table,
+} from './table-data';
 
 export type { Table, TableSeat, TableStatus } from './table-data';
 
@@ -37,9 +53,13 @@ export async function createTable(input: {
   character: CharacterId | null;
   /** Public tables are listed in the lobby (docs/adr/0019); the invite-link flow opens private ones. */
   visibility: TableVisibility;
+  settings?: TableSettings;
+  /** Start by itself after AUTO_START_MS (quick play). */
+  autoStart?: boolean;
 }): Promise<string> {
   const db = await loadDatabase();
   const { ref, set, serverTimestamp } = await import('firebase/database');
+  if (input.autoStart) await syncServerClock().catch(() => undefined);
   let lastError: unknown;
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateRoomCode();
@@ -52,6 +72,8 @@ export async function createTable(input: {
         size: input.size,
         status: 'open',
         visibility: input.visibility,
+        settings: input.settings ?? DEFAULT_TABLE_SETTINGS,
+        ...(input.autoStart ? { startAt: serverNow() + AUTO_START_MS } : {}),
         createdAt: serverTimestamp(),
         seats: { 0: playerSeat(input.uid, input.name, input.character) },
       });
@@ -128,11 +150,50 @@ export async function clearSeat(code: string, seat: number): Promise<void> {
   await remove(ref(db, `${tablePath(code)}/seats/${seat}`));
 }
 
-/** Host: lists the table in the lobby or takes it out. */
+/** Host: lists the table in the lobby or takes it out (a private table does not start by itself). */
 export async function setTableVisibility(code: string, visibility: TableVisibility): Promise<void> {
   const db = await loadDatabase();
+  const { ref, update } = await import('firebase/database');
+  await update(ref(db, tablePath(code)), {
+    visibility,
+    ...(visibility === 'private' ? { startAt: null } : {}),
+  });
+}
+
+/**
+ * Host: changes the settings while the table is open. Turning bots off frees the bot seats in the
+ * same write (the rules refuse bots at a table without them).
+ */
+export async function setTableSettings(table: Table, settings: TableSettings): Promise<void> {
+  const db = await loadDatabase();
+  const { ref, update } = await import('firebase/database');
+  const updates: Record<string, unknown> = { settings };
+  if (!settings.bots) {
+    table.seats.forEach((seat, index) => {
+      if (seat?.kind === 'bot') updates[`seats/${index}`] = null;
+    });
+  }
+  await update(ref(db, tablePath(table.code)), updates);
+}
+
+/** Host: turns the auto start on (a fresh countdown) or off. */
+export async function setAutoStart(code: string, on: boolean): Promise<void> {
+  const db = await loadDatabase();
+  const { ref, set, remove } = await import('firebase/database');
+  const at = ref(db, `${tablePath(code)}/startAt`);
+  if (!on) {
+    await remove(at);
+    return;
+  }
+  await syncServerClock().catch(() => undefined);
+  await set(at, serverNow() + AUTO_START_MS);
+}
+
+/** Host: moves the end of the countdown (a new player sat down). */
+export async function moveStart(code: string, startAt: number): Promise<void> {
+  const db = await loadDatabase();
   const { ref, set } = await import('firebase/database');
-  await set(ref(db, `${tablePath(code)}/visibility`), visibility);
+  await set(ref(db, `${tablePath(code)}/startAt`), startAt);
 }
 
 /** One read of a table; null when it does not exist. */
@@ -142,11 +203,66 @@ export async function readTable(code: string): Promise<Table | null> {
   return toTable(code, (await get(ref(db, tablePath(code)))).val());
 }
 
-/** Host: starts the game for everyone at the table. */
-export async function startTable(code: string): Promise<void> {
+export type StartResult = StartPlan['kind'] | 'gone';
+
+/**
+ * Host: starts the game for everyone at the table, filling the empty seats with bots when the
+ * table allows them. One transaction, so a player who sits down at the same moment is never
+ * overwritten by a bot: the database hands the start the table as it really is. `known`: see
+ * planStart (the auto start passes the players its page has seen; the Start button passes null).
+ */
+export async function startTable(
+  code: string,
+  botName: (n: number) => string,
+  known: ReadonlySet<string> | null = null,
+): Promise<StartResult> {
   const db = await loadDatabase();
-  const { ref, set } = await import('firebase/database');
-  await set(ref(db, `${tablePath(code)}/status`), 'playing');
+  const { ref, runTransaction } = await import('firebase/database');
+  let result: StartResult = 'gone';
+  await runTransaction(
+    ref(db, tablePath(code)),
+    (raw: Record<string, unknown> | null) => {
+      // Not in this page's cache yet: a probe write that the database answers with the table.
+      if (raw === null) return null;
+      const table = toTable(code, raw);
+      if (!table || table.status !== 'open') {
+        result = 'gone';
+        return undefined;
+      }
+      const plan = planStart(table, known);
+      result = plan.kind;
+      if (plan.kind !== 'start') return undefined;
+      const seats = { ...((raw.seats as Record<string, unknown> | null) ?? {}) };
+      const numbers = nextBotNumbers(table, plan.bots.length);
+      plan.bots.forEach((index, i) => {
+        seats[String(index)] = {
+          bot: true,
+          name: botName(numbers[i] ?? i + 1).slice(0, NAME_LIMIT),
+        };
+      });
+      // The countdown ends with the start (the rules allow startAt only while the table is open).
+      const next: Record<string, unknown> = { ...raw, seats, status: 'playing' };
+      delete next.startAt;
+      return next;
+    },
+    { applyLocally: false },
+  );
+  return result;
+}
+
+/**
+ * Host hand-over (docs/adr/0020): takes the host role from `from`, whose table page is gone.
+ * A transaction, so two players who decide at once cannot both become host; the rules check
+ * that the old host is away and this player sits at the table with the page open.
+ */
+export async function claimHost(code: string, from: string, uid: string): Promise<boolean> {
+  const db = await loadDatabase();
+  const { ref, runTransaction } = await import('firebase/database');
+  // null: not in this page's cache yet; the database then answers with the real value.
+  const outcome = await runTransaction(ref(db, `${tablePath(code)}/hostUid`), (current) =>
+    current === from || current === null ? uid : undefined,
+  );
+  return outcome.committed && outcome.snapshot.val() === uid;
 }
 
 /** Marks this player online at the table while the page is connected (as rooms do). */

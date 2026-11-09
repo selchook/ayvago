@@ -50,17 +50,19 @@ export async function syncLobbyTable(
 
 /**
  * Hourly cleanup next to deleteOldTables: lobby entries of tables created before `cutoff`
- * (normally gone with their table already), invites older than ten invite lifetimes and invite
- * quotas whose window ended an hour ago. Returns the counts.
+ * (normally gone with their table already), quick-play pointers set before `cutoff` (their table
+ * is gone too; docs/adr/0020), invites older than ten invite lifetimes and invite quotas whose
+ * window ended an hour ago. Returns the counts.
  */
 export async function deleteStaleLobbyData(
   cutoff: number,
   now = Date.now(),
-): Promise<{ entries: number; invites: number; quotas: number }> {
+): Promise<{ entries: number; invites: number; quotas: number; pointers: number }> {
   const updates: Record<string, null> = {};
   let entries = 0;
   let invites = 0;
   let quotas = 0;
+  let pointers = 0;
 
   const lobby = await rtdb().ref('lobby').get();
   lobby.forEach((game) => {
@@ -95,6 +97,15 @@ export async function deleteStaleLobbyData(
     }
   });
 
+  const quick = await rtdb().ref('quickPlay').get();
+  quick.forEach((pointer) => {
+    const at = pointer.child('at').val() as unknown;
+    if (typeof at !== 'number' || at < cutoff) {
+      updates[`quickPlay/${pointer.key}`] = null;
+      pointers++;
+    }
+  });
+
   if (Object.keys(updates).length > 0) await rtdb().ref().update(updates);
-  return { entries, invites, quotas };
+  return { entries, invites, quotas, pointers };
 }

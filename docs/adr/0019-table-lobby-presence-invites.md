@@ -128,12 +128,14 @@ code; nobody can list tables.
   join path. If the seat was taken in the meantime, the table page says the table is full.
 
 ## Next (not built in this slice)
-- Quick play: join the fullest open table, or open one and fill it with bots after N seconds.
-- Table settings (number of hands, turn timer) shown in the list.
+- ~~Quick play: join the fullest open table, or open one and fill it with bots after N seconds.~~
+  Built in slice 5.19 ([ADR 0020](0020-quick-play-settings-host-handover.md)).
+- ~~Table settings (number of hands, turn timer) shown in the list.~~ Built in slice 5.19.
 - Spectating tables in play.
 - Site-wide presence, friends and recent players, so invites reach players outside a lobby.
 - Lobby quick-chat (preset phrases).
-- Host hand-over, and replacing a player who left with a bot.
+- ~~Host hand-over~~ (slice 5.19, ADR 0020), and replacing a player who left with a bot (studio:
+  the host's game plays the seat after `GHA_PEER_LEAVE`).
 - Web push (FCM, slice 5.4) for invites while the site is closed.
 - Ranked online Okey with server-side dealing.
 - Presence per tab instead of per player.

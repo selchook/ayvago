@@ -180,6 +180,56 @@ describe('buildStartConfig', () => {
   });
 });
 
+describe('buildStartConfig table settings (protocol 2.7)', () => {
+  const base = {
+    theme: 'minimal',
+    colorMode: 'light',
+    tokens: {},
+    locale: 'tr',
+    adsEnabled: false,
+  } as const;
+  const seats = [
+    { name: 'Ayşe', bot: false },
+    { name: 'Mert', bot: false },
+    { name: 'Bot 1', bot: true },
+  ];
+
+  it('sends the settings and the host seat to table games', () => {
+    const config = buildStartConfig(base, {
+      isHost: true,
+      peerName: '',
+      table: {
+        index: 1,
+        seats,
+        settings: { hands: 11, turnSeconds: 60, bots: true },
+        hostSeat: 1,
+      },
+    });
+    expect(config.table).toEqual({
+      settings: { hands: 11, turnSeconds: 60, bots: true },
+      hostSeat: 1,
+    });
+    expect(config).toMatchObject({ isHost: true, playerIndex: 1, playerCount: 3 });
+  });
+
+  it('falls back to seat 0 for a host seat outside the table', () => {
+    const config = buildStartConfig(base, {
+      isHost: false,
+      peerName: '',
+      table: { index: 1, seats, settings: { hands: 5, turnSeconds: 30, bots: false }, hostSeat: 7 },
+    });
+    expect(config.table?.hostSeat).toBe(0);
+  });
+
+  it('leaves table out of rooms, solo runs and tables without settings', () => {
+    expect(buildStartConfig(base).table).toBeUndefined();
+    expect(buildStartConfig(base, { isHost: true, peerName: 'Mert' }).table).toBeUndefined();
+    expect(
+      buildStartConfig(base, { isHost: true, peerName: '', table: { index: 0, seats } }).table,
+    ).toBeUndefined();
+  });
+});
+
 describe('buildStartConfig characters (protocol 2.2)', () => {
   const base = {
     theme: 'arcade',

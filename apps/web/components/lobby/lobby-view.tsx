@@ -1,10 +1,13 @@
 'use client';
 
 import {
+  DEFAULT_TABLE_SETTINGS,
   LOBBY_TABLE_TTL_MS,
   type Locale,
   type LobbyPresence,
   type LobbyTable,
+  type TableSettings,
+  type TableVisibility,
 } from '@ayvago/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -33,8 +36,10 @@ import { seatOf, seatedUids } from '@/lib/netcode/table-data';
 import { createTable, readTable, type Table } from '@/lib/netcode/tables';
 import { BotIcon, UsersIcon } from '../icons';
 import gameStyles from '../game/game.module.css';
+import { TableSettingsFields, TableSettingsSummary } from '../game/table-settings';
 import { OnlinePlayers } from './online-players';
 import { PlayerFace } from './player-face';
+import { QuickPlayButton } from './quick-play-button';
 import styles from './lobby.module.css';
 
 type LobbyError = 'failed' | 'unavailable' | 'tableFailed';
@@ -76,7 +81,12 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [now, setNow] = useState(() => Date.now());
+  // "Open a table": the settings form (docs/adr/0020).
+  const [setup, setSetup] = useState(false);
+  const [draft, setDraft] = useState<TableSettings>(DEFAULT_TABLE_SETTINGS);
+  const [draftVisibility, setDraftVisibility] = useState<TableVisibility>('public');
   const startedRef = useRef(false);
+  const setupRef = useRef<HTMLFormElement>(null);
 
   const uid = account.status === 'signedIn' ? account.uid : null;
   const profile = account.status === 'signedIn' ? account.profile : null;
@@ -135,6 +145,11 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
     };
   }, [uid, gameId]);
 
+  // The form takes the focus when it opens.
+  useEffect(() => {
+    if (setup) setupRef.current?.querySelector<HTMLInputElement>('input:checked')?.focus();
+  }, [setup]);
+
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), CLOCK_MS);
     return () => window.clearInterval(timer);
@@ -153,7 +168,10 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
   const seated = myTable ? seatedUids(myTable) : [];
   const myTableOpen = myTable?.status === 'open';
 
-  async function openTable(): Promise<string | null> {
+  async function openTable(
+    settings: TableSettings = DEFAULT_TABLE_SETTINGS,
+    visibility: TableVisibility = 'public',
+  ): Promise<string | null> {
     if (!uid || !name) return null;
     try {
       const code = await createTable({
@@ -163,7 +181,8 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
         slug,
         size,
         character,
-        visibility: 'public',
+        visibility,
+        settings,
       });
       rememberTable(gameId, code);
       return code;
@@ -176,7 +195,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
 
   async function onOpenTable() {
     setBusy('open');
-    const code = await openTable();
+    const code = await openTable(draft, draftVisibility);
     if (code) router.push(`${gamePath}/table/${code}`);
     else setBusy(null);
   }
@@ -244,6 +263,25 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
         </section>
       ) : null}
 
+      {!error && !loading ? (
+        <section className={styles.quick} aria-labelledby="lobby-quick">
+          <div className={styles.quickText}>
+            <h2 id="lobby-quick">{t('quickPlay')}</h2>
+            <p>{t('quickPlayHint')}</p>
+          </div>
+          <div className={styles.quickAction}>
+            <QuickPlayButton
+              gameId={gameId}
+              slug={slug}
+              gamePath={gamePath}
+              size={size}
+              className={gameStyles.friendButton}
+              disabled={busy !== null}
+            />
+          </div>
+        </section>
+      ) : null}
+
       {!error && !loading && myTable ? (
         <p className={styles.myTable} role="status">
           <span>{t('myTableNotice', { code: myTable.code })}</span>
@@ -258,15 +296,57 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
           <section className={styles.panel} aria-labelledby="lobby-tables">
             <div className={styles.panelHead}>
               <h2 id="lobby-tables">{t('tablesTitle')}</h2>
-              <button
-                type="button"
-                className={gameStyles.friendButton}
-                onClick={onOpenTable}
-                disabled={busy !== null || !name}
-              >
-                {busy === 'open' ? t('opening') : t('openTable')}
-              </button>
+              {!setup ? (
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  data-tone="quiet"
+                  onClick={() => setSetup(true)}
+                  disabled={busy !== null || !name}
+                >
+                  {t('openTable')}
+                </button>
+              ) : null}
             </div>
+            {setup ? (
+              <form
+                ref={setupRef}
+                className={styles.setup}
+                aria-labelledby="lobby-open-table-title"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onOpenTable();
+                }}
+              >
+                <h3 id="lobby-open-table-title">{t('openTableTitle')}</h3>
+                <TableSettingsFields
+                  id="lobby-table"
+                  settings={draft}
+                  onChange={setDraft}
+                  visibility={draftVisibility}
+                  onVisibility={setDraftVisibility}
+                  disabled={busy !== null}
+                />
+                <div className={styles.setupActions}>
+                  <button
+                    type="submit"
+                    className={gameStyles.friendButton}
+                    disabled={busy !== null || !name}
+                  >
+                    {busy === 'open' ? t('opening') : t('openTableSubmit')}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.linkButton}
+                    data-tone="quiet"
+                    onClick={() => setSetup(false)}
+                    disabled={busy !== null}
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
+              </form>
+            ) : null}
             {listed.length === 0 ? (
               <p className={styles.empty}>{t('noTables')}</p>
             ) : (
@@ -373,6 +453,12 @@ function TableRow({
         <span className={styles.statusTag} data-status={status}>
           {status === 'open' ? t('freeSeats', { count: free }) : t(`status.${status}`)}
         </span>
+      </span>
+      <span className={styles.tableSettings}>
+        <TableSettingsSummary
+          settings={table.settings}
+          autoStart={table.autoStart && table.status === 'open'}
+        />
       </span>
       <span className={styles.tableAction}>
         {mine ? (

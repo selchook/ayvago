@@ -52,5 +52,6 @@ game.
 - Tables work on any network with no TURN cost. A move takes one database round trip, which is
   fine for card and board games and too slow for real-time games. Those stay two-player rooms.
 - If the host leaves, nobody plays the bots, so the game waits for them. The host can come back
-  through the same link; quick re-hosting is left for later.
+  through the same link; quick re-hosting is left for later. (Since slice 5.19 another player
+  takes over as host after 15 s: [ADR 0020](0020-quick-play-settings-host-handover.md).)
 - Online table rounds are not ranked on the leaderboards, like rooms.

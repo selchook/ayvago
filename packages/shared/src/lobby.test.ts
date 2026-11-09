@@ -48,8 +48,36 @@ describe('summarizeTable', () => {
       },
       // Only seated players count; the stranger's entry is ignored.
       online: 1,
+      // Tables from before slice 5.19 have no settings: the defaults.
+      settings: { hands: 5, turnSeconds: 30, bots: true },
     });
     expect(JSON.stringify(summary)).not.toContain('uid');
+  });
+
+  it('carries the settings and the auto start, and follows a hand-over (slice 5.19)', () => {
+    const summary = summarizeTable(
+      table({
+        settings: { hands: 11, turnSeconds: 15, bots: false },
+        startAt: 5_000,
+        hostUid: 'guest-uid',
+      }),
+    );
+    expect(summary).toMatchObject({
+      settings: { hands: 11, turnSeconds: 15, bots: false },
+      autoStart: true,
+      hostName: 'Mert',
+    });
+    expect(summary && 'hostCharacter' in summary).toBe(false);
+    // The countdown ends with the start.
+    expect(summarizeTable(table({ status: 'playing', startAt: 5_000 }))?.autoStart).toBeUndefined();
+    // A host who is not seated (bad data) keeps the table out.
+    expect(summarizeTable(table({ hostUid: 'nobody' }))).toBeNull();
+    const read = readLobbyTable('ABC234', summary);
+    expect(read).toMatchObject({
+      settings: { hands: 11, turnSeconds: 15, bots: false },
+      autoStart: true,
+    });
+    expect(readLobbyTable('ABC234', summarizeTable(table()))?.autoStart).toBe(false);
   });
 
   it('keeps private, closed, old-style and malformed tables out', () => {
