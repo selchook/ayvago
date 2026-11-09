@@ -178,6 +178,51 @@ Functions" workflow publishes the updated `recomputeRankings` (the change touche
   with a "#1 Trending today" badge on the first; it moves to the next game every 5 seconds,
   stops while the mouse is over it, and on a phone it can be swiped.
 
+## 5.18 A lobby for table games (Okey first)
+Merging deploys the web app (lobby page, invite notifications, the profile's "Table invites"
+switch). Two GitHub Actions runs publish the rest:
+- **"Deploy Firestore and Realtime Database rules":** the new Realtime Database paths (`lobby`,
+  `presence/lobbies`, `invites`, `inviteQuota`, `tables/*/visibility`) and the profile's
+  `invitesOff` field. The change touches `firebase/database.rules.json` and
+  `firebase/firestore.rules`.
+- **"Deploy Cloud Functions":** the new **`syncLobbyTable`** trigger and the updated
+  `cleanupRooms`. The change touches `firebase/functions/**` and `packages/shared/src/**`.
+
+No secrets, env vars or indexes are needed.
+
+- ⏳ **Once, before or right after merging: let event-triggered functions run.**
+  `syncLobbyTable` is the project's first function triggered by a database event (Eventarc).
+  Such functions need three roles that the scheduled and callable functions never needed. The
+  Firebase CLI tries to grant them during the deploy, but the deploy account is not allowed to
+  change IAM, so the "Deploy Cloud Functions" run fails with "We failed to modify the IAM
+  policy" until they exist. Grant them as the project owner in Google Cloud console → **Activate
+  Cloud Shell** (idempotent, safe to run twice):
+  ```bash
+  PROJECT=ayvago-prod
+  NUMBER=566724065070
+  gcloud projects add-iam-policy-binding $PROJECT \
+    --member=serviceAccount:service-$NUMBER@gcp-sa-pubsub.iam.gserviceaccount.com \
+    --role=roles/iam.serviceAccountTokenCreator --condition=None --quiet > /dev/null
+  for role in run.invoker eventarc.eventReceiver; do
+    gcloud projects add-iam-policy-binding $PROJECT \
+      --member=serviceAccount:$NUMBER-compute@developer.gserviceaccount.com \
+      --role=roles/$role --condition=None --quiet > /dev/null
+  done
+  ```
+  Then re-run **Actions → Deploy Cloud Functions → Run workflow** if the run after the merge
+  failed. If the log still names a missing permission, send the error line (not the key) to
+  Claude.
+- **Until `syncLobbyTable` runs**, the lobby's table list stays empty. Presence, invites,
+  notifications and sitting down through a link work anyway.
+- Optional check after the deploy:
+  1. Open `https://ayvago.com/tr/games/okey` and choose **Lobiye git**.
+  2. Open the same page in a second browser (or a private window).
+  3. Each sees the other under **Şu an çevrimiçi**.
+  4. Press **Davet et** in one browser. It opens a table, and the other browser gets the invite
+     toast with a soft sound.
+  5. **Katıl** seats the second player at the table.
+  6. A third browser sees the table under **Masalar** and can sit down with **Otur**.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

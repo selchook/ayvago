@@ -39,11 +39,13 @@ export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
   /** Server-written copy of the progress summary's XP and level (docs/adr/0016). */
   xp: number;
   level: number;
+  /** "Do not disturb": other players cannot invite this player to a table (docs/adr/0019). */
+  invitesOff: boolean;
 };
 
 /** Fields the player can change from the settings page. */
 export type ProfileChanges = Partial<
-  Pick<Profile, 'avatarId' | 'characterId' | 'theme' | 'mode' | 'locale'>
+  Pick<Profile, 'avatarId' | 'characterId' | 'theme' | 'mode' | 'locale' | 'invitesOff'>
 >;
 
 export type AccountState =
@@ -350,6 +352,7 @@ async function syncProfile(user: User): Promise<void> {
         usernameChangedAt: null,
         xp: 0,
         level: 1,
+        invitesOff: false,
       };
     }
     const data = snapshot.data();
@@ -373,6 +376,7 @@ async function syncProfile(user: User): Promise<void> {
           : null,
       xp: typeof data.xp === 'number' && data.xp > 0 ? data.xp : 0,
       level: levelForXp(typeof data.xp === 'number' ? data.xp : 0),
+      invitesOff: data.invitesOff === true,
     };
   });
   if (state.status === 'signedIn' && state.uid === user.uid) {

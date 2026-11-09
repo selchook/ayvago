@@ -307,3 +307,20 @@
   color: var(--text);
   font-weight: 700;
 }
+
+/* Table invites switch (slice 5.18). */
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.switchRow input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}

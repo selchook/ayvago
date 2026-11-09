@@ -31,7 +31,8 @@ export async function deleteOldRooms(cutoff: number): Promise<number> {
 }
 
 /**
- * Deletes game tables created before `cutoff` (ms) with their moves; returns the count
+ * Deletes game tables created before `cutoff` (ms) with their moves and lobby entries; returns
+ * the count
  * (docs/adr/0015-tables-for-four-with-bots.md). Tables live as long as rooms.
  */
 export async function deleteOldTables(cutoff: number): Promise<number> {
@@ -48,6 +49,12 @@ export async function deleteOldTables(cutoff: number): Promise<number> {
     page.forEach((table) => {
       updates[`tables/${table.key}`] = null;
       updates[`tableMoves/${table.key}`] = null;
+      // The syncLobbyTable trigger removes the lobby entry too; this keeps the cleanup complete
+      // on its own (docs/adr/0019-table-lobby-presence-invites.md).
+      const gameId = table.child('gameId').val() as unknown;
+      if (typeof gameId === 'string' && /^[a-z0-9]{3,32}$/.test(gameId)) {
+        updates[`lobby/${gameId}/tables/${table.key}`] = null;
+      }
     });
     await rtdb().ref().update(updates);
     deleted += page.numChildren();

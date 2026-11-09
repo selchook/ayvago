@@ -1,6 +1,6 @@
 // The tables/{code} record as the app uses it (docs/adr/0015-tables-for-four-with-bots.md). Pure,
 // so tests can import it without Firebase; reads and writes live in tables.ts.
-import { readCharacterId, type CharacterId } from '@ayvago/shared';
+import { readCharacterId, type CharacterId, type TableVisibility } from '@ayvago/shared';
 
 export type TableStatus = 'open' | 'playing' | 'closed';
 
@@ -18,6 +18,11 @@ export type Table = {
   /** One entry per seat; null for an empty seat. Seat 0 is the host's. */
   seats: Array<TableSeat | null>;
   status: TableStatus;
+  /**
+   * Public tables are listed in the game's lobby (docs/adr/0019); private ones only reach
+   * players through the invite link or an invite. Tables from before slice 5.18 read as private.
+   */
+  visibility: TableVisibility;
   createdAt: number;
   /** uid → the page session that holds the seat right now (a reload makes a new one). */
   online: Record<string, string>;
@@ -65,6 +70,7 @@ export function toTable(code: string, value: unknown): Table | null {
     size,
     seats,
     status: v.status === 'playing' || v.status === 'closed' ? v.status : 'open',
+    visibility: v.visibility === 'public' ? 'public' : 'private',
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     online,
   };
@@ -73,6 +79,11 @@ export function toTable(code: string, value: unknown): Table | null {
 /** The seat this player holds, or -1. */
 export function seatOf(table: Table, uid: string): number {
   return table.seats.findIndex((seat) => seat?.kind === 'player' && seat.uid === uid);
+}
+
+/** The uids of the players seated at the table. */
+export function seatedUids(table: Table): string[] {
+  return table.seats.flatMap((seat) => (seat?.kind === 'player' ? [seat.uid] : []));
 }
 
 /** The first empty seat, or -1 when the table is full. */

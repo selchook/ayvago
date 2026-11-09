@@ -260,6 +260,20 @@ export const UserIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const BellIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2Z" />
+    <path d="M10 21a2 2 0 0 0 4 0" />
+  </Icon>
+);
+
+export const BotIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="4" y="8" width="16" height="12" rx="3" />
+    <path d="M12 4v4M9 13h.01M15 13h.01M9.5 17h5" />
+  </Icon>
+);
+
 // Google's multicolor "G", as required next to "Continue with Google" by Google's branding rules.
 export const GoogleLogo = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">

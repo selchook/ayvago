@@ -1,19 +1,24 @@
 'use client';
 
-import type { Locale } from '@ayvago/shared';
+import type { Locale, LobbyPresence } from '@ayvago/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ensureGuest, useAccount } from '@/lib/account/store';
 import { firebaseEnabled } from '@/lib/firebase/client';
 import type { PlatformMessage } from '@/lib/gha/bridge';
 import { parseRoomCode } from '@/lib/netcode/room-code';
-import { nextBotNumber, seatOf, tableReady } from '@/lib/netcode/table-data';
+import { lobbyPlayers } from '@/lib/lobby/lobby-data';
+import { rememberTable, watchLobbyPlayers } from '@/lib/lobby/lobby';
+import { invitePlayer, useOutgoingInvites } from '@/lib/lobby/outgoing';
+import { useLobbyPresence } from '@/lib/lobby/use-presence';
+import { nextBotNumber, seatOf, seatedUids, tableReady } from '@/lib/netcode/table-data';
 import {
   addBot,
   clearSeat,
   createTable,
   joinTable,
   openTableChannel,
+  setTableVisibility,
   startTable,
   trackTablePresence,
   watchTable,
@@ -22,6 +27,8 @@ import {
 } from '@/lib/netcode/tables';
 import { Link, useRouter } from '@/i18n/navigation';
 import { CopyIcon, ShareIcon, UsersIcon } from '../icons';
+import { OnlinePlayers } from '../lobby/online-players';
+import lobbyStyles from '../lobby/lobby.module.css';
 import { GamePlayer, type GamePlayerProps, type MatchBinding } from './game-player';
 import styles from './game.module.css';
 
@@ -64,6 +71,11 @@ export function TableView(props: TableViewProps) {
   const [canShare, setCanShare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [away, setAway] = useState<number[]>([]);
+  const [lobby, setLobby] = useState<LobbyPresence[]>([]);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [inviteNotice, setInviteNotice] = useState<'inviteLimit' | 'inviteFailed' | null>(null);
+  const outgoing = useOutgoingInvites();
+  const tLobby = useTranslations('lobby');
 
   const startedRef = useRef(false);
   const channelRef = useRef<TableChannel | null>(null);
@@ -78,6 +90,13 @@ export function TableView(props: TableViewProps) {
   const isHost = !!table && !!uid && table.hostUid === uid;
   const mySeat = table && uid ? seatOf(table, uid) : -1;
   const playing = table?.status === 'playing' && mySeat >= 0;
+
+  // In the game's lobby list while seated here (docs/adr/0019): "at a table", then "playing".
+  useLobbyPresence(
+    gameId,
+    name,
+    view.kind === 'table' && mySeat >= 0 ? (playing ? 'playing' : 'table') : null,
+  );
 
   // Messages for the game wait until it has its seat (GHA_START).
   const deliver = useCallback((message: PlatformMessage) => {
@@ -99,7 +118,8 @@ export function TableView(props: TableViewProps) {
     if (!uid || !name || startedRef.current || view.kind !== 'loading') return;
     startedRef.current = true;
     if (code === null) {
-      createTable({ uid, name, gameId, slug, size, character: myCharacter })
+      // A table from "Open a private table" is reached only through its link and invites.
+      createTable({ uid, name, gameId, slug, size, character: myCharacter, visibility: 'private' })
         .then((created) => router.replace(`${gamePath}/table/${created}`))
         .catch(() => setView({ kind: 'error', reason: 'failed' }));
       return;
@@ -120,6 +140,8 @@ export function TableView(props: TableViewProps) {
         }
         setTable(result.table);
         setView({ kind: 'table' });
+        // The lobby points back here (docs/adr/0019).
+        rememberTable(gameId, tableCode);
       })
       .catch(() => setView({ kind: 'error', reason: 'failed' }));
   }, [uid, name, myCharacter, view.kind, code, tableCode, gameId, slug, size, gamePath, router]);
@@ -142,6 +164,39 @@ export function TableView(props: TableViewProps) {
       stops.forEach((stop) => stop());
     };
   }, [view.kind, tableCode, uid]);
+
+  // Players online in this game's lobby, to invite while the table waits for players.
+  const waitingHere = view.kind === 'table' && !!table && table.status === 'open' && mySeat >= 0;
+  useEffect(() => {
+    if (!waitingHere) return;
+    let cancelled = false;
+    let stop: (() => void) | null = null;
+    watchLobbyPlayers(gameId, (players) => !cancelled && setLobby(players))
+      .then((unsubscribe) => (cancelled ? unsubscribe() : (stop = unsubscribe)))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [waitingHere, gameId]);
+
+  async function invite(player: LobbyPresence) {
+    if (!uid || !name || !table) return;
+    setInviting(player.uid);
+    setInviteNotice(null);
+    const status = await invitePlayer({
+      from: uid,
+      fromName: name,
+      fromCharacter: myCharacter,
+      to: player.uid,
+      gameId,
+      slug,
+      tableCode: table.code,
+    });
+    if (status === 'limit') setInviteNotice('inviteLimit');
+    else if (status === 'failed') setInviteNotice('inviteFailed');
+    setInviting(null);
+  }
 
   // The move channel, once the game is on.
   useEffect(() => {
@@ -280,6 +335,7 @@ export function TableView(props: TableViewProps) {
           {tableCode && view.kind === 'table' ? (
             <span>{t('tableCode', { code: tableCode })}</span>
           ) : null}
+          <Link href={`${gamePath}/lobby`}>{t('lobbyLink')}</Link>
           <Link href={gamePath}>{tOnline('backToGame', { title })}</Link>
         </p>
       </header>
@@ -393,12 +449,54 @@ export function TableView(props: TableViewProps) {
                 {t('start')}
               </button>
               {!tableReady(table) ? <p>{t('startHint')}</p> : null}
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={table.visibility === 'public'}
+                  disabled={busy}
+                  aria-describedby="table-visibility-hint"
+                  onChange={(event) =>
+                    hostAction(() =>
+                      setTableVisibility(table.code, event.target.checked ? 'public' : 'private'),
+                    )
+                  }
+                />
+                <span>{t('visibilityLabel')}</span>
+              </label>
+              <p id="table-visibility-hint">{t('visibilityHint')}</p>
             </>
           ) : (
             <p className={styles.waiting} role="status">
               <span className={styles.spinner} aria-hidden="true" />
               {t('waitingHost', { name: hostName })}
             </p>
+          )}
+        </section>
+      ) : null}
+
+      {view.kind === 'table' && table && !playing && waitingHere ? (
+        <section className={styles.card} aria-labelledby="table-online-heading">
+          <h2 id="table-online-heading">{t('inviteOnlineTitle')}</h2>
+          {inviteNotice ? (
+            <p className={lobbyStyles.notice} role="alert">
+              {tLobby(inviteNotice)}
+            </p>
+          ) : null}
+          {lobby.some((player) => player.uid !== uid) ? (
+            <div className={styles.fullWidth}>
+              <OnlinePlayers
+                players={lobbyPlayers(lobby, uid)}
+                me={uid}
+                seated={seatedUids(table)}
+                canInvite={!!name}
+                outgoing={outgoing}
+                busy={inviting}
+                onInvite={invite}
+                hideMe
+              />
+            </div>
+          ) : (
+            <p>{t('inviteOnlineEmpty')}</p>
           )}
         </section>
       ) : null}

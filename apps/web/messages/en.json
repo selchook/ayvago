@@ -297,7 +297,10 @@
       "cooldown": "You can choose a new name on {date}.",
       "registered-only": "Sign in with Google to choose your own username.",
       "generic": "The username could not be saved. Please try again."
-    }
+    },
+    "invitesTitle": "Table invites",
+    "invitesToggle": "Let players in a lobby invite me to their table",
+    "invitesHint": "When this is off, nobody can invite you and you get no invite notifications. You can still sit at any open table."
   },
   "admin": {
     "title": "Admin panel",
@@ -547,6 +550,11 @@
     "peerAway": "{name} left the table. The game goes on; they can come back with the link.",
     "tableCode": "Table code: {code}",
     "newTable": "Open a new table",
+    "visibilityLabel": "Show this table in the lobby",
+    "visibilityHint": "Players in the lobby see it and can sit down. Turn it off to play only with the people you invite.",
+    "lobbyLink": "Lobby",
+    "inviteOnlineTitle": "Invite players who are online",
+    "inviteOnlineEmpty": "Nobody else is in the lobby right now.",
     "error": {
       "full": "This table is full.",
       "started": "The game at this table has already started.",
@@ -556,6 +564,82 @@
       "failed": "The table could not be opened. Check your connection and try again.",
       "unavailable": "Online play is not available right now."
     }
+  },
+  "lobby": {
+    "title": "{title} lobby",
+    "pageTitle": "{title} lobby: open tables and players online",
+    "metaDescription": "Sit at an open {title} table, open your own or invite the players who are online.",
+    "intro": "Sit at a free seat, open your own table, or invite the players who are here.",
+    "enter": "Go to the lobby",
+    "enterHint": "See the open tables and who is online. Sit down, or invite players to your table.",
+    "privateTable": "Open a private table",
+    "privateTableHint": "Or open a table only for the friends you send the link to.",
+    "preparing": "Entering the lobby…",
+    "tablesTitle": "Tables",
+    "openTable": "Open a table",
+    "opening": "Opening a table…",
+    "noTables": "No open tables right now. Open one and invite the players who are online.",
+    "tableCode": "Table {code}",
+    "seatsSummary": "{players, plural, one {# player} other {# players}}, {bots, plural, one {# bot} other {# bots}}, {free, plural, one {# free seat} other {# free seats}}",
+    "freeSeats": "{count, plural, one {# free seat} other {# free seats}}",
+    "status": {
+      "open": "Waiting for players",
+      "full": "Full, about to start",
+      "playing": "Playing"
+    },
+    "age": "{minutes, plural, =0 {opened just now} one {opened # min ago} other {opened # min ago}}",
+    "sit": "Sit down",
+    "sitLabel": "Sit at table {code}, host {name}",
+    "yourTable": "Your table",
+    "backToTable": "Back to your table",
+    "myTableNotice": "You have a table: {code}.",
+    "emptySeat": "Free seat",
+    "bot": "Bot",
+    "host": "Host",
+    "onlineTitle": "Online now",
+    "onlineCount": "{count, plural, one {# player} other {# players}}",
+    "nobody": "Nobody else is here yet. Open a table and fill it with bots, or wait for players to come.",
+    "you": "you",
+    "level": "Level {level}",
+    "state": {
+      "lobby": "In the lobby",
+      "table": "At a table",
+      "playing": "Playing"
+    },
+    "inviteHint": "Invite opens a public table for you if you have none and takes you there, so you can start when everyone is seated.",
+    "invite": "Invite",
+    "inviteLabel": "Invite {name} to your table",
+    "inviteStatus": {
+      "sending": "Sending…",
+      "pending": "Invited",
+      "accepted": "Joining",
+      "declined": "Declined",
+      "expired": "No answer",
+      "failed": "Could not invite",
+      "limit": "Wait a minute"
+    },
+    "inviteLimit": "You sent five invites in the last minute. Wait a moment before you invite again.",
+    "inviteFailed": "The invite could not be sent. The player may have left the lobby.",
+    "atYourTable": "At your table",
+    "noInvites": "Not taking invites",
+    "error": {
+      "failed": "The lobby could not be loaded. Check your connection and try again.",
+      "tableFailed": "The table could not be opened. Check your connection and try again.",
+      "unavailable": "Online play is not available right now."
+    }
+  },
+  "invites": {
+    "regionLabel": "Invites",
+    "title": "Table invite",
+    "body": "{name} invites you to play {title}.",
+    "bodyQuiet": "{name} invites you to {title}",
+    "join": "Join",
+    "decline": "Decline",
+    "close": "Close, answer later",
+    "bellLabel": "{count, plural, one {# table invite} other {# table invites}}",
+    "bellTitle": "Table invites",
+    "expires": "{seconds, plural, one {Expires in # second} other {Expires in # seconds}}",
+    "table": "Table {code}"
   },
   "progress": {
     "title": "Progress",
