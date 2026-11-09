@@ -110,10 +110,54 @@ export function computeScores(games: EngagementInput[]): Map<string, GameScores>
   );
 }
 
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+/** Inputs of the "trending today" score: finished runs on two UTC days, and the votes. */
+export type TodayInput = {
+  /** Runs finished so far today (UTC day of `now`), from `games/{gameId}/daily/{today}`. */
+  finishedToday: number;
+  /** Runs finished yesterday (UTC). */
+  finishedYesterday: number;
+  likes: number;
+  dislikes: number;
+};
+
+/**
+ * "Trending today" (home spotlight, slice 5.17): finished runs in roughly the last 24 hours,
+ * lightly weighted by votes.
+ *
+ * - The daily counters are per UTC day, so the last 24 hours are today's runs plus the part of
+ *   yesterday's still inside the window, assuming yesterday's runs were spread evenly:
+ *   `plays = today + yesterday × (1 − hoursElapsedTodayUTC / 24)`.
+ * - Vote weight: `0.5 + 0.5 × (likes + 1) / (likes + dislikes + 2)`, the like ratio with one
+ *   like and one dislike of prior. No votes give 0.75; it moves between 0.5 and 1 as votes
+ *   arrive, so a disliked game needs clearly more plays to lead but plays still decide.
+ *
+ * `todayScore = plays × voteWeight`; 0 when nobody finished a run in the window.
+ */
+export function todayScore(input: TodayInput, now: number): number {
+  const count = (value: number) => (Number.isFinite(value) && value > 0 ? value : 0);
+  const hoursToday = (((now % DAY_MS) + DAY_MS) % DAY_MS) / HOUR_MS;
+  const plays = count(input.finishedToday) + count(input.finishedYesterday) * (1 - hoursToday / 24);
+  if (plays <= 0) return 0;
+  const likes = count(input.likes);
+  const dislikes = count(input.dislikes);
+  const voteWeight = 0.5 + (0.5 * (likes + 1)) / (likes + dislikes + 2);
+  return plays * voteWeight;
+}
+
 /** One document with every game's public numbers, so shelves and tiles cost a single read. */
 export type CatalogRankings = {
   games: Record<
     string,
-    { likes: number; dislikes: number; qualityScore: number; trendScore: number }
+    {
+      likes: number;
+      dislikes: number;
+      qualityScore: number;
+      trendScore: number;
+      /** Trending today (`todayScore`); 0 in documents written before slice 5.17. */
+      todayScore: number;
+    }
   >;
 };

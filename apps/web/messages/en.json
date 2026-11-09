@@ -51,11 +51,25 @@
     "seeAll": "See all",
     "categoriesLabel": "Categories",
     "continueShelf": "Continue playing",
-    "popularShelf": "Popular this week"
+    "popularShelf": "Popular this week",
+    "spotlightToday": "#{rank} Trending today",
+    "spotlightWeek": "Popular this week",
+    "spotlightFeatured": "Featured"
   },
   "shelf": {
     "previous": "Scroll left",
     "next": "Scroll right"
+  },
+  "carousel": {
+    "roleDescription": "carousel",
+    "slideRoleDescription": "slide",
+    "slide": "{index} / {total}",
+    "goTo": "Show {index} of {total}: {title}",
+    "previous": "Previous game",
+    "next": "Next game",
+    "pause": "Stop the slideshow",
+    "resume": "Start the slideshow",
+    "play": "Play"
   },
   "list": {
     "newTitle": "New games",

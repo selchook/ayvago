@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { computeScores, likePercent, wilson, type EngagementInput } from './ranking';
+import {
+  computeScores,
+  likePercent,
+  todayScore,
+  wilson,
+  type EngagementInput,
+  type TodayInput,
+} from './ranking';
 
 const game = (gameId: string, overrides: Partial<EngagementInput> = {}): EngagementInput => ({
   gameId,
@@ -49,5 +56,57 @@ describe('computeScores', () => {
   it('boosts new games in the trend score', () => {
     const scores = computeScores([game('old'), game('fresh', { isNew: true })]);
     expect(scores.get('fresh')!.trendScore).toBeCloseTo(scores.get('old')!.trendScore * 1.25);
+  });
+});
+
+describe('todayScore', () => {
+  const at = (time: string) => Date.parse(`2026-11-09T${time}Z`);
+  const runs = (overrides: Partial<TodayInput> = {}): TodayInput => ({
+    finishedToday: 0,
+    finishedYesterday: 0,
+    likes: 0,
+    dislikes: 0,
+    ...overrides,
+  });
+
+  it('counts the last 24 hours: today plus the share of yesterday still in the window', () => {
+    // No votes: weight 0.75.
+    expect(todayScore(runs({ finishedToday: 10, finishedYesterday: 40 }), at('00:00:00'))).toBe(
+      (10 + 40) * 0.75,
+    );
+    expect(todayScore(runs({ finishedToday: 10, finishedYesterday: 40 }), at('06:00:00'))).toBe(
+      (10 + 30) * 0.75,
+    );
+    expect(todayScore(runs({ finishedToday: 10, finishedYesterday: 40 }), at('18:00:00'))).toBe(
+      (10 + 10) * 0.75,
+    );
+    expect(
+      todayScore(runs({ finishedToday: 10, finishedYesterday: 40 }), at('23:59:59.999')),
+    ).toBeCloseTo(10 * 0.75, 3);
+  });
+
+  it('is 0 without runs in the window, whatever the votes', () => {
+    expect(todayScore(runs({ likes: 50 }), at('12:00:00'))).toBe(0);
+    expect(todayScore(runs({ finishedYesterday: 5 }), at('23:59:59.999'))).toBeCloseTo(0, 3);
+  });
+
+  it('weights plays lightly by votes', () => {
+    const now = at('12:00:00');
+    const liked = todayScore(runs({ finishedToday: 20, likes: 30 }), now);
+    const plain = todayScore(runs({ finishedToday: 20 }), now);
+    const disliked = todayScore(runs({ finishedToday: 20, dislikes: 30 }), now);
+    expect(liked).toBeGreaterThan(plain);
+    expect(plain).toBeGreaterThan(disliked);
+    // Between half and all of the plays.
+    expect(liked).toBeLessThanOrEqual(20);
+    expect(disliked).toBeGreaterThanOrEqual(10);
+    // Plays still decide: twice the runs beat a perfect rating.
+    expect(todayScore(runs({ finishedToday: 40, dislikes: 30 }), now)).toBeGreaterThan(liked);
+  });
+
+  it('ignores missing or malformed counters', () => {
+    const now = at('12:00:00');
+    expect(todayScore(runs({ finishedToday: Number.NaN, finishedYesterday: -3 }), now)).toBe(0);
+    expect(todayScore(runs({ finishedToday: 4, likes: -2, dislikes: Number.NaN }), now)).toBe(3);
   });
 });

@@ -198,7 +198,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)); each board in the result carries the `previous` best, so the toolbar's personal best follows the server (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); `practice: true` (an Easy run, protocol 2.6) is validated the same way but writes no board and earns reduced XP (5 per run, no bonuses), returning `{ status: 'practice', progress }` (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
-| `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore`, `rankings/catalog` |
+| `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore` and the trending-today `todayScore` (finished runs in about the last 24 hours, lightly weighted by votes; slice 5.17), `rankings/catalog` |
 | `deleteMyData` ✅ | Callable | Account deletion, server part: username, board rows, votes, then `users/{uid}` recursively (profile, library, progress, stats, every subcollection) |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
@@ -527,6 +527,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] One sound switch: the game's own sound button and the player's toolbar button stay in sync (protocol 2.5, slice 5.14)
 - [x] Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice, counted for play stats and reduced XP but never ranked (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md))
 - [x] Admin "Players and plays" report: registered and guest players and which game each played how often, on demand with CSV downloads (`getPlayReport`, slice 5.16)
+- [x] Home spotlight carousel: the three games trending today (`todayScore` from the hourly `recomputeRankings`), swipeable and advancing by itself, filled up with this week's trend and the featured games (slice 5.17)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

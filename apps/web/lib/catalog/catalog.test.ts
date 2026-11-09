@@ -98,7 +98,7 @@ describe('seed catalog', () => {
       ]),
     );
     for (const parked of PARKED_GAMES) expect(multiplayer).not.toContain(parked.slug);
-    // The home spotlight needs a lead game and two side tiles.
+    // The home spotlight falls back to three featured games when rankings are unavailable.
     expect(getFeaturedGames().length).toBeGreaterThanOrEqual(3);
   });
 
@@ -194,5 +194,33 @@ describe('rankings', () => {
     expect(ranked.at(-1)!.slug).toBe('coming-soon');
     expect(gameLikePercent(ranked[0]!, rankings)).toBe(95);
     expect(rankGames(games, null, 'qualityScore')).toEqual(games);
+  });
+
+  it('reads todayScore, and 0 from documents written before it existed', async () => {
+    const { parseRankings } = await import('./rankings');
+    const entry = (fields: Record<string, { integerValue?: string; doubleValue?: number }>) => ({
+      mapValue: { fields },
+    });
+    const rankings = parseRankings({
+      games: {
+        mapValue: {
+          fields: {
+            fresh: entry({ trendScore: { doubleValue: 0.2 }, todayScore: { doubleValue: 7.5 } }),
+            whole: entry({ todayScore: { integerValue: '3' } }),
+            old: entry({ likes: { integerValue: '4' }, trendScore: { doubleValue: 0.3 } }),
+          },
+        },
+      },
+    });
+    expect(rankings.games.fresh).toMatchObject({ trendScore: 0.2, todayScore: 7.5 });
+    expect(rankings.games.whole!.todayScore).toBe(3);
+    expect(rankings.games.old).toEqual({
+      likes: 4,
+      dislikes: 0,
+      qualityScore: 0,
+      trendScore: 0.3,
+      todayScore: 0,
+    });
+    expect(parseRankings(undefined)).toEqual({ games: {} });
   });
 });

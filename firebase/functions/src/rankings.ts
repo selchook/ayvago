@@ -2,6 +2,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import {
   NEW_GAME_DAYS,
   computeScores,
+  todayScore,
   type CatalogRankings,
   type EngagementInput,
 } from '../../../packages/shared/src/ranking';
@@ -22,12 +23,13 @@ function addedAt(gameId: string): number {
 /**
  * Recomputes the ranking scores of every live game from its votes and the last 10 days of play
  * (docs/specs/voting.md §4) and writes them to games/{gameId} and to rankings/catalog, the single
- * document the web app reads for shelves and like percentages. Returns the number of games.
+ * document the web app reads for shelves, like percentages and the home spotlight ("trending
+ * today", `todayScore` from today's and yesterday's daily counters). Returns the number of games.
  */
 export async function recomputeGameScores(now = Date.now()): Promise<number> {
   const games = leaderboardGames();
   const days = Array.from({ length: 10 }, (_, i) => dayKey(now - i * DAY_MS));
-  const inputs: EngagementInput[] = await Promise.all(
+  const inputs: (EngagementInput & { todayScore: number })[] = await Promise.all(
     games.map(async ({ gameId }) => {
       const [game, ...daily] = await db().getAll(
         db().doc(`games/${gameId}`),
@@ -38,16 +40,27 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
         values.slice(from, to).reduce((total, day) => total + (day[key] ?? 0), 0);
       const plays7d = sum(0, 7, 'finished');
       const started7d = sum(0, 7, 'started');
+      const likes = (game!.get('likes') as number | undefined) ?? 0;
+      const dislikes = (game!.get('dislikes') as number | undefined) ?? 0;
       return {
         gameId,
-        likes: (game!.get('likes') as number | undefined) ?? 0,
-        dislikes: (game!.get('dislikes') as number | undefined) ?? 0,
+        likes,
+        dislikes,
         plays7d,
         avgSessionSeconds: plays7d > 0 ? sum(0, 7, 'playSeconds') / plays7d : 0,
         completionRate: started7d > 0 ? Math.min(1, plays7d / started7d) : 0,
         plays3d: sum(0, 3, 'finished'),
         playsPrev7d: sum(3, 10, 'finished'),
         isNew: now - addedAt(gameId) < NEW_GAME_DAYS * DAY_MS,
+        todayScore: todayScore(
+          {
+            finishedToday: sum(0, 1, 'finished'),
+            finishedYesterday: sum(1, 2, 'finished'),
+            likes,
+            dislikes,
+          },
+          now,
+        ),
       };
     }),
   );
@@ -59,7 +72,12 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
     const score = scores.get(input.gameId)!;
     batch.set(
       db().doc(`games/${input.gameId}`),
-      { ...score, plays7d: input.plays7d, scoresUpdatedAt: FieldValue.serverTimestamp() },
+      {
+        ...score,
+        todayScore: input.todayScore,
+        plays7d: input.plays7d,
+        scoresUpdatedAt: FieldValue.serverTimestamp(),
+      },
       { merge: true },
     );
     rankings.games[input.gameId] = {
@@ -67,6 +85,7 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
       dislikes: input.dislikes,
       qualityScore: score.qualityScore,
       trendScore: score.trendScore,
+      todayScore: input.todayScore,
     };
   }
   batch.set(db().doc('rankings/catalog'), {

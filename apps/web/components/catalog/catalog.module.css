@@ -262,7 +262,7 @@
   text-overflow: ellipsis;
 }
 
-/* Narrow cards (phone grids, the phone spotlight) give long titles a second line instead of
+/* Narrow cards (phone grids and shelves) give long titles a second line instead of
    cutting them off; every card of the list keeps the same two-line title area. */
 @container tile (max-width: 230px) {
   .tileTitle {
