@@ -135,14 +135,20 @@ export default async function GamePage({ params }: Props) {
                   <UsersIcon />
                   {t('table.playAtTable')}
                 </h2>
-                <p>{t('table.playAtTableHint', { count: manifest.players.max })}</p>
+                <p>{t('lobby.enterHint')}</p>
                 <Link
-                  href={`${gamePath(game)}/table`}
+                  href={`${gamePath(game)}/lobby`}
                   className={styles.friendButton}
                   prefetch={false}
                 >
-                  {t('table.createTable')}
+                  {t('lobby.enter')}
                 </Link>
+                <p>
+                  {t('lobby.privateTableHint')}{' '}
+                  <Link href={`${gamePath(game)}/table`} prefetch={false}>
+                    {t('lobby.privateTable')}
+                  </Link>
+                </p>
               </section>
             ) : game.multiplayer && game.status === 'live' ? (
               <section className={styles.card} aria-labelledby="online-heading">

@@ -1,9 +1,10 @@
 import { gameCategories, type Locale } from '@ayvago/shared';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { gameTitle, getAllGames } from '@/lib/catalog';
+import { gameTitle, getAllGames, getTableGames } from '@/lib/catalog';
 import { gameSearchText } from '@/lib/catalog/tiles';
 import { AccountMenu } from '../account/account-menu';
+import { InviteCenter } from '../lobby/invite-center';
 import { LocaleSwitcher } from '../locale-switcher';
 import { PopoverCloser } from '../popover-closer';
 import { TopSearch, type SearchEntry } from '../search/top-search';
@@ -44,6 +45,10 @@ export async function TopBar() {
       search: gameSearchText(game, categories),
     };
   });
+  // Titles for table invites (docs/adr/0019): only table games are invited to.
+  const tableTitles = Object.fromEntries(
+    getTableGames().map((game) => [game.slug, gameTitle(game, locale)]),
+  );
   return (
     <header className={styles.topBar}>
       <Link href="/" className={styles.logo}>
@@ -62,6 +67,7 @@ export async function TopBar() {
         >
           <SearchIcon />
         </Link>
+        <InviteCenter titles={tableTitles} />
         <ThemeSwitcher />
         <LocaleSwitcher />
         <AccountMenu />

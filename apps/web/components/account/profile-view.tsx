@@ -237,6 +237,7 @@ function SignedIn({
           </div>
         </div>
         <LanguagePicker />
+        <InvitesSetting invitesOff={profile.invitesOff} />
         <UsernameEditor profile={profile} isGuest={account.isGuest} />
         <p className={styles.muted}>{t('settingsSync')}</p>
       </section>
@@ -446,6 +447,40 @@ function LanguagePicker() {
           </label>
         ))}
       </fieldset>
+    </div>
+  );
+}
+
+/** "Do not disturb" for table invites (slice 5.18, docs/adr/0019). */
+function InvitesSetting({ invitesOff }: { invitesOff: boolean }) {
+  const t = useTranslations('profile');
+  const [error, setError] = useState(false);
+  return (
+    <div className={styles.setting}>
+      <h3>{t('invitesTitle')}</h3>
+      <label className={styles.switchRow}>
+        <input
+          type="checkbox"
+          checked={!invitesOff}
+          aria-describedby="invites-hint"
+          onChange={(event) => {
+            setError(false);
+            updateProfile({ invitesOff: !event.target.checked }).catch((cause) => {
+              console.error('[profile] saving the invite setting failed', cause);
+              setError(true);
+            });
+          }}
+        />
+        <span>{t('invitesToggle')}</span>
+      </label>
+      <p id="invites-hint" className={styles.muted}>
+        {t('invitesHint')}
+      </p>
+      {error ? (
+        <p className={menuStyles.error} role="alert">
+          {t('saveFailed')}
+        </p>
+      ) : null}
     </div>
   );
 }

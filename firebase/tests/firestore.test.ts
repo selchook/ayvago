@@ -236,6 +236,31 @@ describe('users/{uid} update', () => {
     );
   });
 
+  // Slice 5.18: "do not disturb" for table invites (docs/adr/0019).
+  it('lets the owner switch table invites off and on, as a boolean only', async () => {
+    await seed('alice');
+    for (const invitesOff of [true, false]) {
+      await assertSucceeds(
+        updateDoc(doc(guest('alice'), 'users', 'alice'), {
+          invitesOff,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    }
+    await assertFails(
+      updateDoc(doc(guest('alice'), 'users', 'alice'), {
+        invitesOff: 'yes',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(guest('bob'), 'users', 'alice'), {
+        invitesOff: true,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   it('lets the owner remove their character choice', async () => {
     await seed('alice', { characterId: 'rookie' });
     await assertSucceeds(

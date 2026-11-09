@@ -11,3 +11,4 @@ export * from './ranking';
 export * from './progress';
 export * from './achievements';
 export * from './play-report';
+export * from './lobby';

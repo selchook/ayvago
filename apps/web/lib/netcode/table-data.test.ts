@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { freeSeat, nextBotNumber, seatOf, tableReady, toTable } from './table-data';
+import { freeSeat, nextBotNumber, seatedUids, seatOf, tableReady, toTable } from './table-data';
 
 const RAW = {
   gameId: 'okey',
@@ -41,6 +41,21 @@ describe('toTable', () => {
       { kind: 'player', uid: 'host', name: 'A', character: null },
       { kind: 'bot', name: 'Bot 1' },
     ]);
+  });
+
+  it('reads the lobby visibility; tables from before it are private', () => {
+    expect(toTable('ABC234', { ...RAW, visibility: 'public' })?.visibility).toBe('public');
+    expect(toTable('ABC234', { ...RAW, visibility: 'private' })?.visibility).toBe('private');
+    expect(toTable('ABC234', RAW)?.visibility).toBe('private');
+    expect(toTable('ABC234', { ...RAW, visibility: 'open' })?.visibility).toBe('private');
+  });
+
+  it('lists the seated players', () => {
+    const table = toTable('ABC234', {
+      ...RAW,
+      seats: { ...RAW.seats, 3: { uid: 'g', name: 'G' } },
+    })!;
+    expect(seatedUids(table)).toEqual(['host', 'g']);
   });
 
   it('refuses things that are not tables', () => {

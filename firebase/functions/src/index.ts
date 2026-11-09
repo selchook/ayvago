@@ -2,6 +2,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { setGlobalOptions } from 'firebase-functions/v2';
+import { onValueWritten } from 'firebase-functions/v2/database';
 import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db } from './admin';
@@ -15,6 +16,7 @@ import { closeSeasons, playerCard, syncPlayerRows } from './leaderboards';
 import { reviewScoreFlag as review, setPlayerBan as ban } from './moderation';
 import { recomputeGameScores } from './rankings';
 import { getPlayReport as playReportCall } from './reports';
+import { deleteStaleLobbyData, syncLobbyTable as syncLobby } from './lobby';
 import { deleteOldRooms, deleteOldTables, ROOM_TTL_MS } from './rooms';
 import { finishSession as finish, startSession as start } from './sessions';
 import { reserveUsername as reserve } from './usernames';
@@ -103,14 +105,43 @@ export const cleanupSessions = onSchedule(
 
 /**
  * Online match rooms and game tables expire after two hours (docs/adr/0010-online-matches.md,
- * docs/adr/0015-tables-for-four-with-bots.md).
+ * docs/adr/0015-tables-for-four-with-bots.md); stale lobby entries, invites and invite quotas
+ * go with them (docs/adr/0019-table-lobby-presence-invites.md).
  */
 export const cleanupRooms = onSchedule({ schedule: 'every 60 minutes' }, async () => {
   const cutoff = Date.now() - ROOM_TTL_MS;
   const deleted = await deleteOldRooms(cutoff);
   const tables = await deleteOldTables(cutoff);
-  logger.info('Old online rooms and tables deleted', { deleted, tables });
+  const lobby = await deleteStaleLobbyData(cutoff);
+  logger.info('Old online rooms and tables deleted', { deleted, tables, ...lobby });
 });
+
+/**
+ * Keeps the public lobby list (lobby/{gameId}/tables/{code}) in step with every public table
+ * (docs/adr/0019-table-lobby-presence-invites.md). Runs in europe-west1, the database's region.
+ */
+export const syncLobbyTable = onValueWritten(
+  {
+    ref: 'tables/{code}',
+    // The Functions emulator fires database triggers only in us-central1. Local development opts
+    // in with AYVAGO_EMULATOR_DB_TRIGGERS=1 in functions/.env.local (git-ignored, read only by the
+    // emulator); the test run leaves it off, because bursts of table writes there overwhelm the
+    // emulator's function workers. Deploys always use europe-west1.
+    ...(process.env.FUNCTIONS_EMULATOR === 'true' && process.env.AYVAGO_EMULATOR_DB_TRIGGERS === '1'
+      ? { region: 'us-central1' }
+      : {}),
+  },
+  async (event) => {
+    const code = event.params.code;
+    const result = await syncLobby(
+      code,
+      event.data.before.val(),
+      event.data.after.val(),
+      event.data.after.ref.root,
+    );
+    if (result !== 'unchanged') logger.debug('Lobby entry updated', { code, result });
+  },
+);
 
 /** Weekly seasons end on Monday at 09:00 UTC (docs/specs/leaderboards.md §8). */
 export const closeLeaderboardSeason = onSchedule(

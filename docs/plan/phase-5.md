@@ -8,7 +8,8 @@
   [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md),
   [ADR 0017](../adr/0017-server-best-and-fresh-start.md),
-  [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)
+  [ADR 0018](../adr/0018-difficulty-easy-is-practice.md),
+  [ADR 0019](../adr/0019-table-lobby-presence-invites.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -39,6 +40,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.15 | Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice: play stats and reduced XP, never on a leaderboard (owner request, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) | ✅ code |
 | 5.16 | "Players and plays" report in the admin panel: registered and guest players, and which game each played how often, computed on demand by the admin-only `getPlayReport` function, with CSV downloads (owner request) | ✅ code |
 | 5.17 | Home spotlight: a swipeable, self-advancing carousel of the three games trending today (`todayScore` from the hourly ranking job), filled up with this week's trend and the featured games (owner request) | ✅ code |
+| 5.18 | A lobby for table games, Okey first: public tables to sit at, who is online, invites with a notification on every page (owner request, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) | ✅ code · ⏳ first trigger deploy |
 
 ## 5.1 Player characters ✅
 
@@ -993,3 +995,132 @@ Still open:
 - The daily counters are UTC days, so "today" is an estimate of the last 24 hours, not the
   player's calendar day.
 - The spec's preview videos and the "Hot" badge are still not built.
+
+## 5.18 A lobby for table games (Okey first) ✅ code
+
+The owner asked for a lobby for Okey ("critical update"):
+- in the lobby a player can invite the players who are online to the game;
+- the invited player gets a notification;
+- a player browsing the lobby can sit at any table.
+
+Design and reasons: [ADR 0019](../adr/0019-table-lobby-presence-invites.md); behaviour:
+[multiplayer spec §7b](../specs/multiplayer.md#7b-the-lobby-of-a-table-game).
+
+What shipped:
+- **Lobby page** `/{locale}/games/{slug}/lobby` for every live table game (`players.max > 2`,
+  generated for Okey), `noindex`:
+  - `components/lobby/lobby-page.tsx`, `lobby-view.tsx`, `online-players.tsx`,
+    `player-face.tsx` and `lobby.module.css`;
+  - the game page's table card now leads to the lobby ("Go to the lobby") and keeps
+    "Open a private table";
+  - the table page has a "Lobby" link.
+- **Public tables:**
+  - `tables/{code}/visibility` (`public` | `private`, missing = private);
+  - tables opened from the lobby are public, "Open a private table" stays private;
+  - the host switches it on the table page ("Show this table in the lobby").
+- **Table list:**
+  - a new Realtime Database trigger, **`syncLobbyTable`** (`firebase/functions/src/lobby.ts`),
+    keeps `lobby/{gameId}/tables/{code}`: a uid-free summary of every public open or playing
+    table, built from the table as it is now and written only when what the lobby shows changes;
+  - the lobby lists open tables with free seats first (the fullest first), then full ones, then
+    tables in play;
+  - it hides tables older than two hours and tables nobody has open, except the player's own;
+  - **Sit down** goes through the existing join path.
+- **Presence:**
+  - `presence/lobbies/{gameId}/{uid}`, written by the lobby page (`lobby`) and the table page
+    (`table`, then `playing`), removed on disconnect (`lib/lobby/lobby.ts`, `use-presence.ts`);
+  - the online list shows character or initial avatar, name, level and state, this player first
+    marked "you".
+- **Invites:**
+  - `invites/{toUid}/{fromUid}` with the sender's quota tick in `inviteQuota/{uid}` (five a
+    minute), sent in one multi-path write;
+  - the sender follows the answer (`lib/lobby/outgoing.ts`): sending, invited, joining, declined,
+    no answer after two minutes;
+  - inviting without an open table opens a public one and goes there;
+  - the table page lists the online players too while the table waits.
+- **Notification** (`components/lobby/invite-center.tsx` in the top bar, on every page):
+  - a bell with the number of open invites, and toasts with Join, Decline, close and the seconds
+    left;
+  - outside a game round the toast is an alert dialog with a soft Web Audio chime and focus on
+    Join (Escape closes it into the bell and returns focus);
+  - during a round or while typing it is a compact silent dialog, announced politely;
+  - in a fullscreen game it shows inside the fullscreen element;
+  - it listens only for 12 hours after the player was last in a lobby or at a table.
+- **Do not disturb:**
+  - profile settings → **Table invites** (`users/{uid}.invitesOff`, Firestore rules updated);
+  - mirrored as `dnd` into presence, where the rules refuse invites.
+- **Cleanup:** `cleanupRooms` also removes lobby entries of old tables, invites older than 20
+  minutes and old quotas (`deleteStaleLobbyData`; `deleteOldTables` removes the table's lobby
+  entry).
+- **Messages:** new `lobby` and `invites` namespaces, plus keys in `table` and `profile`, in
+  `en.json` and `tr.json`. `BellIcon` and `BotIcon` joined `components/icons.tsx`.
+- **Shared code:** `packages/shared/src/lobby.ts`:
+  - the summary builder used by the trigger;
+  - readers for lobby entries, presence and invites;
+  - the invite quota step and the constants.
+
+Decisions and deviations from the brief:
+- **Invite id.** The invite's key is the sender's uid (`invites/{toUid}/{fromUid}`), not a
+  random id: it makes "one pending invite per pair" a rule, not a client promise.
+- **Who can be invited.** Only players present in the game's lobby or at one of its tables; the
+  rules check their presence. Site-wide presence is left for later.
+- **During a game round** the invite shows as a compact, silent toast that does not take the focus
+  (not hidden): the invite expires in two minutes.
+- **Local development.** The Functions emulator fires database triggers only in `us-central1`.
+  - `syncLobbyTable` moves there only inside the emulator, and only with
+    `AYVAGO_EMULATOR_DB_TRIGGERS=1` in `firebase/functions/.env.local` (git-ignored, read only by
+    the emulator). Without it the local lobby list stays empty.
+  - Deploys always use europe-west1.
+  - The default test run leaves the trigger off. Its burst of table writes made the emulator fail
+    to start function workers ("Failed to load function"), which would make the deploy workflows
+    flaky.
+
+Tests:
+- shared `lobby.test.ts` (10): the summary has no uids and leaves out private, closed, old-style
+  and malformed tables; seats as an object or an array; presence and invite readers; invite
+  expiry; the quota counts five a window and starts a new one after a minute;
+- web `lib/lobby/lobby-data.test.ts` (7): seat counts and "can sit"; table order and the hidden
+  old, abandoned and own tables; player order; minutes; the sender's invite status and when a
+  new invite is allowed. `table-data.test.ts` (2 new): visibility (missing = private) and the
+  seated uids;
+- RTDB emulator `firebase/tests/lobby.test.ts` (20; 19 in the default run):
+  - visibility for the host only;
+  - the lobby list readable, never writable by clients;
+  - presence own-entry only, field validation and reading;
+  - invites: sending to a lobby player from one's own open table; refused without the quota
+    tick, as someone else, to oneself, to players outside the lobby, with `dnd` or already
+    seated, to started, missing or other games' tables, with bad fields or an answer;
+  - one pending invite per pair until it is answered or expires;
+  - reading, answering once and deleting;
+  - the quota: five a minute, no early reset, no skipped counts, no deletion, a new window after
+    a minute, owner-only;
+  - `syncLobbyTable` called directly (set, follow, unchanged, removed, private, out-of-order
+    events);
+  - the real trigger in the Functions emulator: opt-in (the `.env.local` line and the same
+    variable for the test run, `lobby.test.ts` alone). It passes, with 17 passed and the 3 direct
+    tests skipped, because they would race the live trigger;
+  - `deleteOldTables` with the lobby entry, and `deleteStaleLobbyData`;
+- Firestore emulator (1 new): `invitesOff` is a boolean the owner sets;
+- message test: `en` and `tr` have the same keys;
+- full run: shared 93, web 117, themes 16, adapter 25, firebase 152 passed and 1 skipped (the
+  opt-in trigger test);
+- in the browser (`next start` built with `NEXT_PUBLIC_FIREBASE_EMULATORS=1` on the emulators,
+  with the real trigger opted in, seeded tables and presence, Playwright):
+  - player A (desktop) invites player B (phone): A's public table opens and A moves there;
+  - B gets the alert-dialog toast with focus on Join, joins, and sits at A's table;
+  - player C (desktop, Turkish, arcade) sits at A's free seat from the lobby list;
+  - player D gets an invite, closes the toast with Escape, declines from the bell, and A sees
+    "Declined";
+  - with a game round on screen, the toast is a quiet dialog that keeps the focus where it was,
+    the live region announces it, and Join still works;
+  - screenshots: lobby in minimal light and dark, cartoon and arcade, English and Turkish, on a
+    1366×900 desktop and a Pixel 7. No horizontal overflow, and no console errors besides blocked
+    external cover images.
+
+Owner steps: the first deploy of an event-triggered function may need three IAM bindings,
+granted once. See the [setup doc](../setup/phase-5.md#518-a-lobby-for-table-games-okey-first).
+
+Still open:
+- The lobby is per game and the notifier listens only after a lobby visit; site-wide presence,
+  friends and web push are in ADR 0019 "Next".
+- A player with two tabs on the same game shares one presence entry.

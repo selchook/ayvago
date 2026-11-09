@@ -5,7 +5,7 @@
 // free seat from the invite link, the host fills the others with bots and starts the game. Moves
 // go through tableMoves/{code}: tables are for turn-based games, so the database is fast enough
 // and no peer-to-peer connection is needed.
-import type { CharacterId } from '@ayvago/shared';
+import type { CharacterId, TableVisibility } from '@ayvago/shared';
 import type { Unsubscribe } from 'firebase/database';
 import { loadDatabase } from '@/lib/firebase/client';
 import { generateRoomCode } from './room-code';
@@ -35,6 +35,8 @@ export async function createTable(input: {
   slug: string;
   size: number;
   character: CharacterId | null;
+  /** Public tables are listed in the lobby (docs/adr/0019); the invite-link flow opens private ones. */
+  visibility: TableVisibility;
 }): Promise<string> {
   const db = await loadDatabase();
   const { ref, set, serverTimestamp } = await import('firebase/database');
@@ -49,6 +51,7 @@ export async function createTable(input: {
         hostUid: input.uid,
         size: input.size,
         status: 'open',
+        visibility: input.visibility,
         createdAt: serverTimestamp(),
         seats: { 0: playerSeat(input.uid, input.name, input.character) },
       });
@@ -123,6 +126,20 @@ export async function clearSeat(code: string, seat: number): Promise<void> {
   const db = await loadDatabase();
   const { ref, remove } = await import('firebase/database');
   await remove(ref(db, `${tablePath(code)}/seats/${seat}`));
+}
+
+/** Host: lists the table in the lobby or takes it out. */
+export async function setTableVisibility(code: string, visibility: TableVisibility): Promise<void> {
+  const db = await loadDatabase();
+  const { ref, set } = await import('firebase/database');
+  await set(ref(db, `${tablePath(code)}/visibility`), visibility);
+}
+
+/** One read of a table; null when it does not exist. */
+export async function readTable(code: string): Promise<Table | null> {
+  const db = await loadDatabase();
+  const { ref, get } = await import('firebase/database');
+  return toTable(code, (await get(ref(db, tablePath(code)))).val());
 }
 
 /** Host: starts the game for everyone at the table. */

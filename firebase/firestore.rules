@@ -50,11 +50,13 @@ service cloud.firestore {
     // changes, so a profile still holding a retired id (the alien characters, slice 5.1b) can
     // update its other fields; the app reads such an id as "no choice". The theme works the same
     // way: a stored 'retro' (retired in slice 5.11) stays valid, the app reads it as 'arcade'.
+    // `invitesOff` is the "do not disturb" switch for table invites (slice 5.18, ADR 0019).
     function validPreferences(data, changed) {
       return (!('avatarId' in data) || (data.avatarId is string && data.avatarId.matches('^[a-z]{2,12}-[a-z]{2,12}$')))
         && (!('characterId' in changed) || !('characterId' in data) || validCharacter(data.characterId))
         && (!('theme' in changed) || !('theme' in data) || data.theme in ['cartoon', 'minimal', 'arcade'])
-        && (!('mode' in data) || data.mode in ['system', 'light', 'dark']);
+        && (!('mode' in data) || data.mode in ['system', 'light', 'dark'])
+        && (!('invitesOff' in data) || data.invitesOff is bool);
     }
 
     // users/{uid}: the player's own profile. Created by the client on first sign-in
@@ -75,7 +77,7 @@ service cloud.firestore {
 
       allow update: if isOwner(uid) && notBanned()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['isGuest', 'locale', 'avatarId', 'characterId', 'theme', 'mode', 'updatedAt'])
+          .hasOnly(['isGuest', 'locale', 'avatarId', 'characterId', 'theme', 'mode', 'invitesOff', 'updatedAt'])
         && request.resource.data.isGuest == isAnonymous()
         && validLocale(request.resource.data.locale)
         && validPreferences(request.resource.data, request.resource.data.diff(resource.data).affectedKeys())

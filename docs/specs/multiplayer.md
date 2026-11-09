@@ -1,9 +1,11 @@
 # Spec — Online two-player matches
 
-- Status: Implemented (2026-10-28); tables for up to four added 2026-11-06 — see §7a and §8
+- Status: Implemented (2026-10-28); tables for up to four added 2026-11-06, their lobby
+  2026-11-09 — see §7a, §7b and §8
 - Related: [Roadmap §10](../plan/roadmap.md#10-multiplayer--cloudflare-turn--firebase-signaling),
   [ADR 0003](../adr/0003-cloudflare-turn.md), [ADR 0010](../adr/0010-online-matches.md),
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md) (tables),
+  [ADR 0019](../adr/0019-table-lobby-presence-invites.md) (lobby, presence, invites),
   [Phase 4 plan](../plan/phase-4.md)
 
 ## 1. Goals
@@ -118,8 +120,77 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
   - the adapter's `multiplayer.seats` and seat-aware callbacks.
 - The host's game plays the bot seats and sends their moves.
 
+## 7b. The lobby of a table game
+Decision and reasons: [ADR 0019](../adr/0019-table-lobby-presence-invites.md).
+
+**Pages.**
+- `/{locale}/games/{slug}/lobby` for every live table game (`noindex`). The game page leads there
+  ("Go to the lobby") and keeps "Open a private table" for the invite-link flow.
+- **Tables.** The public tables of the game, live:
+  - each with the host's name and character, the table code, how long ago it opened, one marker
+    per seat (player, bot, free) and its status: free seats, full, or playing;
+  - open tables with free seats come first, the fullest first;
+  - **Sit down** opens `/games/{slug}/table/{code}`, which takes a free seat (guest account on the
+    spot);
+  - **Open a table** opens a public table with the existing host flow (bots, start).
+- **Online now.** Everyone in the lobby or at a table of the game, this player first marked
+  "you":
+  - with character or initial avatar, name, level, and state: in the lobby, at a table, playing;
+  - **Invite** next to everyone who is not at this player's table and takes invites. Without an
+    open table, inviting opens a public one and goes there;
+  - the button follows the invite: sending, invited, joining. "Declined" or "No answer" stays
+    next to it once the invite has ended;
+  - the table page shows the same list (without this player) while the table waits.
+- **Visibility.** The host's table page has "Show this table in the lobby" (`visibility`).
+
+**Notification.** On every page, for signed-in players and guests who were in a lobby during the
+last 12 hours:
+- a toast "X invites you to play Okey" with **Join**, **Decline**, a close button and the seconds
+  left (two minutes);
+- a bell with the number of open invites in the top bar, which lists them too.
+
+How it behaves:
+- Outside a game round the toast is an alert dialog with a soft chime that takes the focus;
+  Escape closes it into the bell.
+- During a round, or while the player types, the toast is compact and silent, does not take the
+  focus, and is announced politely.
+- Join answers `accepted` and opens the table. Decline answers `declined`, and the inviter sees
+  "Declined"; without an answer the inviter sees "No answer" after two minutes.
+- Profile settings → **Table invites** turns invites off (`users/{uid}.invitesOff`).
+
+**Data (Realtime Database).**
+```
+tables/{code}/visibility             'public' | 'private'   (missing: private)
+lobby/{gameId}/tables/{code}         { gameId, slug, size, status, createdAt, hostName, hostCharacter?, seats: [{ kind, name?, character? }], online }   ← syncLobbyTable trigger only, no uids
+presence/lobbies/{gameId}/{uid}      { name, character?, level?, state: lobby|table|playing, since, dnd? }   ← own entry, onDisconnect().remove()
+invites/{toUid}/{fromUid}            { fromUid, fromName, fromCharacter?, gameId, slug, tableCode, createdAt, answer? }
+inviteQuota/{uid}                    { start, count }        ← at most 5 invites per 60 s
+```
+
+**Rules** (emulator tests in `firebase/tests/lobby.test.ts`):
+- **Lobby list:** signed-in players read one game's list; no client writes it.
+- **Presence:** a player writes or removes only their own entry, with validated fields and nothing
+  else; signed-in players read one game's list.
+- **Sending an invite** needs all of these:
+  - the sender writes it under their own uid;
+  - the sender sits at the open table it names, with the matching game;
+  - the recipient is in that game's lobby, without `dnd`, and not seated there;
+  - `createdAt` is the server's `now`;
+  - the earlier invite to the same player is answered or expired;
+  - the quota counts it in the same write.
+- **Answering:** the recipient reads their inbox and answers once.
+- **Reading back:** the sender reads only their own invite.
+- **Deleting:** either side may delete.
+- **Quota:** it only counts up within the window, a new window starts with the server's `now`
+  after the old one ended, and it cannot be deleted.
+
+**Cleanup.** `cleanupRooms` (hourly) also removes:
+- lobby entries older than two hours;
+- invites older than 20 minutes;
+- quotas whose window ended an hour ago.
+
 ## 7. Not covered yet
-- Quick match with strangers, spectators, chat.
+- Quick match with strangers, spectators, chat (tables: see ADR 0019 "Next").
 - An unordered channel for real-time games (the ordered channel is enough for two-player pong at
   20–30 updates per second).
 
@@ -130,4 +201,6 @@ characters and `peerCharacter` (§3, §5) shipped with Phase 5 slice 5.1
 ([plan](../plan/phase-5.md#51-player-characters-)): the platform sends them, and the studio adds
 support to the games. Slice 5.1b ([plan](../plan/phase-5.md#51b-five-characters-)) cut the list to
 the five human figures. Tables for up to four with bots (§7a) shipped with slice 5.12
-([plan](../plan/phase-5.md#512-game-tables-for-up-to-four-with-bots--code)).
+([plan](../plan/phase-5.md#512-game-tables-for-up-to-four-with-bots--code)). The lobby with
+public tables, presence and invites (§7b) shipped with slice 5.18
+([plan](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)).

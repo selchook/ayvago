@@ -768,3 +768,23 @@
 [data-theme='arcade'] :is(.seat, .seatAction, .seatTag, .seatNumber) {
   border-radius: 0;
 }
+
+/* Table lobby (slice 5.18): the host's "show in the lobby" switch and the online list. */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.fullWidth {
+  width: 100%;
+}

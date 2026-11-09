@@ -297,7 +297,10 @@
       "cooldown": "Yeni bir adı {date} tarihinde seçebilirsin.",
       "registered-only": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
       "generic": "Kullanıcı adı kaydedilemedi. Lütfen tekrar dene."
-    }
+    },
+    "invitesTitle": "Masa davetleri",
+    "invitesToggle": "Lobideki oyuncular beni masalarına davet edebilsin",
+    "invitesHint": "Kapalıyken kimse seni davet edemez ve davet bildirimi almazsın. Yine de açık masalara oturabilirsin."
   },
   "admin": {
     "title": "Yönetim paneli",
@@ -547,6 +550,11 @@
     "peerAway": "{name} masadan ayrıldı. Oyun sürüyor; linkle geri dönebilir.",
     "tableCode": "Masa kodu: {code}",
     "newTable": "Yeni masa aç",
+    "visibilityLabel": "Bu masayı lobide göster",
+    "visibilityHint": "Lobideki oyuncular masayı görür ve oturabilir. Yalnızca davet ettiklerinle oynamak için kapat.",
+    "lobbyLink": "Lobi",
+    "inviteOnlineTitle": "Çevrimiçi oyuncuları davet et",
+    "inviteOnlineEmpty": "Şu an lobide başka kimse yok.",
     "error": {
       "full": "Bu masa dolu.",
       "started": "Bu masadaki oyun başladı.",
@@ -556,6 +564,82 @@
       "failed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
       "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
     }
+  },
+  "lobby": {
+    "title": "{title} lobisi",
+    "pageTitle": "{title} lobisi: açık masalar ve çevrimiçi oyuncular",
+    "metaDescription": "Açık bir {title} masasına otur, kendi masanı aç ya da çevrimiçi oyuncuları davet et.",
+    "intro": "Boş bir koltuğa otur, kendi masanı aç ya da buradaki oyuncuları davet et.",
+    "enter": "Lobiye git",
+    "enterHint": "Açık masaları ve kimlerin çevrimiçi olduğunu gör. Bir masaya otur ya da oyuncuları masana davet et.",
+    "privateTable": "Özel masa aç",
+    "privateTableHint": "Ya da yalnızca linki gönderdiğin arkadaşların için bir masa aç.",
+    "preparing": "Lobiye giriliyor…",
+    "tablesTitle": "Masalar",
+    "openTable": "Masa aç",
+    "opening": "Masa açılıyor…",
+    "noTables": "Şu an açık masa yok. Bir masa aç ve çevrimiçi oyuncuları davet et.",
+    "tableCode": "Masa {code}",
+    "seatsSummary": "{players} oyuncu, {bots} bot, {free} boş koltuk",
+    "freeSeats": "{count} boş koltuk",
+    "status": {
+      "open": "Oyuncu bekliyor",
+      "full": "Dolu, başlamak üzere",
+      "playing": "Oynanıyor"
+    },
+    "age": "{minutes, plural, =0 {az önce açıldı} other {# dk önce açıldı}}",
+    "sit": "Otur",
+    "sitLabel": "{code} masasına otur, masa sahibi {name}",
+    "yourTable": "Senin masan",
+    "backToTable": "Masana dön",
+    "myTableNotice": "Bir masan var: {code}.",
+    "emptySeat": "Boş koltuk",
+    "bot": "Bot",
+    "host": "Masa sahibi",
+    "onlineTitle": "Şu an çevrimiçi",
+    "onlineCount": "{count} oyuncu",
+    "nobody": "Henüz burada başka kimse yok. Bir masa açıp botlarla doldurabilir ya da oyuncuların gelmesini bekleyebilirsin.",
+    "you": "sen",
+    "level": "Seviye {level}",
+    "state": {
+      "lobby": "Lobide",
+      "table": "Masada",
+      "playing": "Oyunda"
+    },
+    "inviteHint": "Masan yoksa Davet et önce senin için herkese açık bir masa açar ve seni oraya götürür; herkes oturunca oyunu başlatırsın.",
+    "invite": "Davet et",
+    "inviteLabel": "{name} adlı oyuncuyu masana davet et",
+    "inviteStatus": {
+      "sending": "Gönderiliyor…",
+      "pending": "Davet edildi",
+      "accepted": "Katılıyor",
+      "declined": "Reddetti",
+      "expired": "Yanıt yok",
+      "failed": "Davet gönderilemedi",
+      "limit": "Bir dakika bekle"
+    },
+    "inviteLimit": "Son bir dakikada beş davet gönderdin. Yeniden davet etmeden önce biraz bekle.",
+    "inviteFailed": "Davet gönderilemedi. Oyuncu lobiden ayrılmış olabilir.",
+    "atYourTable": "Masanda",
+    "noInvites": "Davet almıyor",
+    "error": {
+      "failed": "Lobi yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+      "tableFailed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
+      "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
+    }
+  },
+  "invites": {
+    "regionLabel": "Davetler",
+    "title": "Masa daveti",
+    "body": "{name} seni {title} oynamaya davet ediyor.",
+    "bodyQuiet": "{name} seni {title} masasına çağırıyor",
+    "join": "Katıl",
+    "decline": "Reddet",
+    "close": "Kapat, sonra yanıtla",
+    "bellLabel": "{count} masa daveti",
+    "bellTitle": "Masa davetleri",
+    "expires": "{seconds} saniye içinde sona erer",
+    "table": "Masa {code}"
   },
   "progress": {
     "title": "İlerleme",

@@ -184,11 +184,17 @@ Season key: `s-2026-W42` (weekly seasons, Monday 09:00 UTC). Old season entries 
 rooms/{code}                           { gameId, slug, hostUid, hostName, hostCharacter, guestUid, guestName, guestCharacter, createdAt, status, online/{uid} }  ✅ ← room code + invite link
 signals/{code}/{toUid}/{id}            { from, kind: hello|offer|answer|ice, data }  ✅ ← WebRTC handshake inbox
 relay/{code}/{pushId}                  { from, data }                                ✅ ← fallback when WebRTC is not open
-presence/{uid}                         { state: 'online', gameId, lastChanged }   ← onDisconnect → offline (later)
+tables/{code}                          { gameId, slug, hostUid, size, status, visibility, createdAt, seats/{i}, online/{uid} }  ✅ ← game tables for up to four (ADR 0015)
+tableMoves/{code}/{pushId}             { from, seat, data }                          ✅ ← moves at a table
+lobby/{gameId}/tables/{code}           { slug, size, status, createdAt, hostName, seats, online }  ✅ ← public table list, no uids; syncLobbyTable trigger only (ADR 0019)
+presence/lobbies/{gameId}/{uid}        { name, character?, level?, state, since, dnd? }  ✅ ← who is in a game's lobby; onDisconnect → removed
+invites/{toUid}/{fromUid}              { fromName, gameId, slug, tableCode, createdAt, answer? }  ✅ ← one pending invite per pair
+inviteQuota/{uid}                      { start, count }                              ✅ ← five invites per minute (rules)
+presence/{uid}                         { state: 'online', gameId, lastChanged }   ← site-wide presence (later)
 matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. Details: [multiplayer spec](../specs/multiplayer.md).
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md). Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -208,7 +214,8 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
 | `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress); guest cleanup (30 days); score session cleanup (14 days) |
-| `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms older than two hours with their signaling and relay data |
+| `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms and tables older than two hours with their signaling, relay and move data; since slice 5.18 also stale lobby entries, invites and invite quotas |
+| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
 | `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16) |
@@ -528,6 +535,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice, counted for play stats and reduced XP but never ranked (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md))
 - [x] Admin "Players and plays" report: registered and guest players and which game each played how often, on demand with CSV downloads (`getPlayReport`, slice 5.16)
 - [x] Home spotlight carousel: the three games trending today (`todayScore` from the hourly `recomputeRankings`), swipeable and advancing by itself, filled up with this week's trend and the featured games (slice 5.17)
+- [x] Lobby for table games (Okey first): public tables to sit at, who is online, invites with a notification on every page, "do not disturb" on the profile (`syncLobbyTable`, slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator
