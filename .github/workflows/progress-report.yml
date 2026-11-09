@@ -1,0 +1,44 @@
+name: Progress report
+
+# Read-only: counts score sessions, leaderboard entries and XP by player kind (guest, Google,
+# registered). Prints numbers only, never names or ids. Safe to run at any time.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: Days of score sessions to count (1-60)
+        required: false
+        default: '7'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @ayvago/functions
+
+      - name: Report
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD }}
+          DAYS: ${{ inputs.days }}
+          FIREBASE_PROJECT_ID: ayvago-prod
+        run: |
+          if [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::Repository secret FIREBASE_SERVICE_ACCOUNT_AYVAGO_PROD is not set (see docs/setup/phase-0.md)."
+            exit 1
+          fi
+          key_file="$RUNNER_TEMP/firebase-service-account.json"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s' "$SERVICE_ACCOUNT" > "$key_file"
+          export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
+          cd firebase/functions
+          node scripts/progress-report.mjs --days "${DAYS:-7}"

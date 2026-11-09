@@ -149,3 +149,10 @@ indexes or secrets change.
 - ⏳ Then merge the studio PR in `selchook/ayvago-games` that adopts adapter 2.6.0 and adds the
   Easy / Normal choice to the games' menus. Until it is merged, every run is Normal and ranked,
   as before.
+
+## Checking that runs are recorded (read-only)
+Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
+the deploy service account and writes a table to the run summary: score sessions by status,
+leaderboard entries and XP, split into guest, Google and registered players. Numbers only, no
+names or ids; nothing is changed.
+
