@@ -1,12 +1,9 @@
 import { GAME_CATEGORIES, type Locale } from '@ayvago/shared';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CoverArt } from '@/components/catalog/cover-art';
-import { GameTile } from '@/components/catalog/game-tile';
 import { ContinueShelf } from '@/components/catalog/continue-shelf';
 import { Shelf } from '@/components/catalog/shelf';
-import catalog from '@/components/catalog/catalog.module.css';
+import { SpotlightCarousel, type SpotlightSlide } from '@/components/catalog/spotlight-carousel';
 import styles from '@/components/page.module.css';
-import { Link } from '@/i18n/navigation';
 import {
   categoryPath,
   gameDescription,
@@ -19,6 +16,7 @@ import {
   getNewestGames,
 } from '@/lib/catalog';
 import { getRankings, rankGames } from '@/lib/catalog/rankings';
+import { pickSpotlight } from '@/lib/catalog/spotlight';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -26,14 +24,31 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
   setRequestLocale(locale);
   const t = await getTranslations();
 
-  const [lead, ...others] = getFeaturedGames();
-  const [spotlightTiles, allTiles, labels, rankings] = await Promise.all([
-    toTiles(lead ? [lead, ...others.slice(0, 2)] : [], locale),
+  const [allTiles, labels, rankings] = await Promise.all([
     toTiles(getAllGames(), locale),
     getTileLabels(),
     getRankings(),
   ]);
-  const [leadTile, ...sideTiles] = spotlightTiles;
+  // Spotlight: the games trending today, filled up with this week's trend and the featured games
+  // (slice 5.17). The ranking job runs hourly, so the carousel follows the day.
+  const picks = pickSpotlight(getAllGames(), getFeaturedGames(), rankings);
+  const slides: SpotlightSlide[] = picks.map(({ game, reason, rank }) => ({
+    slug: game.slug,
+    href: gamePath(game),
+    id: game.manifest.id,
+    title: gameTitle(game, locale),
+    description: gameDescription(game, locale),
+    category: game.manifest.category,
+    cover: game.coverUrl,
+    categoryLabels: allTiles.find((tile) => tile.slug === game.slug)?.categoryLabels ?? [],
+    badge:
+      reason === 'today'
+        ? t('home.spotlightToday', { rank })
+        : reason === 'week'
+          ? t('home.spotlightWeek')
+          : t('home.spotlightFeatured'),
+    reason,
+  }));
   // "Popular this week" needs play data; it stays hidden until the ranking job has scores.
   const popular = rankGames(getAllGames(), rankings, 'trendScore').filter(
     (game) => (rankings?.games[game.manifest.id]?.trendScore ?? 0) > 0,
@@ -48,41 +63,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
         tiles={allTiles}
         labels={labels}
       />
-      {lead && leadTile ? (
-        <section aria-labelledby="spotlight-heading">
+      {slides.length > 0 ? (
+        <div>
           <h2 id="spotlight-heading" className={styles.eyebrow}>
             {t('home.spotlight')}
           </h2>
-          <div className={styles.spotlight}>
-            <Link href={gamePath(lead)} className={styles.spotlightMain}>
-              <CoverArt
-                id={lead.manifest.id}
-                title={gameTitle(lead, locale)}
-                category={lead.manifest.category}
-                size="hero"
-                image={lead.coverUrl}
-              />
-              <span className={styles.spotlightBody}>
-                <strong>{gameTitle(lead, locale)}</strong>
-                <p>{gameDescription(lead, locale)}</p>
-                <span className={`${catalog.tags} ${styles.spotlightTags}`}>
-                  {leadTile.categoryLabels.map((label, index) => (
-                    <span key={label} className={catalog.tag} data-tone={index}>
-                      {label}
-                    </span>
-                  ))}
-                </span>
-              </span>
-            </Link>
-            <ul className={styles.spotlightSide}>
-              {sideTiles.map((tile) => (
-                <li key={tile.slug}>
-                  <GameTile tile={tile} labels={labels} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+          <SpotlightCarousel slides={slides} labelledBy="spotlight-heading" />
+        </div>
       ) : null}
 
       <Shelf id="popular" title={t('home.popularShelf')} games={popular} locale={locale} />

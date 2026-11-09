@@ -29,6 +29,15 @@ All navigation labels are message keys; layout uses logical CSS properties (`mar
 
 ### 3.1 Home
 1. **Hero** — rotating editor's picks (max 5), large cover + short preview video, "Play" button.
+   *Implemented (slice 5.17, [plan](../plan/phase-5.md#517-spotlight-carousel-trending-today--code)):*
+   the Spotlight is a carousel of the three games trending today (`todayScore`, [voting spec
+   §4.3](voting.md#43-combined-scores)), filled up with this week's trend, then the editors'
+   featured games, then catalog order. One full-width slide per game (cover, title, description,
+   category tags, a "#1 Trending today" / "Popular this week" / "Featured" badge, "Play" on wide
+   screens) on a native scroll-snap track: swipe, trackpad, prev / next, dots and arrow keys.
+   It advances every 5 s and loops, pausing on hover, keyboard focus, for 8 s after a touch,
+   while the tab is hidden and when stopped with its stop button; never under reduced motion.
+   No preview video yet.
 2. **Continue playing** — personal (hidden when empty).
 3. **New** — games younger than 14 days.
 4. **Popular this week** — by `trendScore`.

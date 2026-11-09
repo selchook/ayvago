@@ -61,6 +61,7 @@ Normalized (percentile within the catalog) and weighted:
 |---|---|---|
 | `qualityScore` | `0.4 · wilson + 0.6 · engagement` | "Top rated", category pages, related games |
 | `trendScore` | `qualityScore × growth`, where `growth` = plays in the last 3 days vs the previous 7-day average (capped at 3×) | "Popular this week", home hero candidates |
+| `todayScore` | Finished runs in about the last 24 hours, `today.finished + yesterday.finished × (1 − hoursElapsedTodayUTC / 24)`, × a vote weight `0.5 + 0.5 × (likes + 1) / (likes + dislikes + 2)` (slice 5.17) | Home spotlight ("Trending today") |
 | New-game boost | Games younger than **14 days** get a guaranteed slot in "New" and `× 1.25` on `trendScore` | "New", "Popular" |
 
 Weights live in Remote Config so they can be tuned without a deploy. Editor's picks are manual and bypass scores.
@@ -70,7 +71,7 @@ Weights live in Remote Config so they can be tuned without a deploy. Editor's pi
 | Path | Content | Writer |
 |---|---|---|
 | `games/{gameId}/votes/{uid}` | `value: 1 \| -1`, `reasons: string[]`, `comment?`, `updatedAt` | Owner (rules: eligibility, allowed reasons, comment length) |
-| `games/{gameId}` | `likes`, `dislikes`, `likePercent`, `wilson`, `engagement`, `qualityScore`, `trendScore`, `scoresUpdatedAt` | Functions |
+| `games/{gameId}` | `likes`, `dislikes`, `likePercent`, `wilson`, `engagement`, `qualityScore`, `trendScore`, `todayScore`, `scoresUpdatedAt` | Functions |
 | `games/{gameId}/feedback/{yyyy-mm-dd}` | Daily aggregate of negative reasons | Functions |
 | `users/{uid}/favorites/{gameId}` | `addedAt` | Owner |
 
@@ -105,4 +106,5 @@ Shipped in Phase 2 slice 2.2 ([plan](../plan/phase-2.md#22-voting-and-ranking-))
   - Burst detection.
   - "Top rated" shelf.
   - Long-press favorite.
+- **Trending today (slice 5.17, [plan](../plan/phase-5.md#517-spotlight-carousel-trending-today--code)):** `recomputeRankings` also computes `todayScore` (§4.3) from today's and yesterday's daily counters and publishes it in `rankings/catalog` (`games.{gameId}.todayScore`; older documents read as 0). The home spotlight is a carousel of the three live games with the highest `todayScore`, filled up with this week's `trendScore`, then the featured games, then catalog order.
 - **Admin feedback view (slice 2.3):** `/admin` shows each game's reasons over 14 days and the latest comments.

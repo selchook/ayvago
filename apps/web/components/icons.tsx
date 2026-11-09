@@ -152,6 +152,12 @@ export const PlayIcon = (p: IconProps) => (
   </Icon>
 );
 
+export const PauseIcon = (p: IconProps) => (
+  <Icon {...p} fill="currentColor">
+    <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" />
+  </Icon>
+);
+
 export const ExpandIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />

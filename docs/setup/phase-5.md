@@ -166,6 +166,18 @@ To open the report:
 Per-player numbers start on 2026-11-07, the day of the progress reset; the per-game all-time
 columns count every run since launch.
 
+## 5.17 Spotlight carousel: trending today
+**Nothing to set up** beyond merging this PR: merging deploys the web app, and the "Deploy Cloud
+Functions" workflow publishes the updated `recomputeRankings` (the change touches
+`firebase/functions/**` and `packages/shared/src/**`). No rules, indexes, secrets or roles change.
+
+- The ranking job runs every hour. Until its first run after the deploy the spotlight shows this
+  week's popular games and the featured games; after it, the games played most in the last
+  24 hours. The home page refreshes its copy of the rankings within the hour after that.
+- Optional check after the deploy: open ayvago.com. The Spotlight is a carousel of three games
+  with a "#1 Trending today" badge on the first; it moves to the next game every 5 seconds,
+  stops while the mouse is over it, and on a phone it can be swiped.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

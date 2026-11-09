@@ -114,6 +114,31 @@ describe('recomputeGameScores', () => {
     expect(rankings[FIXTURE]).toMatchObject({ likes: 1, dislikes: 0 });
     expect(rankings[FIXTURE]!.qualityScore).toBeGreaterThan(0);
     expect(await read(GAME)).toMatchObject({ plays7d: 1 });
+    // The run just played is today's, so the game trends today.
+    expect(rankings[FIXTURE]!.todayScore).toBeGreaterThan(0);
+  });
+
+  it('writes the trending-today score from the last 24 hours of finished runs', async () => {
+    // 06:00 UTC: all of today's 10 runs and three quarters of yesterday's 40; older days and
+    // started-only counters do not count. Two likes: weight 0.5 + 0.5 × 3/4.
+    const now = Date.parse('2030-03-15T06:00:00Z');
+    await write(GAME, { likes: 2, dislikes: 0 }, true);
+    await write(`${GAME}/daily/2030-03-15`, { started: 30, finished: 10, playSeconds: 600 });
+    await write(`${GAME}/daily/2030-03-14`, { started: 50, finished: 40, playSeconds: 2400 });
+    await write(`${GAME}/daily/2030-03-13`, { started: 90, finished: 80, playSeconds: 4800 });
+    await recomputeGameScores(now);
+    const expected = (10 + 30) * (0.5 + 0.5 * (3 / 4));
+    const rankings = (await read('rankings/catalog'))?.games as Record<
+      string,
+      Record<string, number>
+    >;
+    expect(rankings[FIXTURE]!.todayScore).toBeCloseTo(expected, 6);
+    expect((await read(GAME))!.todayScore).toBeCloseTo(expected, 6);
+
+    // A day later, with no runs since, only yesterday's (then the 15th's) share is left.
+    await recomputeGameScores(Date.parse('2030-03-16T12:00:00Z'));
+    const later = (await read('rankings/catalog'))?.games as Record<string, Record<string, number>>;
+    expect(later[FIXTURE]!.todayScore).toBeCloseTo(10 * 0.5 * (0.5 + 0.5 * (3 / 4)), 6);
   });
 });
 

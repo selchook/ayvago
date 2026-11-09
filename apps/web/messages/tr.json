@@ -51,11 +51,25 @@
     "seeAll": "Tümünü gör",
     "categoriesLabel": "Kategoriler",
     "continueShelf": "Oynamaya devam et",
-    "popularShelf": "Bu hafta popüler"
+    "popularShelf": "Bu hafta popüler",
+    "spotlightToday": "#{rank} Bugün trend",
+    "spotlightWeek": "Bu hafta popüler",
+    "spotlightFeatured": "Öne çıkan"
   },
   "shelf": {
     "previous": "Sola kaydır",
     "next": "Sağa kaydır"
+  },
+  "carousel": {
+    "roleDescription": "atlıkarınca",
+    "slideRoleDescription": "slayt",
+    "slide": "{index} / {total}",
+    "goTo": "{total} oyundan {index}. oyunu göster: {title}",
+    "previous": "Önceki oyun",
+    "next": "Sonraki oyun",
+    "pause": "Otomatik geçişi durdur",
+    "resume": "Otomatik geçişi başlat",
+    "play": "Oyna"
   },
   "list": {
     "newTitle": "Yeni oyunlar",

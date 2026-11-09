@@ -27,6 +27,8 @@ export function parseRankings(fields: RestFields | undefined): CatalogRankings {
       dislikes: num(f.dislikes),
       qualityScore: num(f.qualityScore),
       trendScore: num(f.trendScore),
+      // Documents written before slice 5.17 have no todayScore; num() reads that as 0.
+      todayScore: num(f.todayScore),
     };
   }
   return { games };
@@ -53,7 +55,7 @@ export async function getRankings(): Promise<CatalogRankings | null> {
 export function rankGames(
   games: CatalogGame[],
   rankings: CatalogRankings | null,
-  by: 'qualityScore' | 'trendScore',
+  by: 'qualityScore' | 'trendScore' | 'todayScore',
 ): CatalogGame[] {
   if (!rankings) return games;
   const score = (game: CatalogGame) =>

@@ -2,7 +2,8 @@
 
 - Status: In progress (started 2026-10-29)
 - Roadmap: [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Specs:
-  [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md)
+  [Accounts and profiles](../specs/accounts.md), [Online two-player matches](../specs/multiplayer.md),
+  [Voting and ranking](../specs/voting.md), [UI and themes](../specs/ui-and-themes.md)
   · Owner steps: [Phase 5 setup](../setup/phase-5.md) · Decisions:
   [ADR 0013](../adr/0013-player-characters.md), [ADR 0014](../adr/0014-three-themes-minimal-default.md),
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md), [ADR 0016](../adr/0016-achievements-and-xp.md),
@@ -37,6 +38,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.14 | One sound switch: muting in the game's own menu also mutes the toolbar's sound button and the other way round (protocol 2.5, owner request) | ✅ code |
 | 5.15 | Difficulty: games report Easy or Normal in `GHA_END` (protocol 2.6); Easy runs are practice: play stats and reduced XP, never on a leaderboard (owner request, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) | ✅ code |
 | 5.16 | "Players and plays" report in the admin panel: registered and guest players, and which game each played how often, computed on demand by the admin-only `getPlayReport` function, with CSV downloads (owner request) | ✅ code |
+| 5.17 | Home spotlight: a swipeable, self-advancing carousel of the three games trending today (`todayScore` from the hourly ranking job), filled up with this week's trend and the featured games (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -891,3 +893,103 @@ Still open:
   everyone and the report says how many were left out.
 - Guests inactive for 30 days are deleted with their stats by `cleanupGuests`, so they drop out
   of the per-player numbers (the per-game all-time columns keep their runs).
+
+## 5.17 Spotlight carousel: trending today ✅ code
+
+The owner asked for the home page's Spotlight ("Öne çıkanlar") to show the top three games
+trending that day, as a carousel the player can swipe and that also moves on by itself. Until
+now the spotlight was the editors' `featured` games: one large card and two side tiles.
+
+What shipped:
+- **`todayScore`** (`packages/shared/src/ranking.ts`, [voting spec §4.3](../specs/voting.md#43-combined-scores)):
+  finished runs in roughly the last 24 hours, lightly weighted by votes.
+  - The daily counters (`games/{gameId}/daily/{YYYY-MM-DD}`) are per UTC day, so the window is
+    today's runs plus the share of yesterday's still inside it, assuming yesterday's runs were
+    spread evenly: `plays = today.finished + yesterday.finished × (1 − hoursElapsedTodayUTC / 24)`.
+  - Vote weight: `0.5 + 0.5 × (likes + 1) / (likes + dislikes + 2)` (the like ratio with one
+    like and one dislike of prior): 0.75 without votes, between 0.5 and 1 otherwise. A disliked
+    game needs clearly more plays to lead, but plays decide.
+  - `todayScore = plays × voteWeight`; 0 without runs in the window. Missing or malformed
+    counters count as 0.
+- **`recomputeRankings`** (hourly, `firebase/functions/src/rankings.ts`) computes it from the
+  daily documents it already reads and writes it to `rankings/catalog`
+  (`games.{gameId}.todayScore`) and to `games/{gameId}`. Being hourly, the spotlight follows the
+  day; the web reads the rankings document with ISR (revalidate 3600 s), so a change shows
+  within about two hours at most.
+- **Web:** `parseRankings` and `CatalogRankings` read `todayScore`; documents written before
+  this slice parse with 0. `rankGames` accepts `todayScore` too.
+- **Picking the three games** (`apps/web/lib/catalog/spotlight.ts`, `pickSpotlight`): live games
+  by `todayScore` (> 0), best first; then live games by the weekly `trendScore` (> 0); then the
+  featured games; then the catalog in order. Ties keep catalog order, a game never appears twice
+  and only live games are picked. Without rankings (local builds, previews, a failed read) it
+  starts at the featured games, which is what the spotlight showed before.
+- **Carousel** (`components/catalog/spotlight-carousel.tsx` + CSS module; the home page stays a
+  server component that passes plain data):
+  - One full-width slide per game in the style of the old lead card: hero cover, title,
+    description (three lines, four on wide screens), category tags and a badge: "#1 Trending
+    today" / "#1 Bugün trend" for today's games, "Popular this week" / "Bu hafta popüler" for the
+    weekly fill, "Featured" / "Öne çıkan" for the featured and catalog fill. The whole slide links
+    to the game. When the carousel is 720 px or wider the cover and the text sit side by side
+    with a "Play" button; on phones they are stacked.
+  - A native horizontal scroll track with `scroll-snap-type: x mandatory` (and
+    `scroll-snap-stop: always`), so touch swipes, trackpads and shift+wheel move it one slide at a
+    time. Prev / next buttons over the edges (hidden below 640 px) and dot buttons that show and
+    set the current slide; the current slide follows the scroll position.
+  - **Auto-advance** every 5 s, looping back to the first, with smooth scrolling. It pauses
+    while a mouse pointer is over it, while it has keyboard focus (`:focus-visible`, so a mouse
+    click on a dot is only a hold), for 8 s after the last touch, swipe, wheel or click on it,
+    and while the tab is hidden. With `prefers-reduced-motion: reduce` it never advances and
+    jumps without smooth scrolling.
+  - Accessibility: `role="region"` with `aria-roledescription` "carousel" / "atlıkarınca",
+    labelled by the "Spotlight" heading; slides are `role="group"` with
+    `aria-roledescription` "slide" / "slayt" and "1 / 3" labels; dots are buttons with
+    "Show 1 of 3: Jetpack Rush" labels and `aria-current`; ←, →, Home and End on the focused
+    carousel change slides (a focused slide hands focus to the new slide); the track is
+    `aria-live="off"` while it advances by itself and `polite` otherwise; no focus traps.
+  - Every slide has the height of the tallest, so nothing moves while it slides; measured CLS
+    is 0 on a 360 px phone.
+  - Themes: semantic tokens; the arcade theme keeps the portal-card look of the old spotlight
+    (thick ink border, hard shadow, lift on hover; the track leaves room so the lift and shadow
+    are not clipped).
+- Text in `en.json` and `tr.json`: `home.spotlightToday`, `home.spotlightWeek`,
+  `home.spotlightFeatured` and the `carousel.*` labels. A `PauseIcon` joined `components/icons.tsx`.
+
+Deviations from the brief:
+- **A stop / start button** sits at the end of the dot row (WCAG 2.2.2: content that moves by
+  itself for more than 5 s needs a way to stop it, and hover pausing does not help on phones).
+  It is hidden under reduced motion, where nothing moves.
+- **Only live games are picked**, also from the featured list and the catalog fill: a
+  coming-soon game cannot be played from the spotlight. Every catalog game is live today.
+- **The weekly fill has its own badge** ("Popular this week", without a number) rather than the
+  neutral one, so "#2" never sits on a game that is not second today.
+- The two side tiles of the old spotlight are gone: the carousel's three slides replace them.
+
+Tests:
+- shared `ranking.test.ts` (4 new): the 24-hour window at 00:00, 06:00, 18:00 and just before
+  midnight UTC; 0 without runs whatever the votes; the vote weight orders liked, unvoted and
+  disliked games but twice the plays still win; malformed counters;
+- web `lib/catalog/spotlight.test.ts` (7): today's order, ties in catalog order, the weekly,
+  featured and catalog fills, no duplicates, zero scores, unknown ids and coming-soon games
+  ignored, missing rankings, small catalogs; `catalog.test.ts` (1 new): `parseRankings` with and
+  without `todayScore` (double and integer values, old documents, no document);
+- Firestore emulator `votes.test.ts` (1 new, 1 extended): a real run gives a positive
+  `todayScore`; seeded daily counters at 06:00 UTC give exactly
+  `(10 + 40 × 0.75) × (0.5 + 0.5 × 3/4)` in `rankings/catalog` and on the game document, older
+  days do not count, and a day later only yesterday's share is left;
+- in the browser (`next dev` on the Firestore emulator with a seeded `rankings/catalog`, local
+  covers, Playwright): minimal light and dark, cartoon and arcade, English and Turkish, at
+  1366×900, 390×844 and 360×780; auto-advance moves to the next slide after 5 s and loops,
+  hover, keyboard focus, the stop button and a hidden tab hold it, a click or a touch swipe
+  holds it for 8 s, a swipe or a `scrollLeft` change updates the dots, arrows, dots and keys
+  move it, and under reduced motion nothing moves and buttons jump; the weekly and featured
+  badges and the no-rankings fallback checked too. No console errors, no horizontal overflow.
+
+Owner steps: none beyond merging; the functions deploy publishes the new `recomputeRankings`.
+See the [setup doc](../setup/phase-5.md#517-spotlight-carousel-trending-today).
+
+Still open:
+- Until the first hourly run after the deploy, `rankings/catalog` has no `todayScore`, so the
+  spotlight shows this week's trend and the featured games.
+- The daily counters are UTC days, so "today" is an estimate of the last 24 hours, not the
+  player's calendar day.
+- The spec's preview videos and the "Hot" badge are still not built.
