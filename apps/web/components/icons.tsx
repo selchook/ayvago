@@ -275,6 +275,14 @@ export const BotIcon = (p: IconProps) => (
 );
 
 // Google's multicolor "G", as required next to "Continue with Google" by Google's branding rules.
+export const ExitIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+    <path d="M9 16l-4-4 4-4" />
+    <path d="M5 12h10" />
+  </Icon>
+);
+
 export const GoogleLogo = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
     <path

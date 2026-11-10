@@ -6,6 +6,7 @@ import {
   HOST_HANDOVER_STEP_MS,
 } from '@ayvago/shared';
 import {
+  applyTableUpdates,
   botSeats,
   canStart,
   extendedStart,
@@ -14,6 +15,7 @@ import {
   hostSeat,
   nextBotNumber,
   nextBotNumbers,
+  planLeave,
   planStart,
   seatedUids,
   seatOf,
@@ -185,5 +187,98 @@ describe('host hand-over (slice 5.19)', () => {
     expect(handoverDelay(at({ can: ON }), 'can')).toBe(HOST_HANDOVER_MS);
     // During a game too.
     expect(handoverDelay(at({ can: ON }, { status: 'playing' }), 'can')).toBe(HOST_HANDOVER_MS);
+  });
+});
+
+describe('leaving a table (slice 5.20)', () => {
+  const ON = 'abcdef012345';
+  const seats = {
+    0: { uid: 'host', name: 'Ayşe' },
+    1: { bot: true, name: 'Bot 1' },
+    2: { uid: 'mert', name: 'Mert' },
+  };
+  const at = (changes: Record<string, unknown> = {}) =>
+    toTable('ABC234', { ...RAW, seats, online: { host: ON, mert: ON }, ...changes })!;
+
+  it('reads the host marker only for the current host', () => {
+    expect(at().hostLeft).toBe(false);
+    expect(at({ hostLeft: 'host' }).hostLeft).toBe(true);
+    // Left by an earlier host: the new one has not left.
+    expect(at({ hostLeft: 'host', hostUid: 'mert' }).hostLeft).toBe(false);
+  });
+
+  it('frees a player’s seat at a waiting table', () => {
+    expect(planLeave(at(), 'mert')).toEqual({
+      kind: 'free',
+      handOver: false,
+      updates: { 'online/mert': null, 'seats/2': null },
+    });
+  });
+
+  it('keeps the seat during a game', () => {
+    expect(planLeave(at({ status: 'playing' }), 'mert')).toEqual({
+      kind: 'away',
+      handOver: false,
+      updates: { 'online/mert': null },
+    });
+  });
+
+  it('hands over when the host leaves other players behind', () => {
+    expect(planLeave(at(), 'host')).toEqual({
+      kind: 'free',
+      handOver: true,
+      updates: { 'online/host': null, hostLeft: 'host', 'seats/0': null },
+    });
+    expect(planLeave(at({ status: 'playing' }), 'host')).toEqual({
+      kind: 'away',
+      handOver: true,
+      updates: { 'online/host': null, hostLeft: 'host' },
+    });
+  });
+
+  it('closes a waiting table when the host is the only player (bots do not count)', () => {
+    const alone = at({ seats: { 0: seats[0], 1: seats[1] }, startAt: 5000 });
+    expect(planLeave(alone, 'host')).toEqual({
+      kind: 'close',
+      handOver: false,
+      // A marker from an earlier host goes too.
+      updates: { 'online/host': null, hostLeft: null, status: 'closed', startAt: null },
+    });
+    // During a game the seat stays theirs, as for everyone.
+    expect(planLeave(at({ seats: { 0: seats[0] }, status: 'playing' }), 'host').kind).toBe('away');
+  });
+
+  it('lets the others take over at once when the host left on purpose', () => {
+    const left = at({ online: { mert: ON }, hostLeft: 'host' });
+    expect(handoverDelay(left, 'mert')).toBe(0);
+    const two = at({
+      seats: { ...seats, 3: { uid: 'can', name: 'Can' } },
+      online: { mert: ON, can: ON },
+      hostLeft: 'host',
+    });
+    expect(handoverDelay(two, 'can')).toBe(HOST_HANDOVER_STEP_MS);
+    // Back at the table: no hand-over at all.
+    expect(handoverDelay(at({ hostLeft: 'host' }), 'mert')).toBeNull();
+  });
+
+  it('applies the updates to a raw table as the database would', () => {
+    const raw = {
+      status: 'open',
+      startAt: 9,
+      seats: [{ uid: 'a' }, { uid: 'b' }],
+      online: { a: 'x' },
+    };
+    expect(
+      applyTableUpdates(raw, {
+        'seats/1': null,
+        'online/a': null,
+        status: 'closed',
+        startAt: null,
+      }),
+    ).toEqual({ status: 'closed', seats: { 0: { uid: 'a' } } });
+    expect(applyTableUpdates({ online: { a: 'x' } }, { hostLeft: 'a' })).toEqual({
+      online: { a: 'x' },
+      hostLeft: 'a',
+    });
   });
 });

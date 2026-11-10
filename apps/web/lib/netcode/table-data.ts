@@ -40,6 +40,12 @@ export type Table = {
   settings: TableSettings;
   /** Auto start: when the host's page starts the game (server time); null when it is off. */
   startAt: number | null;
+  /**
+   * The current host pressed "Leave table" (slice 5.20): `hostLeft` holds their uid. The others
+   * then take over at once instead of after HOST_HANDOVER_MS. A marker left by an earlier host
+   * does not count.
+   */
+  hostLeft: boolean;
 };
 
 export const MIN_TABLE_SIZE = 2;
@@ -89,6 +95,7 @@ export function toTable(code: string, value: unknown): Table | null {
     online,
     settings: readTableSettings(v.settings),
     startAt: typeof v.startAt === 'number' ? v.startAt : null,
+    hostLeft: typeof v.hostLeft === 'string' && v.hostLeft === v.hostUid,
   };
 }
 
@@ -145,7 +152,8 @@ export function hostPresent(table: Table): boolean {
  * table page is gone before taking the host role, or null when they must not take it (the host
  * is there, the player is the host, not seated or not present, or the table is over). The seated
  * players who are present take it in seat order: the lowest after HOST_HANDOVER_MS, each next
- * one HOST_HANDOVER_STEP_MS later in case the one before is stuck.
+ * one HOST_HANDOVER_STEP_MS later in case the one before is stuck. A host who left on purpose
+ * (slice 5.20) is not waited for: the lowest takes over at once.
  */
 export function handoverDelay(table: Table, uid: string): number | null {
   if (table.status === 'closed' || table.hostUid === uid || hostPresent(table)) return null;
@@ -156,7 +164,8 @@ export function handoverDelay(table: Table, uid: string): number | null {
       : [],
   );
   const rank = line.indexOf(uid);
-  return rank < 0 ? null : HOST_HANDOVER_MS + rank * HOST_HANDOVER_STEP_MS;
+  if (rank < 0) return null;
+  return (table.hostLeft ? 0 : HOST_HANDOVER_MS) + rank * HOST_HANDOVER_STEP_MS;
 }
 
 /** Whole seconds left of an auto-start countdown (0 once it has run out). */
@@ -196,4 +205,69 @@ export function canStart(table: Table): boolean {
 /** The bot seats (to empty them when the host turns bots off). */
 export function botSeats(table: Table): number[] {
   return table.seats.flatMap((seat, index) => (seat?.kind === 'bot' ? [index] : []));
+}
+
+/**
+ * What "Leave table" does (slice 5.20):
+ * - `free`: the table is waiting for players, so the leaver's seat becomes free;
+ * - `close`: the host leaves a waiting table where no other player is seated, so it closes;
+ * - `away`: the game is on (or the table is over): only the leaver's presence goes, and the seat
+ *   stays theirs, so they can come back through the table link.
+ * `handOver`: the leaver is the host and other players are seated; `hostLeft` lets them take over
+ * at once.
+ */
+export type LeaveKind = 'free' | 'close' | 'away';
+
+export type LeavePlan = {
+  kind: LeaveKind;
+  handOver: boolean;
+  /** Changes to tables/{code}, by path below it (null removes). */
+  updates: Record<string, unknown>;
+};
+
+export function planLeave(table: Table, uid: string): LeavePlan {
+  const seat = seatOf(table, uid);
+  const isHost = table.hostUid === uid;
+  const others = seatedUids(table).some((player) => player !== uid);
+  const handOver = isHost && others && table.status !== 'closed';
+  const updates: Record<string, unknown> = { [`online/${uid}`]: null };
+  // A host also clears a marker an earlier host left behind.
+  if (isHost) updates.hostLeft = handOver ? uid : null;
+  if (table.status === 'open') {
+    if (isHost && !others) {
+      // The countdown only exists on open tables (the rules refuse it on closed ones).
+      return { kind: 'close', handOver, updates: { ...updates, status: 'closed', startAt: null } };
+    }
+    if (seat >= 0)
+      return { kind: 'free', handOver, updates: { ...updates, [`seats/${seat}`]: null } };
+  }
+  return { kind: 'away', handOver, updates };
+}
+
+/**
+ * Applies `updates` (paths below the table) to a raw tables/{code} value, as a database update
+ * would. For the host's leave transaction.
+ */
+export function applyTableUpdates(
+  raw: Record<string, unknown>,
+  updates: Record<string, unknown>,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...raw };
+  for (const [path, value] of Object.entries(updates)) {
+    const [key, child] = path.split('/') as [string, string | undefined];
+    if (child === undefined) {
+      if (value === null) delete next[key];
+      else next[key] = value;
+      continue;
+    }
+    // The database keeps dense seat keys as an array: copy them into an object.
+    const current = next[key];
+    const branch: Record<string, unknown> =
+      typeof current === 'object' && current !== null ? { ...(current as object) } : {};
+    if (value === null) delete branch[child];
+    else branch[child] = value;
+    if (Object.keys(branch).length > 0) next[key] = branch;
+    else delete next[key];
+  }
+  return next;
 }

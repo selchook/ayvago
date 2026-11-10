@@ -246,6 +246,19 @@ Optional check after the deploy:
 3. With two players at a table, close the host's browser. After about 15 seconds the other one
    sees "Masa sahibi ayrıldı, artık masanın sahibi sensin".
 
+## 5.20 Leave table
+**Nothing to set up.** Merging deploys the web app, and the usual **"Deploy Firestore and Realtime
+Database rules"** workflow publishes the one rule change (the `tables/*/hostLeft` marker). No
+function, secret, env var or index is new, and the studio needs no change.
+
+Optional check after the deploy:
+1. Open a table on `https://ayvago.com/tr/games/okey` in two browsers. In the second, press
+   **Masadan ayrıl** → **Ayrıl**: it lands in the lobby, and the first browser shows the seat as
+   empty.
+2. Sit down again, then press **Masadan ayrıl** in the host's browser. The other browser shows
+   "Masa sahibi ayrıldı, artık masanın sahibi sensin" within a second (no 15-second wait).
+3. Press **Masadan ayrıl** at a table where you sit alone: the table disappears from the lobby.
+
 ## 5.21 Site-wide online status and recent players
 Nothing to set up by hand. Merging deploys the web app, and the usual workflows publish the rest:
 - **"Deploy Firestore and Realtime Database rules":**

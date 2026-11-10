@@ -592,6 +592,21 @@
       "summaryNoBots": "No bots",
       "summaryAutoStart": "Starts by itself"
     },
+    "leave": {
+      "button": "Leave table",
+      "titleTable": "Leave this table?",
+      "titleGame": "Leave the game?",
+      "body": {
+        "seat": "Your seat becomes free for another player.",
+        "host": "Your seat becomes free, and another player at the table becomes the host.",
+        "close": "Nobody else is seated, so the table closes.",
+        "game": "A bot will play your seat for the others. Your seat stays yours: you can come back with the table link."
+      },
+      "confirm": "Leave",
+      "stay": "Stay",
+      "leaving": "Leaving the table…",
+      "failed": "You could not leave the table. Check your connection and try again."
+    },
     "error": {
       "full": "This table is full.",
       "started": "The game at this table has already started.",

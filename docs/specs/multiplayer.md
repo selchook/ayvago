@@ -175,7 +175,7 @@ inviteQuota/{uid}                    { start, count }        ← at most 5 invit
   - the sender writes it under their own uid;
   - the sender sits at the open table it names, with the matching game;
   - the recipient is in that game's lobby, without `dnd`, and not seated there (since slice 5.21
-    also anyone online on the site, §7d);
+    also anyone online on the site, §7e);
   - `createdAt` is the server's `now`;
   - the earlier invite to the same player is answered or expired;
   - the quota counts it in the same write.
@@ -279,7 +279,35 @@ Rules (emulator tests in `firebase/tests/table-play.test.ts`):
 - The adapter ignores a malformed `table` (as if absent) and a `GHA_HOST_CHANGE` with a seat
   outside the table, with the current host seat, or outside a table game.
 
-## 7d. Site-wide presence and recent players
+## 7d. Leave table
+"Leave table" sits in the table header next to the Lobby link, in every state (waiting, counting
+down, playing). A dialog confirms it (Leave / Stay; Escape, Stay or the backdrop cancels):
+- **Waiting table:** "Leave this table?". The leaver's seat becomes free (one write with their
+  presence), pending invites they sent to it are taken back, and they go to the game's lobby.
+- **Host of a waiting table, alone** (bots do not count): the table closes (`status: closed`), so it
+  leaves the lobby list and its link says "This table is closed".
+- **Host with other players seated** (waiting or playing): the host writes `hostLeft` = their uid
+  in the same write that removes their presence (a transaction on the table). The next present
+  player in seat order takes over **at once** instead of after 15 s (each next one still 5 s
+  later), and the games hear `GHA_PEER_LEAVE` for the host's seat at once, before
+  `GHA_HOST_CHANGE`.
+- **During a game:** "Leave the game? A bot will play your seat for the others." Only the
+  leaver's presence goes; the others' games get `GHA_PEER_LEAVE { seat }` after the usual 4 s and
+  the host's game plays the seat as a bot. **The seat stays theirs:** the table link (or "Back to
+  your table" in the lobby) brings them back, and the games get `GHA_PEER_JOIN { seat }`.
+- No penalty and no statistics: tables are unranked.
+
+**Data.**
+```
+tables/{code}/hostLeft     uid of the host who left on purpose   ← host only; must equal hostUid,
+                                                                     with the host's presence gone
+                                                                     in the same write; open or playing
+```
+A marker left by an earlier host means nothing (clients compare it with `hostUid`) and may stay as
+it is in later whole-table writes. A host who comes back to the table clears it. Emulator tests:
+`firebase/tests/table-leave.test.ts`.
+
+## 7e. Site-wide presence and recent players
 Decision and reasons: [ADR 0021](../adr/0021-site-presence-recent-players.md).
 
 **Online status on every page.**
@@ -357,6 +385,7 @@ public tables, presence and invites (§7b) shipped with slice 5.18
 ([plan](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)). Quick play, table
 settings, auto start, host hand-over and protocol 2.7 (§7c) shipped with slice 5.19
 ([plan](../plan/phase-5.md#519-quick-play-table-settings-and-host-hand-over--code)) on the
-platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey. Site-wide presence, recent
-players and invites from anywhere (§7d) shipped with slice 5.21
+platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey. The "Leave table" button (§7d)
+shipped with slice 5.20 ([plan](../plan/phase-5.md#520-leave-table--code)). Site-wide presence,
+recent players and invites from anywhere (§7e) shipped with slice 5.21
 ([plan](../plan/phase-5.md#521-site-wide-online-status-and-recent-players--code)).

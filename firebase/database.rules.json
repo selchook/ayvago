@@ -141,6 +141,9 @@
         "startAt": {
           ".validate": "newData.isNumber() && newData.val() <= now + 120000 && newData.parent().child('status').val() === 'open'"
         },
+        "hostLeft": {
+          ".validate": "newData.isString() && (newData.val() === data.val() || (newData.val() === newData.parent().child('hostUid').val() && !newData.parent().child('online').child(newData.val()).exists() && (newData.parent().child('status').val() === 'open' || newData.parent().child('status').val() === 'playing')))"
+        },
         "$other": {
           ".validate": false
         }

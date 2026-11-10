@@ -4,7 +4,7 @@
 - Related: [ADR 0019](0019-table-lobby-presence-invites.md) (lobby presence and invites, "Next"
   item "site-wide presence, friends and recent players"), [ADR 0020](0020-quick-play-settings-host-handover.md),
   [ADR 0010](0010-online-matches.md) (rooms), [ADR 0015](0015-tables-for-four-with-bots.md) (tables),
-  [Multiplayer spec §7d](../specs/multiplayer.md#7d-site-wide-presence-and-recent-players),
+  [Multiplayer spec §7e](../specs/multiplayer.md#7e-site-wide-presence-and-recent-players),
   [Phase 5 plan §5.21](../plan/phase-5.md#521-site-wide-online-status-and-recent-players--code)
 
 ## Context

@@ -872,3 +872,98 @@
 [data-theme='cartoon'] .secondaryButton {
   border-color: var(--border);
 }
+
+/* Leave table (slice 5.20): a quiet button in the table header and its confirmation dialog. */
+.meta:has(.leaveButton) {
+  align-items: center;
+}
+
+.leaveButton,
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.leaveButton {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+}
+
+.leaveButton:hover,
+.dangerButton:hover {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.leaveDialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.leaveDialog::backdrop {
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.leaveDialogBody {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.leaveDialogBody h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.leaveDialogBody p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.leaveDialogBody p[role='alert'] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.leaveDialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.leaveDialogActions > button {
+  min-height: 44px;
+  min-width: 96px;
+  justify-content: center;
+}
+
+[data-theme='arcade'] :is(.leaveButton, .dangerButton, .leaveDialog) {
+  border-radius: 0;
+}
+
+[data-theme='cartoon'] .leaveDialog {
+  border-color: var(--text);
+}

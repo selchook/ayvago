@@ -196,7 +196,7 @@ presence/site/{uid}                    { name, character?, level?, state: online
 matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md), site-wide presence and invites to anyone online (slice 5.21) in [ADR 0021](../adr/0021-site-presence-recent-players.md). Details: [multiplayer spec](../specs/multiplayer.md).
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md), the "Leave table" marker `tables/{code}/hostLeft` (slice 5.20) there too, and site-wide presence and invites to anyone online (slice 5.21) in [ADR 0021](../adr/0021-site-presence-recent-players.md). Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -540,6 +540,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Home spotlight carousel: the three games trending today (`todayScore` from the hourly `recomputeRankings`), swipeable and advancing by itself, filled up with this week's trend and the featured games (slice 5.17)
 - [x] Lobby for table games (Okey first): public tables to sit at, who is online, invites with a notification on every page, "do not disturb" on the profile (`syncLobbyTable`, slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md))
 - [x] Quick play, table settings (hands, turn time, bots) and host hand-over; auto-starting tables; protocol 2.7 (`config.table`, `GHA_HOST_CHANGE`) (slice 5.19, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md))
+- [x] "Leave table" button with a confirmation: frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (slice 5.20)
 - [x] Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, recent table and room partners on the lobby and the profile, invites to anyone online with the notification on every page (`recordRoomPlayers`, slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md))
 
 ### Phase 6 — Developer program (4–6 weeks)

@@ -135,3 +135,13 @@ start to a one-tap action.
 Still open from ADR 0019: spectating, friends, quick-chat, web push, ranked Okey with server-side
 dealing, and presence per tab. Site-wide presence and recent players came with
 [ADR 0021](0021-site-presence-recent-players.md).
+
+## Addendum (slice 5.20): a host who leaves on purpose
+- The "Leave table" button lets the host say they are gone for good. The host writes
+  `tables/{code}/hostLeft` = their own uid in the same write that removes their presence.
+- The rules accept the marker only from the host, only equal to `hostUid`, only when the host's
+  presence is gone in that write, and only while the table is `open` or `playing`. An unchanged
+  value passes, so a new host's whole-table writes (the start transaction) keep an old marker.
+- Clients skip the 15-second wait when `hostLeft` equals `hostUid`. The hand-over rule on
+  `hostUid` itself is unchanged, so the marker grants nobody anything new.
+- A host who leaves a waiting table alone closes it instead (`status: closed`).
