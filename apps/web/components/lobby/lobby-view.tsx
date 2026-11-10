@@ -40,6 +40,7 @@ import { TableSettingsFields, TableSettingsSummary } from '../game/table-setting
 import { OnlinePlayers } from './online-players';
 import { PlayerFace } from './player-face';
 import { QuickPlayButton } from './quick-play-button';
+import { RecentPlayers } from './recent-players';
 import styles from './lobby.module.css';
 
 type LobbyError = 'failed' | 'unavailable' | 'tableFailed';
@@ -57,13 +58,19 @@ export type LobbyViewProps = {
   gamePath: string;
   /** Seats per table (the game's most players). */
   size: number;
+  /** Every game's title by manifest id: what recent players play now (docs/adr/0021). */
+  gameTitles: Record<string, string>;
 };
+
+// Recent players shown in the lobby (the profile lists more).
+const RECENT_IN_LOBBY = 6;
 
 /**
  * The lobby of a table game (docs/adr/0019-table-lobby-presence-invites.md): the public tables
- * with their free seats, the players online in this game, and invites to this player's table.
+ * with their free seats, the players online in this game, the player's recent players with their
+ * site presence (docs/adr/0021), and invites to this player's table.
  */
-export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProps) {
+export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: LobbyViewProps) {
   const t = useTranslations('lobby');
   const tOnline = useTranslations('online');
   const locale = useLocale() as Locale;
@@ -200,9 +207,9 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
     else setBusy(null);
   }
 
-  async function onInvite(player: LobbyPresence) {
+  async function onInvite(to: string) {
     if (!uid || !name) return;
-    setBusy(player.uid);
+    setBusy(to);
     setNotice(null);
     // Without an open table, inviting opens a public one and takes the inviter there.
     const code = myTableOpen && myCode ? myCode : await openTable();
@@ -214,7 +221,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
       from: uid,
       fromName: name,
       fromCharacter: character,
-      to: player.uid,
+      to,
       gameId,
       slug,
       tableCode: code,
@@ -364,35 +371,50 @@ export function LobbyView({ gameId, slug, title, gamePath, size }: LobbyViewProp
             )}
           </section>
 
-          <section className={styles.panel} aria-labelledby="lobby-players">
-            <div className={styles.panelHead}>
-              <h2 id="lobby-players">
-                {t('onlineTitle')}{' '}
-                <span className={styles.count}>
-                  {t('onlineCount', { count: sortedPlayers.length })}
-                </span>
-              </h2>
-            </div>
-            {notice ? (
-              <p className={styles.notice} role="alert">
-                {t(notice)}
-              </p>
-            ) : null}
-            <OnlinePlayers
-              players={sortedPlayers}
-              me={uid}
+          <div className={styles.side}>
+            <section className={styles.panel} aria-labelledby="lobby-players">
+              <div className={styles.panelHead}>
+                <h2 id="lobby-players">
+                  {t('onlineTitle')}{' '}
+                  <span className={styles.count}>
+                    {t('onlineCount', { count: sortedPlayers.length })}
+                  </span>
+                </h2>
+              </div>
+              {notice ? (
+                <p className={styles.notice} role="alert">
+                  {t(notice)}
+                </p>
+              ) : null}
+              <OnlinePlayers
+                players={sortedPlayers}
+                me={uid}
+                seated={seated}
+                canInvite={!!name && (!myTable || myTableOpen)}
+                outgoing={outgoing}
+                busy={busy}
+                onInvite={(player) => onInvite(player.uid)}
+              />
+              {!sortedPlayers.some((player) => player.uid !== uid) ? (
+                <p className={styles.empty}>{t('nobody')}</p>
+              ) : !myTableOpen ? (
+                <p className={styles.hint}>{t('inviteHint')}</p>
+              ) : null}
+            </section>
+            <RecentPlayers
+              uid={uid}
+              show={RECENT_IN_LOBBY}
+              titles={gameTitles}
+              headingId="lobby-recent"
+              className={styles.panel}
+              canInvite={() => !!name && (!myTable || myTableOpen)}
               seated={seated}
-              canInvite={!!name && (!myTable || myTableOpen)}
               outgoing={outgoing}
               busy={busy}
-              onInvite={onInvite}
+              onInvite={(player) => onInvite(player.uid)}
+              hidden={profile?.hideOnline === true}
             />
-            {!sortedPlayers.some((player) => player.uid !== uid) ? (
-              <p className={styles.empty}>{t('nobody')}</p>
-            ) : !myTableOpen ? (
-              <p className={styles.hint}>{t('inviteHint')}</p>
-            ) : null}
-          </section>
+          </div>
         </div>
       ) : null}
     </div>

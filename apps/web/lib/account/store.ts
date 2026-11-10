@@ -41,11 +41,16 @@ export type Profile = Pick<UserProfile, 'username' | 'isGuest' | 'locale'> & {
   level: number;
   /** "Do not disturb": other players cannot invite this player to a table (docs/adr/0019). */
   invitesOff: boolean;
+  /** "Show me as online" is off: no site presence, so nobody sees or invites the player (ADR 0021). */
+  hideOnline: boolean;
 };
 
 /** Fields the player can change from the settings page. */
 export type ProfileChanges = Partial<
-  Pick<Profile, 'avatarId' | 'characterId' | 'theme' | 'mode' | 'locale' | 'invitesOff'>
+  Pick<
+    Profile,
+    'avatarId' | 'characterId' | 'theme' | 'mode' | 'locale' | 'invitesOff' | 'hideOnline'
+  >
 >;
 
 export type AccountState =
@@ -353,6 +358,7 @@ async function syncProfile(user: User): Promise<void> {
         xp: 0,
         level: 1,
         invitesOff: false,
+        hideOnline: false,
       };
     }
     const data = snapshot.data();
@@ -377,6 +383,7 @@ async function syncProfile(user: User): Promise<void> {
       xp: typeof data.xp === 'number' && data.xp > 0 ? data.xp : 0,
       level: levelForXp(typeof data.xp === 'number' ? data.xp : 0),
       invitesOff: data.invitesOff === true,
+      hideOnline: data.hideOnline === true,
     };
   });
   if (state.status === 'signedIn' && state.uid === user.uid) {
@@ -526,11 +533,12 @@ export async function exportAccountData(): Promise<string> {
   const user = auth.currentUser;
   if (!user) throw new Error('Not signed in');
   const db = await loadFirestore();
-  const { doc, getDoc } = await import('firebase/firestore');
-  const [profile, library, progress] = await Promise.all([
+  const { collection, doc, getDoc, getDocs } = await import('firebase/firestore');
+  const [profile, library, progress, recentPlayers] = await Promise.all([
     getDoc(doc(db, 'users', user.uid)),
     getDoc(doc(db, 'users', user.uid, 'library', 'state')),
     getDoc(doc(db, 'users', user.uid, 'progress', 'summary')),
+    getDocs(collection(db, 'users', user.uid, 'recentPlayers')),
   ]);
   const data = {
     exportedAt: new Date().toISOString(),
@@ -544,6 +552,10 @@ export async function exportAccountData(): Promise<string> {
     profile: profile.exists() ? toJson(profile.data()) : null,
     library: library.exists() ? toJson(library.data()) : null,
     progress: progress.exists() ? toJson(progress.data()) : null,
+    recentPlayers: recentPlayers.docs.map((entry) => ({
+      uid: entry.id,
+      ...(toJson(entry.data()) as Record<string, unknown>),
+    })),
   };
   return JSON.stringify(data, null, 2);
 }

@@ -298,8 +298,11 @@
       "registered-only": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
       "generic": "Kullanıcı adı kaydedilemedi. Lütfen tekrar dene."
     },
+    "onlineTitle": "Çevrimiçi durumu",
+    "onlineToggle": "Çevrimiçi görün",
+    "onlineHint": "Birlikte oynadığın oyuncular çevrimiçi olduğunu görür ve seni bir masaya davet edebilir. Kapalıyken oyun lobileri dahil her yerde çevrimdışı görünürsün ve kimse seni davet edemez.",
     "invitesTitle": "Masa davetleri",
-    "invitesToggle": "Lobideki oyuncular beni masalarına davet edebilsin",
+    "invitesToggle": "Diğer oyuncular beni masalarına davet edebilsin",
     "invitesHint": "Kapalıyken kimse seni davet edemez ve davet bildirimi almazsın. Yine de açık masalara oturabilirsin."
   },
   "admin": {
@@ -681,6 +684,30 @@
     "bellTitle": "Masa davetleri",
     "expires": "{seconds} saniye içinde sona erer",
     "table": "Masa {code}"
+  },
+  "presence": {
+    "recentTitle": "Son oynadıkların",
+    "recentEmpty": "Henüz kimse yok. Bir masada ya da çevrimiçi maçta oyna; birlikte oynadığın oyuncular burada görünür.",
+    "loading": "Yükleniyor…",
+    "failed": "Son oynadıkların yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+    "times": "{count, plural, one {# kez} other {# kez}}",
+    "ago": {
+      "minutes": "{count, plural, =0 {az önce} one {# dk önce} other {# dk önce}}",
+      "hours": "{count, plural, one {# sa önce} other {# sa önce}}",
+      "days": "{count, plural, one {dün} other {# gün önce}}"
+    },
+    "state": {
+      "online": "Çevrimiçi",
+      "lobby": "Lobide",
+      "table": "Masada",
+      "playing": "Oyunda",
+      "offline": "Çevrimdışı"
+    },
+    "stateIn": "{state} · {game}",
+    "showAll": "Tümünü göster ({count})",
+    "showLess": "Daha az göster",
+    "hiddenNote": "Çevrimdışı görünüyorsun; diğer oyuncular seni göremez ve davet edemez.",
+    "settingsLink": "Profil ayarlarından değiştir"
   },
   "progress": {
     "title": "İlerleme",

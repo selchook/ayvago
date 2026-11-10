@@ -387,3 +387,42 @@
     transition: border-color var(--motion-fast, 120ms) var(--easing, ease);
   }
 }
+
+/* Slice 5.21: recent players with their online status, next to the players online. */
+.side {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.presence[data-online] {
+  color: var(--text);
+}
+
+.dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: var(--border-width) solid var(--text-muted);
+  background: transparent;
+}
+
+.presence[data-online] .dot {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+[data-theme='arcade'] .dot {
+  border-radius: 0;
+}

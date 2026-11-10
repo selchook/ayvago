@@ -7,14 +7,8 @@ import { createPortal } from 'react-dom';
 import { useRouter } from '@/i18n/navigation';
 import { useAccount } from '@/lib/account/store';
 import { playInviteChime } from '@/lib/lobby/chime';
-import {
-  answerInvite,
-  deleteInvite,
-  LOBBY_VISIT_EVENT,
-  recentLobbyVisit,
-  serverNow,
-  watchInbox,
-} from '@/lib/lobby/lobby';
+import { answerInvite, deleteInvite, serverNow, watchInbox } from '@/lib/lobby/lobby';
+import { useSitePresence } from '@/lib/presence/use-site-presence';
 import { BellIcon } from '../icons';
 import popover from '../popover.module.css';
 import { PlayerFace } from './player-face';
@@ -41,7 +35,9 @@ function shouldStayQuiet(): boolean {
  * with the number of open invites in the top bar, and a toast for each new one with Join and
  * Decline. Outside a game round the toast is a small alert dialog that takes the focus and plays
  * a soft chime; during a round (or while the player types) it appears without sound or focus
- * change and is announced politely. Listens only while the player was in a lobby lately.
+ * change and is announced politely. It also keeps the player's site presence
+ * (docs/adr/0021-site-presence-recent-players.md) and listens for invites only while this tab
+ * holds it: the rules let invites reach only players who are present.
  */
 export function InviteCenter({ titles }: { titles: Record<string, string> }) {
   const t = useTranslations('invites');
@@ -50,7 +46,8 @@ export function InviteCenter({ titles }: { titles: Record<string, string> }) {
   const uid = account.status === 'signedIn' ? account.uid : null;
   const invitesOff = account.status === 'signedIn' && account.profile?.invitesOff === true;
 
-  const [listening, setListening] = useState(false);
+  const present = useSitePresence();
+  const listening = present && !invitesOff;
   const [inbox, setInbox] = useState<TableInvite[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [quiet, setQuiet] = useState<Record<string, boolean>>({});
@@ -62,13 +59,6 @@ export function InviteCenter({ titles }: { titles: Record<string, string> }) {
   const clearedRef = useRef(new Set<string>());
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const bellRef = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    const check = () => setListening(recentLobbyVisit());
-    check();
-    window.addEventListener(LOBBY_VISIT_EVENT, check);
-    return () => window.removeEventListener(LOBBY_VISIT_EVENT, check);
-  }, []);
 
   useEffect(() => {
     if (!uid || !listening) {

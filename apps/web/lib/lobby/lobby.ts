@@ -123,7 +123,6 @@ export async function trackLobbyPresence(
   uid: string,
   initial: PresenceInfo,
 ): Promise<PresenceHandle> {
-  markLobbyVisit();
   const db = await loadDatabase();
   const { ref, onValue, onDisconnect, set, update, remove, serverTimestamp } =
     await import('firebase/database');
@@ -188,8 +187,8 @@ export type SendResult = 'sent' | 'limit' | 'failed';
 /**
  * Sends an invite to `to` for the table `tableCode` (the sender sits at it). The invite and the
  * sender's quota tick go in one write; the rules refuse an invite without the tick, a sixth one
- * within a minute, a second pending one to the same player, and invites to players who left the
- * lobby or do not take invites.
+ * within a minute, a second pending one to the same player, and invites to players who are
+ * neither in the game's lobby nor online on the site (docs/adr/0021), or do not take invites.
  */
 export async function sendInvite(input: {
   from: string;
@@ -285,13 +284,9 @@ export async function deleteInvite(to: string, from: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Local memory: this player's table per game, and when they were last in a lobby.
+// Local memory: this player's table per game.
 
 const TABLE_KEY = (gameId: string) => `ayvago:lobby-table:${gameId}`;
-const VISIT_KEY = 'ayvago:lobby-visit';
-/** The window in which this browser listens for invites after the player was in a lobby. */
-export const INVITE_LISTEN_MS = 12 * 60 * 60 * 1000;
-export const LOBBY_VISIT_EVENT = 'ayvago:lobby-visit';
 
 export function rememberTable(gameId: string, code: string | null): void {
   try {
@@ -307,28 +302,5 @@ export function rememberedTable(gameId: string): string | null {
     return window.localStorage.getItem(TABLE_KEY(gameId));
   } catch {
     return null;
-  }
-}
-
-/**
- * Invites only go to players who are in a lobby or at a table (the rules check their presence),
- * so a browser listens for them only for a while after its player was there: other visitors
- * never load the database on ordinary pages.
- */
-export function markLobbyVisit(): void {
-  try {
-    window.localStorage.setItem(VISIT_KEY, String(Date.now()));
-  } catch {
-    // The notifier still listens on this page through the event below.
-  }
-  window.dispatchEvent(new Event(LOBBY_VISIT_EVENT));
-}
-
-export function recentLobbyVisit(now = Date.now()): boolean {
-  try {
-    const at = Number(window.localStorage.getItem(VISIT_KEY));
-    return Number.isFinite(at) && at > 0 && now - at < INVITE_LISTEN_MS;
-  } catch {
-    return false;
   }
 }

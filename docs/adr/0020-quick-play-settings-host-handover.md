@@ -132,5 +132,6 @@ start to a one-tap action.
   and a hand-over leaves the bots unplayed, as before.
 
 ## Next
-Still open from ADR 0019: spectating, site-wide presence and friends, quick-chat, web push,
-ranked Okey with server-side dealing, and presence per tab.
+Still open from ADR 0019: spectating, friends, quick-chat, web push, ranked Okey with server-side
+dealing, and presence per tab. Site-wide presence and recent players came with
+[ADR 0021](0021-site-presence-recent-players.md).

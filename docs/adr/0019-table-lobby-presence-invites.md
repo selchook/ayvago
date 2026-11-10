@@ -1,6 +1,7 @@
 # ADR 0019 — A lobby for table games: public tables, presence and invites
 
-- Status: Accepted (2026-11-09)
+- Status: Accepted (2026-11-09). Who can be invited and when the notifier listens were widened by
+  [ADR 0021](0021-site-presence-recent-players.md) (site-wide presence).
 - Related: [ADR 0015](0015-tables-for-four-with-bots.md) (tables), [ADR 0010](0010-online-matches.md)
   (rooms), [Multiplayer spec §7b](../specs/multiplayer.md#7b-the-lobby-of-a-table-game),
   [Phase 5 plan §5.18](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)
@@ -109,7 +110,8 @@ code; nobody can list tables.
 - While a game is fullscreen, toasts render inside the fullscreen element, so they stay visible.
 - **Cost guard:** invites go only to players present in a lobby. A browser therefore loads the
   Realtime Database and listens only for 12 hours after its player was last in a lobby or at a
-  table. Other visitors' pages stay as light as before.
+  table. Other visitors' pages stay as light as before. (Replaced in slice 5.21: the notifier now
+  listens while the tab holds the player's site presence; see ADR 0021.)
 
 ## Consequences
 - **First event-triggered function.** Deploying `syncLobbyTable` is the project's first
@@ -132,10 +134,11 @@ code; nobody can list tables.
   Built in slice 5.19 ([ADR 0020](0020-quick-play-settings-host-handover.md)).
 - ~~Table settings (number of hands, turn timer) shown in the list.~~ Built in slice 5.19.
 - Spectating tables in play.
-- Site-wide presence, friends and recent players, so invites reach players outside a lobby.
+- ~~Site-wide presence and recent players, so invites reach players outside a lobby.~~ Built in
+  slice 5.21 ([ADR 0021](0021-site-presence-recent-players.md)); friends are still open.
 - Lobby quick-chat (preset phrases).
 - ~~Host hand-over~~ (slice 5.19, ADR 0020), and replacing a player who left with a bot (studio:
   the host's game plays the seat after `GHA_PEER_LEAVE`).
 - Web push (FCM, slice 5.4) for invites while the site is closed.
 - Ranked online Okey with server-side dealing.
-- Presence per tab instead of per player.
+- Presence per tab instead of per player (ADR 0021 keeps one site entry per player too).

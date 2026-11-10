@@ -154,6 +154,7 @@ Firestore has no joins and bills per document read, so frequently read data is *
 | `users/{uid}/stats/{gameId}` | `bestScore`, `plays`, `playSeconds`, `lastPlayedAt` | **Functions only** |
 | `users/{uid}/progress/summary` | XP, level, achievements and the counters behind them (`runs`, `games`, `categories`, `bests`, `playSeconds`, `top10`, `champion`, daily XP caps); `xp` and `level` are copied onto `users/{uid}` ([ADR 0016](../adr/0016-achievements-and-xp.md)) | **Functions only** |
 | `users/{uid}/favorites/{gameId}` | Favorite | Owner |
+| `users/{uid}/recentPlayers/{otherUid}` ✅ | People the player shared a table or a two-player room with: `uid`, `name`, `character`, `gameId`, `slug`, `lastPlayedAt`, `count`; newest 30 ([ADR 0021](../adr/0021-site-presence-recent-players.md)) | **Functions only** (owner reads) |
 | `usernames/{lowercase}` | Username uniqueness (reserved in a transaction) | Functions |
 | `games/{gameId}` | Catalog: `slug`, `title{en,tr}`, `description{en,tr}`, `category`, `tags`, `originUrl`, `status`, `scoring{}`, `likes`, `dislikes`, `plays`, `rating`, `editorPick`, `thumbUrl` | Admin / Functions |
 | `games/{gameId}/versions/{v}` | Version history, `sdkVersion`, `reviewStatus` | Admin / Functions |
@@ -191,11 +192,11 @@ quickPlay/{gameId}                     { code, at }                             
 presence/lobbies/{gameId}/{uid}        { name, character?, level?, state, since, dnd? }  ✅ ← who is in a game's lobby; onDisconnect → removed
 invites/{toUid}/{fromUid}              { fromName, gameId, slug, tableCode, createdAt, answer? }  ✅ ← one pending invite per pair
 inviteQuota/{uid}                      { start, count }                              ✅ ← five invites per minute (rules)
-presence/{uid}                         { state: 'online', gameId, lastChanged }   ← site-wide presence (later)
+presence/site/{uid}                    { name, character?, level?, state: online|lobby|table|playing, gameId?, since, dnd? }  ✅ ← site-wide presence; own entry, onDisconnect → removed; readable one uid at a time, never listable (ADR 0021)
 matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md). Details: [multiplayer spec](../specs/multiplayer.md).
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md), site-wide presence and invites to anyone online (slice 5.21) in [ADR 0021](../adr/0021-site-presence-recent-players.md). Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -206,7 +207,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore` and the trending-today `todayScore` (finished runs in about the last 24 hours, lightly weighted by votes; slice 5.17), `rankings/catalog` |
-| `deleteMyData` ✅ | Callable | Account deletion, server part: username, board rows, votes, then `users/{uid}` recursively (profile, library, progress, stats, every subcollection) |
+| `deleteMyData` ✅ | Callable | Account deletion, server part: username, board rows, votes, the player's entries in other players' recent players (slice 5.21), then `users/{uid}` recursively (profile, library, progress, stats, recent players, every subcollection) |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
@@ -214,9 +215,10 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
-| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress); guest cleanup (30 days); score session cleanup (14 days) |
+| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress; since slice 5.21 recent players); guest cleanup (30 days); score session cleanup (14 days) |
 | `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms and tables older than two hours with their signaling, relay and move data; since slice 5.18 also stale lobby entries, invites and invite quotas, since slice 5.19 old quick-play pointers |
-| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)); since slice 5.19 with the table's settings and auto start |
+| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)); since slice 5.19 with the table's settings and auto start; since slice 5.21 records the players' recent players when a table starts ([ADR 0021](../adr/0021-site-presence-recent-players.md)) |
+| `recordRoomPlayers` ✅ | RTDB trigger (`rooms/{code}/guestUid` created) | Records both players of a two-player room in each other's `users/{uid}/recentPlayers` once the guest seat is taken; keeps the newest 30 (slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md)) |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
 | `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16) |
@@ -538,6 +540,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Home spotlight carousel: the three games trending today (`todayScore` from the hourly `recomputeRankings`), swipeable and advancing by itself, filled up with this week's trend and the featured games (slice 5.17)
 - [x] Lobby for table games (Okey first): public tables to sit at, who is online, invites with a notification on every page, "do not disturb" on the profile (`syncLobbyTable`, slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md))
 - [x] Quick play, table settings (hands, turn time, bots) and host hand-over; auto-starting tables; protocol 2.7 (`config.table`, `GHA_HOST_CHANGE`) (slice 5.19, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md))
+- [x] Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, recent table and room partners on the lobby and the profile, invites to anyone online with the notification on every page (`recordRoomPlayers`, slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

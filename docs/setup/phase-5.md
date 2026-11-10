@@ -246,6 +246,36 @@ Optional check after the deploy:
 3. With two players at a table, close the host's browser. After about 15 seconds the other one
    sees "Masa sahibi ayrıldı, artık masanın sahibi sensin".
 
+## 5.21 Site-wide online status and recent players
+Nothing to set up by hand. Merging deploys the web app, and the usual workflows publish the rest:
+- **"Deploy Firestore and Realtime Database rules":**
+  - the new `presence/site/{uid}` path and the wider invite rule (`firebase/database.rules.json`);
+  - `users/{uid}/recentPlayers` (owner read) and the profile's `hideOnline` field
+    (`firebase/firestore.rules`);
+  - a single-field index exemption for `recentPlayers.uid` at collection-group scope
+    (`firebase/firestore.indexes.json`). Firestore builds it in the background, within minutes.
+    Until then, deleting an account cannot clear the player from other players' lists.
+- **"Deploy Cloud Functions":**
+  - the new **`recordRoomPlayers`** trigger;
+  - the updated `syncLobbyTable`, `deleteMyData`, `cleanupGuests` and `mergeGuestAccount`.
+
+  `recordRoomPlayers` is the second event-triggered (Eventarc) function. The one-time IAM
+  bindings of 5.18 cover it, so no new grant is needed. If the run still fails with "We failed to
+  modify the IAM policy", re-run the 5.18 Cloud Shell commands above (they are idempotent), then
+  re-run the workflow.
+
+No secrets or env vars are needed.
+
+- ⏳ **Optional check after the deploy:**
+  1. In two browsers (or one private window), play an Okey table together: one opens a table from
+     the lobby, the other sits down, the host presses **Botlarla hemen başlat**.
+  2. Each sees the other under **Son oynadıkların** in the lobby and on the profile page.
+  3. The second browser opens only the home page and taps anywhere. In the first browser's
+     profile it shows as **Çevrimiçi** with **Davet et**.
+  4. **Davet et** opens a table, and the second browser gets the invite toast on the home page.
+  5. In the second browser, turn off **Profil → Çevrimiçi durumu → Çevrimiçi görün**. After a
+     reload the first browser shows it as **Çevrimdışı**, without the invite button.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

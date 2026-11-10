@@ -174,7 +174,8 @@ inviteQuota/{uid}                    { start, count }        ← at most 5 invit
 - **Sending an invite** needs all of these:
   - the sender writes it under their own uid;
   - the sender sits at the open table it names, with the matching game;
-  - the recipient is in that game's lobby, without `dnd`, and not seated there;
+  - the recipient is in that game's lobby, without `dnd`, and not seated there (since slice 5.21
+    also anyone online on the site, §7d);
   - `createdAt` is the server's `now`;
   - the earlier invite to the same player is answered or expired;
   - the quota counts it in the same write.
@@ -278,9 +279,69 @@ Rules (emulator tests in `firebase/tests/table-play.test.ts`):
 - The adapter ignores a malformed `table` (as if absent) and a `GHA_HOST_CHANGE` with a seat
   outside the table, with the current host seat, or outside a table game.
 
+## 7d. Site-wide presence and recent players
+Decision and reasons: [ADR 0021](../adr/0021-site-presence-recent-players.md).
+
+**Online status on every page.**
+- A signed-in player (guests too) is online on the whole site while they use a tab:
+  - the tab connects after the first tap, click or key press; lobby, table and room pages connect
+    at once;
+  - a tab hidden for 10 minutes goes away and comes back when it is in front again (not on lobby,
+    table and room pages).
+- The state, from the least to the most busy:
+
+  | State | Where |
+  |---|---|
+  | `online` | any page (with `gameId` on a game's page) |
+  | `lobby` | a game's lobby |
+  | `table` | at a table, or in a two-player room before the match |
+  | `playing` | a table or room match, or a solo round |
+
+  A tab shows its busiest state. With several tabs, the tab used last wins.
+- **"Show me as online"** (profile settings, on by default; `users/{uid}.hideOnline`): when off,
+  the player has no presence at all, in the lobbies too. Nobody sees them online and nobody can
+  invite them. They can still sit at tables and play rooms.
+
+**Recent players.**
+- Everyone the player shared a **table** with (when it started) or a **two-player room** with
+  (when both had joined). Bots never count; guests do. The newest 30 are kept.
+- Each row shows the character or initial avatar, the name, the game, "x times · 2 h ago", and an
+  online dot with the state ("Playing · Okey").
+- **Invite** appears while the player is online and takes invites:
+  - in a game's lobby (the 6 newest, next to "Online now"): it invites to this game's table, as
+    for players in the lobby;
+  - on the profile (8, "Show all" up to 30): it invites to the table game played together.
+    Players from two-player room games show their status but no Invite.
+- The invite notification (§7b) now works on every page for every present player, not only after
+  a lobby visit.
+
+**Data.**
+```
+presence/site/{uid}                       { name, character?, level?, state: online|lobby|table|playing, gameId?, since, dnd? }   ← own entry, onDisconnect().remove()
+users/{uid}/recentPlayers/{otherUid}      { uid, name, character?, gameId, slug, lastPlayedAt, count, lastMatch }   ← Firestore, triggers only
+users/{uid}.hideOnline                    boolean ("Show me as online" off)
+```
+
+**Rules** (emulator tests in `firebase/tests/presence.test.ts`):
+- **Site presence:** a player writes or removes only their own entry, with validated fields and
+  nothing else (no hidden flag). Signed-in players read **one uid's entry**; `presence/site`
+  cannot be listed.
+- **Invites:** the recipient has a lobby entry for the game **or** a site entry, and neither has
+  `dnd`. All other §7b checks stay.
+- **Recent players:** the owner reads them; no client writes them.
+- **Profile:** `hideOnline` is a boolean the owner sets.
+
+**Server.**
+- `syncLobbyTable` records the table's players when a table turns `playing`.
+- `recordRoomPlayers` (`rooms/{code}/guestUid` created) records both players of a room.
+- Both trim each list to 30, and count a repeated event once.
+- `deleteMyData` and the guest cleanup also remove the player from other players' lists;
+  `mergeGuestAccount` moves a guest's recent players to the account.
+
 ## 7. Not covered yet
 - Quick match with strangers in two-player rooms, spectators, chat (tables: see ADR 0019 and
   ADR 0020 "Next").
+- Friends, invites to two-player rooms, and a site-wide "N online" count (ADR 0021 "Next").
 - An unordered channel for real-time games (the ordered channel is enough for two-player pong at
   20–30 updates per second).
 
@@ -296,4 +357,6 @@ public tables, presence and invites (§7b) shipped with slice 5.18
 ([plan](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)). Quick play, table
 settings, auto start, host hand-over and protocol 2.7 (§7c) shipped with slice 5.19
 ([plan](../plan/phase-5.md#519-quick-play-table-settings-and-host-hand-over--code)) on the
-platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey.
+platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey. Site-wide presence, recent
+players and invites from anywhere (§7d) shipped with slice 5.21
+([plan](../plan/phase-5.md#521-site-wide-online-status-and-recent-players--code)).

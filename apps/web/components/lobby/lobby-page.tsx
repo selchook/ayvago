@@ -2,7 +2,7 @@ import type { Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { gamePath, gameTitle, getGameBySlug, isTableGame } from '@/lib/catalog';
+import { gamePath, gameTitle, getAllGames, getGameBySlug, isTableGame } from '@/lib/catalog';
 import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
 import { LobbyView } from './lobby-view';
 
@@ -37,6 +37,9 @@ export function LobbyPage({ locale, slug }: { locale: Locale; slug: string }) {
       title={gameTitle(game, locale)}
       gamePath={gamePath(game)}
       size={Math.min(MAX_TABLE_SIZE, game.manifest.players.max)}
+      gameTitles={Object.fromEntries(
+        getAllGames().map((other) => [other.manifest.id, gameTitle(other, locale)]),
+      )}
     />
   );
 }

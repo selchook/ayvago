@@ -10,6 +10,7 @@ import { hasTurn } from '@/lib/netcode/ice';
 import { loadIceServers, openPeerLink, type LinkRoute, type PeerLink } from '@/lib/netcode/link';
 import { parseRoomCode } from '@/lib/netcode/room-code';
 import { createRoom, joinRoom, trackPresence, watchRoom, type Room } from '@/lib/netcode/rooms';
+import { useSiteActivity } from '@/lib/presence/use-site-presence';
 import { Link, useRouter } from '@/i18n/navigation';
 import { CopyIcon, ShareIcon, UsersIcon } from '../icons';
 import { GamePlayer, type GamePlayerProps, type MatchBinding } from './game-player';
@@ -70,6 +71,9 @@ export function RoomView(props: RoomViewProps) {
     (room ? (isHost ? room.hostCharacter : room.guestCharacter) : null) ?? myCharacter;
   const peerSession = (peerUid && room?.online[peerUid]) || null;
   const peerOnline = peerSession !== null;
+
+  // Site presence (docs/adr/0021): waiting in a room counts as "at a table", then "playing".
+  useSiteActivity(view.kind === 'room' ? (gameOn ? 'playing' : 'table') : null, gameId, true);
 
   // Messages for the game wait until it has its seat (GHA_START).
   const deliver = useCallback((message: PlatformMessage) => {
