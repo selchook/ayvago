@@ -15,7 +15,7 @@ import type { PlatformMessage } from '@/lib/gha/bridge';
 import { parseRoomCode } from '@/lib/netcode/room-code';
 import { lobbyPlayers } from '@/lib/lobby/lobby-data';
 import { rememberTable, serverNow, syncServerClock, watchLobbyPlayers } from '@/lib/lobby/lobby';
-import { invitePlayer, useOutgoingInvites } from '@/lib/lobby/outgoing';
+import { invitePlayer, useOutgoingInvites, withdrawInvites } from '@/lib/lobby/outgoing';
 import { useLobbyPresence } from '@/lib/lobby/use-presence';
 import {
   canStart,
@@ -31,9 +31,11 @@ import {
 import {
   addBot,
   claimHost,
+  clearHostLeft,
   clearSeat,
   createTable,
   joinTable,
+  leaveTable,
   moveStart,
   openTableChannel,
   setAutoStart,
@@ -46,10 +48,11 @@ import {
   type TableChannel,
 } from '@/lib/netcode/tables';
 import { Link, useRouter } from '@/i18n/navigation';
-import { CopyIcon, ShareIcon, UsersIcon } from '../icons';
+import { CopyIcon, ExitIcon, ShareIcon, UsersIcon } from '../icons';
 import { OnlinePlayers } from '../lobby/online-players';
 import lobbyStyles from '../lobby/lobby.module.css';
 import { GamePlayer, type GamePlayerProps, type MatchBinding } from './game-player';
+import { LeaveTableDialog, type LeaveMode } from './leave-table-dialog';
 import { TableSettingsFields, TableSettingsSummary } from './table-settings';
 import styles from './game.module.css';
 
@@ -118,6 +121,13 @@ export function TableView(props: TableViewProps) {
   // Re-renders the auto-start countdown.
   const [, setTick] = useState(0);
   const [hostNotice, setHostNotice] = useState<HostNotice>(null);
+  // "Leave table" (slice 5.20): the confirmation, then the write before going to the lobby.
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [leaveFailed, setLeaveFailed] = useState(false);
+  const leavingRef = useRef(false);
+  const leaveButtonRef = useRef<HTMLButtonElement>(null);
+  const presenceStopRef = useRef<((remove?: boolean) => void) | null>(null);
 
   const startedRef = useRef(false);
   const channelRef = useRef<TableChannel | null>(null);
@@ -139,7 +149,7 @@ export function TableView(props: TableViewProps) {
   useLobbyPresence(
     gameId,
     name,
-    view.kind === 'table' && mySeat >= 0 ? (playing ? 'playing' : 'table') : null,
+    view.kind === 'table' && mySeat >= 0 && !leaving ? (playing ? 'playing' : 'table') : null,
   );
 
   // Messages for the game wait until it has its seat (GHA_START).
@@ -206,26 +216,51 @@ export function TableView(props: TableViewProps) {
       .catch(() => setView({ kind: 'error', reason: 'failed' }));
   }, [uid, name, myCharacter, view.kind, code, tableCode, gameId, slug, size, gamePath, router]);
 
-  // Live table state and this player's presence.
+  // Live table state.
   useEffect(() => {
     if (view.kind !== 'table' || !tableCode || !uid) return;
     let cancelled = false;
-    const stops: Array<() => void> = [];
+    let stop: (() => void) | null = null;
     watchTable(tableCode, (next) => {
       if (cancelled) return;
-      if (next) setTable(next);
+      // This player's own leave closes the table on the way out: no error for them.
+      if (next && (next.status !== 'closed' || leavingRef.current)) setTable(next);
       else setView({ kind: 'error', reason: 'closed' });
-    }).then((stop) => (cancelled ? stop() : stops.push(stop)));
-    trackTablePresence(tableCode, uid).then((stop) => (cancelled ? stop() : stops.push(stop)));
+    }).then((unsubscribe) => (cancelled ? unsubscribe() : (stop = unsubscribe)));
     // The auto-start countdown runs on the database's clock.
     syncServerClock().catch(() => undefined);
     setInviteUrl(`${window.location.origin}${window.location.pathname}`);
     setCanShare(typeof navigator.share === 'function');
     return () => {
       cancelled = true;
-      stops.forEach((stop) => stop());
+      stop?.();
     };
   }, [view.kind, tableCode, uid]);
+
+  // This player's presence at the table, until they leave it.
+  useEffect(() => {
+    if (view.kind !== 'table' || !tableCode || !uid || leaving) return;
+    let cancelled = false;
+    let stopped = false;
+    let keepEntry = false;
+    let stopTracking: ((remove?: boolean) => void) | null = null;
+    const stop = (remove = true) => {
+      if (stopped) return;
+      stopped = true;
+      keepEntry = !remove;
+      stopTracking?.(remove);
+    };
+    presenceStopRef.current = stop;
+    trackTablePresence(tableCode, uid).then((unsubscribe) => {
+      if (cancelled || stopped) unsubscribe(!keepEntry);
+      else stopTracking = unsubscribe;
+    });
+    return () => {
+      cancelled = true;
+      stop();
+      if (presenceStopRef.current === stop) presenceStopRef.current = null;
+    };
+  }, [view.kind, tableCode, uid, leaving]);
 
   // Players online in this game's lobby, to invite while the table waits for players.
   const waitingHere = view.kind === 'table' && !!table && table.status === 'open' && mySeat >= 0;
@@ -333,6 +368,16 @@ export function TableView(props: TableViewProps) {
     return () => window.clearTimeout(timer);
   }, [delay, hostUid, tableCode, uid]);
 
+  // A host who left and came back is waited for again on the next drop (slice 5.20).
+  const staleHostLeft =
+    isHost && !!table?.hostLeft && !!uid && !!table.online[uid] && !leaving && !!tableCode;
+  useEffect(() => {
+    if (!staleHostLeft || !tableCode) return;
+    clearHostLeft(tableCode).catch((error) =>
+      console.warn('[netcode] host marker update failed', error),
+    );
+  }, [staleHostLeft, tableCode]);
+
   // Tell the player (and, during a game, the game) when the host changes.
   const shownHostRef = useRef<string | null>(null);
   useEffect(() => {
@@ -401,11 +446,17 @@ export function TableView(props: TableViewProps) {
         }
       } else if (previous !== null || !(index in timersRef.current)) {
         window.clearTimeout(timersRef.current[index]);
-        timersRef.current[index] = window.setTimeout(() => {
-          awayRef.current.add(index);
-          deliver({ type: 'GHA_PEER_LEAVE', seat: index });
-          setAway([...awayRef.current]);
-        }, LEAVE_GRACE_MS);
+        // A host who pressed "Leave table" is gone for sure, and a new host follows at once:
+        // the game hears about the leave first (slice 5.20).
+        const onPurpose = seat.uid === table.hostUid && table.hostLeft;
+        timersRef.current[index] = window.setTimeout(
+          () => {
+            awayRef.current.add(index);
+            deliver({ type: 'GHA_PEER_LEAVE', seat: index });
+            setAway([...awayRef.current]);
+          },
+          onPurpose ? 0 : LEAVE_GRACE_MS,
+        );
       }
     });
     setAway([...awayRef.current]);
@@ -481,6 +532,39 @@ export function TableView(props: TableViewProps) {
     }
   }
 
+  // ---- Leave table (slice 5.20) --------------------------------------------------------------
+  function closeLeaveDialog() {
+    setConfirmLeave(false);
+    setLeaveFailed(false);
+    leaveButtonRef.current?.focus();
+  }
+
+  async function leave() {
+    if (!table || !uid || leavingRef.current) return;
+    leavingRef.current = true;
+    setLeaving(true);
+    setLeaveFailed(false);
+    // No presence write may follow the leave (a reconnect would bring it back). The leave
+    // removes the entry itself, in the same write as the seat or the host marker, so the others
+    // see both at once.
+    presenceStopRef.current?.(false);
+    try {
+      const kind = await leaveTable(table.code, uid);
+      if (kind !== 'away') {
+        // The seat is free or the table closed: invites to it are taken back, and the lobby no
+        // longer points here. During a game the seat stays theirs, and so does the way back.
+        withdrawInvites(uid, table.code);
+        rememberTable(gameId, null);
+      }
+      router.replace(`${gamePath}/lobby`);
+    } catch (error) {
+      console.warn('[netcode] leaving the table failed', error);
+      leavingRef.current = false;
+      setLeaving(false);
+      setLeaveFailed(true);
+    }
+  }
+
   async function hostAction(action: () => Promise<void>) {
     setBusy(true);
     try {
@@ -498,6 +582,16 @@ export function TableView(props: TableViewProps) {
   const left = autoStart && table?.startAt != null ? secondsLeft(table.startAt, serverNow()) : null;
   const ready = table ? tableReady(table) : false;
   const awayNames = away.map((index) => table?.seats[index]?.name).filter(Boolean);
+  const seatedHere = view.kind === 'table' && !!table && mySeat >= 0;
+  const leaveMode: LeaveMode = playing
+    ? 'game'
+    : isHost
+      ? table && seatedUids(table).length > 1
+        ? 'host'
+        : 'close'
+      : 'seat';
+  // Between the leave write and the lobby: the seat is gone, so nothing of the table is shown.
+  const departed = leaving && (mySeat < 0 || table?.status === 'closed');
 
   return (
     <div
@@ -515,8 +609,37 @@ export function TableView(props: TableViewProps) {
           ) : null}
           <Link href={`${gamePath}/lobby`}>{t('lobbyLink')}</Link>
           <Link href={gamePath}>{tOnline('backToGame', { title })}</Link>
+          {seatedHere || leaving ? (
+            <button
+              ref={leaveButtonRef}
+              type="button"
+              className={styles.leaveButton}
+              aria-haspopup="dialog"
+              disabled={leaving}
+              onClick={() => setConfirmLeave(true)}
+              data-leave
+            >
+              <ExitIcon /> {t('leave.button')}
+            </button>
+          ) : null}
         </p>
       </header>
+
+      <LeaveTableDialog
+        open={confirmLeave && (seatedHere || leaving)}
+        mode={leaveMode}
+        busy={leaving}
+        failed={leaveFailed}
+        onLeave={leave}
+        onStay={closeLeaveDialog}
+      />
+
+      {departed ? (
+        <section className={styles.card} aria-busy="true">
+          <span className={styles.spinner} aria-hidden="true" />
+          <p role="status">{t('leave.leaving')}</p>
+        </section>
+      ) : null}
 
       {hostNotice && view.kind === 'table' ? (
         <p className={styles.hostNotice} role="status" data-host-notice={hostNotice.kind}>
@@ -568,7 +691,7 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
-      {view.kind === 'table' && table && !playing ? (
+      {view.kind === 'table' && table && !playing && !departed ? (
         <section className={styles.card} aria-labelledby="table-heading">
           {autoStart && left !== null ? (
             <div className={styles.countdown} data-countdown={left}>
@@ -730,7 +853,7 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
-      {view.kind === 'table' && table && !playing ? (
+      {view.kind === 'table' && table && !playing && !departed ? (
         <section className={styles.card} aria-labelledby="table-settings-heading">
           <h2 id="table-settings-heading">{t('settings.title')}</h2>
           {isHost ? (
@@ -749,7 +872,7 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
-      {view.kind === 'table' && table && !playing && waitingHere ? (
+      {view.kind === 'table' && table && !playing && !departed && waitingHere ? (
         <section className={styles.card} aria-labelledby="table-online-heading">
           <h2 id="table-online-heading">{t('inviteOnlineTitle')}</h2>
           {inviteNotice ? (

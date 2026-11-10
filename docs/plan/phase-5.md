@@ -43,6 +43,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.17 | Home spotlight: a swipeable, self-advancing carousel of the three games trending today (`todayScore` from the hourly ranking job), filled up with this week's trend and the featured games (owner request) | ✅ code |
 | 5.18 | A lobby for table games, Okey first: public tables to sit at, who is online, invites with a notification on every page (owner request, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) | ✅ code · ⏳ first trigger deploy |
 | 5.19 | Quick play, table settings and host hand-over: one tap to a table that starts by itself, hands and turn time chosen when a table opens, another player takes over when the host leaves (protocol 2.7; owner request, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)) | ✅ code · ⏳ studio adapter 2.7 |
+| 5.20 | "Leave table" button: a confirmed leave frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -1249,3 +1250,106 @@ Still open:
 - **Studio:** Okey reads `config.table` (hands, turn timer), takes over the bots on
   `GHA_HOST_CHANGE`, and plays a leaver's seat as a bot until they return.
 - Spectating, site-wide presence, quick-chat and web push stay in ADR 0019 "Next".
+
+## 5.20 Leave table ✅ code
+
+The owner asked for a "Leave table" button: until now a player could only leave by closing the
+tab. Casual tables only: no penalty and no statistics (ranked play is postponed).
+
+Behaviour: [multiplayer spec §7d](../specs/multiplayer.md#7d-leave-table); the host marker is an
+addendum to [ADR 0020](../adr/0020-quick-play-settings-host-handover.md#addendum-slice-520-a-host-who-leaves-on-purpose).
+
+What shipped:
+- **Button** "Leave table" / "Masadan ayrıl" in the table header next to the Lobby link, in every
+  state (waiting, counting down, playing). It sits above the game, never over it, and reads the
+  `--danger` token as an outline, so it is visible but quieter than the accent buttons.
+- **Dialog** (`components/game/leave-table-dialog.tsx`): a native modal `<dialog>` labelled by its
+  title and described by its text. The page behind is inert, so the focus stays inside; the focus
+  starts on Stay; Escape, Stay or a click on the backdrop cancel and return the focus to the
+  button. Four texts: a player at a waiting table, a host with others ("another player becomes
+  the host"), a host alone ("the table closes") and a game ("A bot will play your seat for the
+  others").
+- **What leaving does** (`planLeave` in `lib/netcode/table-data.ts`, `leaveTable` in
+  `lib/netcode/tables.ts`):
+  - waiting table: the seat and the presence go in one update; then the game's lobby;
+  - the host of a waiting table where nobody else is seated (bots do not count): `status:
+    closed` and no countdown, so the table leaves the lobby and its link says it is closed;
+  - the host with other players seated: `hostLeft` = the host's uid, written with the presence
+    removal. The host decides in a transaction, so a player who sits down at that moment turns a
+    "close" into a hand-over;
+  - during a game: only the presence goes, so the others' games get `GHA_PEER_LEAVE` and the
+    host's game plays the seat. The seat stays the leaver's, and the lobby keeps "Back to your
+    table".
+  - The page stops its table presence first without removing it, so the leave write removes it
+    together with the seat or the marker. Others never see "host gone" without the marker.
+  - The player goes to the lobby with `replace`, so Back does not sit them down again.
+- **Fast hand-over:** `handoverDelay` returns 0 for the first present player (then 5 s steps)
+  when `hostLeft` equals `hostUid`. The games hear `GHA_PEER_LEAVE` for the host's seat at once
+  (no 4-second grace), before `GHA_HOST_CHANGE`. A host back at the table clears the marker, so
+  a later drop waits 15 s again.
+- **Lobby presence and invites:** the table page drops its `table` / `playing` presence when the
+  leave starts, and the lobby page writes `lobby`. Pending invites the leaver sent for the table
+  are taken back (`withdrawInvites` in `lib/lobby/outgoing.ts`), so the invitee's toast goes away;
+  during a game none can be pending. Leaving a seat or closing the table also forgets the lobby's
+  "your table" pointer.
+- **Closed tables:** `joinTable` now reports a closed table before looking for the player's own
+  seat, and the table page shows "This table is closed" when a table it watches closes.
+- **Rules:** `tables/{code}/hostLeft` (see the spec). No other rule changed.
+- **Messages:** `table.leave.*` in `en.json` and `tr.json`. **Icon:** `ExitIcon`.
+
+Decisions and deviations from the brief:
+- **The host's seat is freed too** when the host leaves a waiting table with others. For the
+  moment between the leave and the take-over (under a second in the browser test) the lobby
+  summary has no host, so `syncLobbyTable` drops the entry and lists it again after the hand-over.
+- **A host alone during a game keeps the table** (`playing`, with bots). As for every player, the
+  seat stays theirs. The lobby already hides tables nobody has open, and `cleanupRooms` removes it
+  after two hours.
+- **A player leaving during a game** still waits the 4-second grace before `GHA_PEER_LEAVE`, as
+  for a closed tab. Only the host has a marker, because only the host's leave needs to be fast.
+- No ADR of its own: the one new rule extends ADR 0020's hand-over, so it is an addendum there.
+
+Tests:
+- web (7 new, `table-data.test.ts`): the host marker counts only for the current host; leave
+  plans for a player, during a game, a host with others (waiting and playing) and a host alone
+  (bots do not count, an old marker is cleared); the hand-over delay after a host left (0, then
+  5 s steps, none when the host is back); updates applied to a raw table as the database would.
+- RTDB emulator `firebase/tests/table-leave.test.ts` (10): a player frees only their own seat
+  and presence; during a game only the presence, and they can come back; players cannot close the
+  table or write or clear the marker; a host alone closes the table and nobody can sit down
+  there; the marker only from the host, equal to `hostUid` and with the presence gone, then the
+  next player takes over; the host's transaction during a game; a new host's whole-table start
+  transaction with an old marker passes, but nobody may point the marker elsewhere; refused on
+  closed tables, cleared by the returning host; the host can sit down again before a take-over;
+  `syncLobbyTable` keeps a table whose seat was freed and drops a closed one.
+- Full run: shared 96, web 137, themes 16, adapter 29, firebase 177 passed and 1 skipped (the
+  opt-in live-trigger test).
+- In the browser (`next start` with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`, the live trigger opted
+  in, Okey pointed at the fixture game, Playwright recording every message the game frames
+  receive), 28 checks passed with no console errors:
+  - **Dialog:** labelled "Leave this table?", the focus starts on Stay, Tab stays in the dialog,
+    Escape closes it and returns the focus to the button, and the player is still seated.
+  - **A player leaves a waiting table:** they land in the lobby, the host's page shows the seat
+    empty, and the lobby lists the table with the free seat.
+  - **The host leaves with another player seated:** the other player is host 0.16–0.26 s later
+    ("You are the host now", Start button), and the old host's seat is free.
+  - **The host leaves alone:** the table leaves another player's lobby within seconds, and its
+    link says "This table is closed."
+  - **During a game (three players):** the button is visible above the game, and the dialog says
+    "Leave the game?". After the leave, the host's game gets `GHA_PEER_LEAVE { seat: 1 }`, the
+    leaver's lobby offers "Back to your table", and the table link brings them back to the running
+    game (`GHA_PEER_JOIN { seat: 1 }`). Then the host leaves: the third player's game gets
+    `GHA_PEER_LEAVE { seat: 0 }` and then `GHA_HOST_CHANGE { hostSeat: 1 }`, 0.18 s after the
+    click.
+  - Taking back pending invites was not exercised in the browser.
+  - **Screenshots:** the button and the dialog (the host-alone and the game texts; the other two
+    were checked by their mode in the test) in minimal light
+    and dark, arcade and cartoon, English and Turkish, on a 1366×900 desktop and a Pixel 7, waiting
+    and during a game. No horizontal overflow.
+
+Owner steps: nothing to set up ([setup](../setup/phase-5.md#520-leave-table)). Merging deploys
+the web app, and the rules workflow publishes the `hostLeft` rule.
+
+Still open:
+- Penalties and statistics for leaving, together with ranked play.
+- A marker for players other than the host, if games want `GHA_PEER_LEAVE` without the 4-second
+  grace when someone leaves on purpose.

@@ -18,16 +18,19 @@ import { loadDatabase } from '@/lib/firebase/client';
 import { serverNow, syncServerClock } from '@/lib/lobby/lobby';
 import { generateRoomCode } from './room-code';
 import {
+  applyTableUpdates,
   freeSeat,
   nextBotNumbers,
+  planLeave,
   planStart,
   seatOf,
   toTable,
+  type LeaveKind,
   type StartPlan,
   type Table,
 } from './table-data';
 
-export type { Table, TableSeat, TableStatus } from './table-data';
+export type { LeaveKind, Table, TableSeat, TableStatus } from './table-data';
 
 /** How long a table stays usable; cleanupRooms deletes older ones. */
 export const TABLE_TTL_MS = 2 * 60 * 60 * 1000;
@@ -99,9 +102,10 @@ export async function joinTable(
   for (let attempt = 0; attempt < 4; attempt++) {
     const table = await read();
     if (!table) return { kind: 'missing' };
+    // A host who left a waiting table alone closed it (slice 5.20), seat and all.
+    if (table.status === 'closed') return { kind: 'closed' };
     const mine = seatOf(table, uid);
     if (mine >= 0) return { kind: 'seated', table, seat: mine };
-    if (table.status === 'closed') return { kind: 'closed' };
     if (Date.now() - table.createdAt > TABLE_TTL_MS) return { kind: 'expired' };
     if (table.status === 'playing') return { kind: 'started' };
     const free = freeSeat(table);
@@ -265,8 +269,70 @@ export async function claimHost(code: string, from: string, uid: string): Promis
   return outcome.committed && outcome.snapshot.val() === uid;
 }
 
-/** Marks this player online at the table while the page is connected (as rooms do). */
-export async function trackTablePresence(code: string, uid: string): Promise<() => void> {
+/**
+ * "Leave table" (slice 5.20; see planLeave). The caller stops this page's table presence first,
+ * so it is not written again. Players write their own seat and presence in one update. The host
+ * decides in a transaction, so a player who sits down at that moment keeps the table open and
+ * gets the host role instead of a closed table.
+ */
+export async function leaveTable(code: string, uid: string): Promise<LeaveKind | 'gone'> {
+  const db = await loadDatabase();
+  const { ref, get, update, runTransaction } = await import('firebase/database');
+  const at = ref(db, tablePath(code));
+  const table = toTable(code, (await get(at)).val());
+  if (!table) return 'gone';
+  if (table.hostUid !== uid) {
+    const plan = planLeave(table, uid);
+    await update(at, plan.updates);
+    return plan.kind;
+  }
+  let kind: LeaveKind | 'gone' = 'gone';
+  const outcome = await runTransaction(
+    at,
+    (raw: Record<string, unknown> | null) => {
+      // Not in this page's cache yet: a probe write that the database answers with the table.
+      if (raw === null) return null;
+      const current = toTable(code, raw);
+      if (!current) {
+        kind = 'gone';
+        return undefined;
+      }
+      if (current.hostUid !== uid) {
+        // Someone took over in the meantime: leave as a player (below).
+        kind = 'gone';
+        return undefined;
+      }
+      const plan = planLeave(current, uid);
+      kind = plan.kind;
+      return applyTableUpdates(raw, plan.updates);
+    },
+    { applyLocally: false },
+  );
+  if (outcome.committed) return kind;
+  // The host role moved on while this page decided: leave as a normal player.
+  const now = toTable(code, outcome.snapshot.val());
+  if (!now) return 'gone';
+  const plan = planLeave(now, uid);
+  await update(at, plan.updates);
+  return plan.kind;
+}
+
+/** Host: back at the table after leaving it, so the next hand-over waits again (slice 5.20). */
+export async function clearHostLeft(code: string): Promise<void> {
+  const db = await loadDatabase();
+  const { ref, remove } = await import('firebase/database');
+  await remove(ref(db, `${tablePath(code)}/hostLeft`));
+}
+
+/**
+ * Marks this player online at the table while the page is connected (as rooms do). The returned
+ * stop removes the entry; `stop(false)` leaves that to the caller's next write ("Leave table"
+ * removes it together with the seat or the host marker, in one write).
+ */
+export async function trackTablePresence(
+  code: string,
+  uid: string,
+): Promise<(remove?: boolean) => void> {
   const db = await loadDatabase();
   const { ref, onValue, onDisconnect, set, remove } = await import('firebase/database');
   const mine = ref(db, `${tablePath(code)}/online/${uid}`);
@@ -280,9 +346,9 @@ export async function trackTablePresence(code: string, uid: string): Promise<() 
       .then(() => set(mine, session))
       .catch((error) => console.warn('[netcode] table presence failed', error));
   });
-  return () => {
+  return (removeEntry = true) => {
     stop();
-    remove(mine).catch(() => undefined);
+    if (removeEntry) remove(mine).catch(() => undefined);
     onDisconnect(mine)
       .cancel()
       .catch(() => undefined);

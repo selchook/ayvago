@@ -589,6 +589,21 @@
       "summaryNoBots": "Botsuz",
       "summaryAutoStart": "Kendiliğinden başlar"
     },
+    "leave": {
+      "button": "Masadan ayrıl",
+      "titleTable": "Masadan ayrılmak istiyor musun?",
+      "titleGame": "Oyundan ayrılmak istiyor musun?",
+      "body": {
+        "seat": "Koltuğun başka bir oyuncu için boşalır.",
+        "host": "Koltuğun boşalır ve masadaki başka bir oyuncu masa sahibi olur.",
+        "close": "Masada başka oyuncu olmadığı için masa kapanır.",
+        "game": "Diğerleri için koltuğunu bir bot oynar. Koltuk senin kalır: masa linkiyle geri dönebilirsin."
+      },
+      "confirm": "Ayrıl",
+      "stay": "Kal",
+      "leaving": "Masadan ayrılıyorsun…",
+      "failed": "Masadan ayrılamadın. Bağlantını kontrol edip tekrar dene."
+    },
     "error": {
       "full": "Bu masa dolu.",
       "started": "Bu masadaki oyun başladı.",
