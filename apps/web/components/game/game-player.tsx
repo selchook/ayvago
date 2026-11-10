@@ -20,6 +20,7 @@ import { isPersonalBest } from '@/lib/leaderboard/best';
 import { startBest, useServerBest } from '@/lib/leaderboard/server-best';
 import { beginRun, type Run, type RunResult } from '@/lib/leaderboard/session';
 import { recordBestScore, recordPlay, useBestScore } from '@/lib/library';
+import { useSiteActivity } from '@/lib/presence/use-site-presence';
 import { readThemeState, THEME_CHANGE_EVENT, type ThemeState } from '@/lib/theme-client';
 import {
   CollapseIcon,
@@ -89,6 +90,9 @@ export function GamePlayer(props: GamePlayerProps) {
   const runStartedRef = useRef(0);
 
   const [phase, setPhase] = useState<Phase>(match ? 'loading' : 'cover');
+  // Site presence (docs/adr/0021): on the game's page, "playing" during a solo round. Rooms and
+  // tables say it themselves.
+  useSiteActivity(match ? null : phase === 'playing' ? 'playing' : 'online', gameId);
   const [frameKey, setFrameKey] = useState(0);
   const [slow, setSlow] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);

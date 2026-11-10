@@ -324,3 +324,9 @@
   height: 20px;
   accent-color: var(--accent);
 }
+
+/* Slice 5.21: recent players (the list itself uses the lobby's styles). */
+.recent {
+  display: grid;
+  gap: 12px;
+}

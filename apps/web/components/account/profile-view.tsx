@@ -38,14 +38,19 @@ import { Avatar } from './avatar';
 import { AvatarGlyphIcon } from './avatar-glyph';
 import { CharacterPicker } from './character-picker';
 import { ProgressSection } from './progress-section';
+import { RecentSection, type TableGame } from './recent-section';
 import menuStyles from './account.module.css';
 import styles from './profile.module.css';
 
 export type ProfileGame = {
   slug: string;
+  /** Manifest id (recent players and presence name games by it). */
+  gameId: string;
   title: string;
   scoreFormat: ScoreFormat;
   scoreLabel: string;
+  /** Seats per table for live table games (recent players can be invited to them); else null. */
+  tableSize: number | null;
 };
 
 export function ProfileView({
@@ -168,6 +173,14 @@ function SignedIn({
       return game ? [{ game, score: entry.score }] : [];
     })
     .sort((a, b) => a.game.title.localeCompare(b.game.title, locale));
+  const titles = Object.fromEntries(games.map((game) => [game.gameId, game.title]));
+  const tableGames: Record<string, TableGame> = Object.fromEntries(
+    games.flatMap((game) =>
+      game.tableSize
+        ? [[game.gameId, { gameId: game.gameId, slug: game.slug, size: game.tableSize }]]
+        : [],
+    ),
+  );
   const memberSince = profile.createdAt
     ? new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(profile.createdAt)
     : null;
@@ -226,6 +239,8 @@ function SignedIn({
         )}
       </section>
 
+      <RecentSection titles={titles} tableGames={tableGames} />
+
       <section className={styles.card} aria-labelledby="settings-heading">
         <h2 id="settings-heading">{t('settingsTitle')}</h2>
         <AvatarPicker current={parseAvatarId(profile.avatarId)} />
@@ -237,6 +252,7 @@ function SignedIn({
           </div>
         </div>
         <LanguagePicker />
+        <OnlineSetting hideOnline={profile.hideOnline} />
         <InvitesSetting invitesOff={profile.invitesOff} />
         <UsernameEditor profile={profile} isGuest={account.isGuest} />
         <p className={styles.muted}>{t('settingsSync')}</p>
@@ -447,6 +463,41 @@ function LanguagePicker() {
           </label>
         ))}
       </fieldset>
+    </div>
+  );
+}
+
+/** "Show me as online" (slice 5.21, docs/adr/0021): off means no site presence at all. */
+function OnlineSetting({ hideOnline }: { hideOnline: boolean }) {
+  const t = useTranslations('profile');
+  const [error, setError] = useState(false);
+  return (
+    <div className={styles.setting}>
+      <h3>{t('onlineTitle')}</h3>
+      <label className={styles.switchRow}>
+        <input
+          type="checkbox"
+          checked={!hideOnline}
+          aria-describedby="online-hint"
+          data-show-online
+          onChange={(event) => {
+            setError(false);
+            updateProfile({ hideOnline: !event.target.checked }).catch((cause) => {
+              console.error('[profile] saving the online setting failed', cause);
+              setError(true);
+            });
+          }}
+        />
+        <span>{t('onlineToggle')}</span>
+      </label>
+      <p id="online-hint" className={styles.muted}>
+        {t('onlineHint')}
+      </p>
+      {error ? (
+        <p className={menuStyles.error} role="alert">
+          {t('saveFailed')}
+        </p>
+      ) : null}
     </div>
   );
 }

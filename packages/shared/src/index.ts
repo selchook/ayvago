@@ -13,3 +13,4 @@ export * from './achievements';
 export * from './play-report';
 export * from './lobby';
 export * from './tables';
+export * from './presence';

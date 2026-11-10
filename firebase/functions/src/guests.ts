@@ -10,16 +10,19 @@ import {
 import { auth, db } from './admin';
 import { moveScores, syncPlayerRows } from './leaderboards';
 import { moveProgress } from './progress';
+import { moveRecentPlayers, removeFromRecentPlayers } from './recent';
 import { removeVotes } from './votes';
 
 /**
  * Firestore documents that belong to a player; deleted together with the account. After the
  * board rows and votes, `users/{uid}` goes with every subcollection under it (library, play stats
- * of any game, including games no longer in the catalog, and whatever is added there later).
+ * of any game, including games no longer in the catalog, recent players, and whatever is added
+ * there later). The player also leaves other players' recent-player lists.
  */
 export async function deletePlayerData(uid: string) {
   await syncPlayerRows(uid, null);
   await removeVotes(uid);
+  await removeFromRecentPlayers(uid);
   const profile = db().doc(`users/${uid}`);
   const key = (await profile.get()).get('usernameKey') as string | undefined;
   // The reservation first: if the recursive delete stops halfway, a retry still finds the key.
@@ -30,8 +33,8 @@ export async function deletePlayerData(uid: string) {
 /**
  * mergeGuestAccount({ guestIdToken }): after a guest signs in with a Google account that already
  * exists, the client calls this as that account with the guest's ID token (taken before switching)
- * as proof of ownership. The guest's library and progress (XP, achievements) join the account's
- * and the guest account is deleted.
+ * as proof of ownership. The guest's library, progress (XP, achievements) and recent players join
+ * the account's, and the guest account is deleted.
  */
 export async function mergeGuestAccount(request: CallableRequest<unknown>) {
   const caller = request.auth;
@@ -78,6 +81,7 @@ export async function mergeGuestAccount(request: CallableRequest<unknown>) {
   });
   await moveScores(guestUid, caller.uid);
   await moveProgress(guestUid, caller.uid);
+  await moveRecentPlayers(guestUid, caller.uid);
   await removeVotes(guestUid, caller.uid);
   await deletePlayerData(guestUid);
   await auth().deleteUser(guestUid);

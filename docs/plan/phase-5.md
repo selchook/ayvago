@@ -44,6 +44,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.18 | A lobby for table games, Okey first: public tables to sit at, who is online, invites with a notification on every page (owner request, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)) | ✅ code · ⏳ first trigger deploy |
 | 5.19 | Quick play, table settings and host hand-over: one tap to a table that starts by itself, hands and turn time chosen when a table opens, another player takes over when the host leaves (protocol 2.7; owner request, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)) | ✅ code · ⏳ studio adapter 2.7 |
 | 5.20 | "Leave table" button: a confirmed leave frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (owner request) | ✅ code |
+| 5.21 | Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, the people you played a table or room with on the lobby and the profile, invites to anyone online (owner request, [ADR 0021](../adr/0021-site-presence-recent-players.md)) | ✅ code · ⏳ deploy check |
 
 ## 5.1 Player characters ✅
 
@@ -1353,3 +1354,113 @@ Still open:
 - Penalties and statistics for leaving, together with ranked play.
 - A marker for players other than the host, if games want `GHA_PEER_LEAVE` without the 4-second
   grace when someone leaves on purpose.
+
+## 5.21 Site-wide online status and recent players ✅ code
+
+The owner asked to continue the lobby: players are online on the whole site, and every player
+sees the people they played with ("Son oynadıkların") and can invite them when they are online.
+Until now only players in a game's lobby or at its tables could be seen and invited.
+
+Design and reasons: [ADR 0021](../adr/0021-site-presence-recent-players.md); behaviour:
+[multiplayer spec §7e](../specs/multiplayer.md#7e-site-wide-presence-and-recent-players).
+
+What shipped:
+- **Site presence** `presence/site/{uid}` `{ name, character?, level?, state, gameId?, since, dnd? }`
+  (`lib/presence/site.ts`, `use-site-presence.ts`, `packages/shared/src/presence.ts`):
+  - states `online` (any page; with `gameId` on a game page), `lobby`, `table` (also a room
+    before the match) and `playing` (table or room match, or a solo round);
+  - pages claim their state (`useSiteActivity`): the game player, the room page, and the lobby
+    and table pages through `useLobbyPresence`. The tab writes the busiest claim;
+  - one entry per player: the last tab to write wins, a tab writes again when it comes to the
+    front, and an open tab restores the entry when another tab's disconnect removed it;
+  - `InviteCenter` (top bar, every page) keeps it: after the first tap, click, key or wheel on
+    the page (lobby, table and room pages at once), and away after 10 minutes hidden
+    (`goOffline`, except on lobby, table and room pages).
+- **"Show me as online"** (profile settings, `users/{uid}.hideOnline`, on by default): off means
+  no site entry and no lobby entry, so nobody sees or invites the player. The lobby and the
+  recent lists tell the player they appear offline.
+- **Recent players** `users/{uid}/recentPlayers/{otherUid}` in Firestore, newest 30
+  (`firebase/functions/src/recent.ts`):
+  - `syncLobbyTable` records the humans of a table when it turns `playing` (bots left out, guests
+    included);
+  - new trigger **`recordRoomPlayers`** (`onValueCreated('rooms/{code}/guestUid')`) records both
+    players of a two-player room;
+  - each event is counted once (`lastMatch`), and the list is trimmed to 30;
+  - `deleteMyData` and guest cleanup remove the player from every other list (collection-group
+    query on `uid`, with a single-field index exemption in `firestore.indexes.json`);
+    `mergeGuestAccount` moves a guest's list to the account; **Download my data** includes it.
+- **UI** (`components/lobby/recent-players.tsx`):
+  - a **Recent players** panel in the lobby under "Online now" (the newest 6);
+  - a **Recent players** card on the profile (8, "Show all" up to 30, `components/account/recent-section.tsx`);
+  - each row: character or initial avatar, name, "Okey · 4 times · 2 h ago", an online dot with
+    the state ("Playing · Okey"), and Invite / "Not taking invites" / "At your table". Presence is
+    read with one listener per row on screen.
+- **Invites to anyone online:**
+  - the rules accept a recipient with a lobby entry for the game **or** a site entry, and neither
+    entry with `dnd`. Everything else from 5.18 stays (one pending invite per pair, a seated sender
+    at an open table, five a minute, two minutes to answer);
+  - Invite in the lobby works as for lobby players;
+  - Invite on the profile uses the player's open table of the shared table game, or opens a
+    public one, and goes there. Recent players from room games show their status only;
+  - the notifier listens whenever the tab holds the player's presence, which replaces the
+    12-hour lobby gate (`markLobbyVisit` and `recentLobbyVisit` are gone).
+- **Messages:** new `presence` namespace; `profile.onlineTitle`, `onlineToggle`, `onlineHint`;
+  `profile.invitesToggle` now reads "Let other players invite me to their table" (en and tr).
+
+Decisions and deviations from the brief:
+- **Hidden writes nothing** rather than a hidden flag: a flagged entry would still show the name
+  and state to anyone with the uid. The switch also hides the player from game lobbies, so "off"
+  means invisible everywhere except the seats they take.
+- **Firestore for recent players**, not an RTDB index: private per player, ordered reads with a
+  limit, deleted with the account, included in the export (ADR 0021).
+- **Multiple tabs: the last write wins**, not the busiest across tabs. Per-tab keys would make
+  `dnd` impossible to check in the rules.
+- **No "N online" count:** it needs a list read of every visitor or a counter on every presence
+  change.
+- **Invites from the lobby while the player's remembered table is in play** stay off, as for the
+  online list (5.18 behaviour). The profile can still invite, by opening a new table.
+
+Tests:
+- shared `presence.test.ts` (8): state order, presence reader and writer, table start and room
+  matches (bots out, two people needed), pairs, the stored entry reader;
+- web `lib/presence/recent-data.test.ts` (2): "x ago" units, and when Invite is offered;
+- RTDB and Firestore emulator `firebase/tests/presence.test.ts` (16; 14 in the default run):
+  - site presence: own entry only, every field validated, no extra field (a `hidden` flag is
+    refused), one uid readable by signed-in players, the list and the parent not readable;
+  - invites: allowed to a site-present player outside any lobby; refused to hidden (no entry),
+    `dnd` (also when only the site entry has it) and seated players, from strangers, to started
+    tables, and a second pending one;
+  - `recentPlayers`: owner reads, nobody else; no client writes (owner included); `hideOnline` is
+    a boolean the owner sets;
+  - the handlers called directly: table start (bots left out, guests in, counted once per match,
+    again for a new table), a single player with bots records nothing, room join, the cap at 30
+    (the oldest goes), removal on account deletion and the guest merge;
+  - the live triggers (`syncLobbyTable` on a table start, `recordRoomPlayers` on a room join) in
+    the opt-in run: `presence.test.ts` and `lobby.test.ts` with `AYVAGO_EMULATOR_DB_TRIGGERS=1`,
+    28 passed and 8 skipped (the direct tests, which would race the live trigger);
+- full run: shared 104, web 132, themes 16, adapter 29, firebase 181 passed and 3 skipped (the
+  opt-in live-trigger tests);
+- in the browser (`next start` built with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`, the live triggers
+  opted in, Playwright, two guests):
+  - A (desktop) invites B (phone) from the lobby; they start a table. Both then see each other
+    under Recent players (written by the trigger);
+  - B opens the home page only and presses a key. Their entry turns `online`, A's profile shows B
+    online with Invite, and A invites. B gets the alert-dialog toast on the home page, joins and
+    sits at A's new table;
+  - B turns "Show me as online" off. B's entry is removed, A sees B offline with no Invite, B is
+    not in the lobby list, and the lobby tells B they appear offline;
+  - with the switch on again, B gets an invite on the Turkish home page (arcade, desktop) and
+    declines it;
+  - screenshots: lobby and profile in minimal light and dark and arcade light and dark, English
+    and Turkish, on a 1366×900 desktop and a 412 px phone; the toast on the home page. No
+    horizontal overflow and no console errors.
+
+Owner steps: none beyond the usual workflows; an optional check after the deploy. See the
+[setup doc](../setup/phase-5.md#521-site-wide-online-status-and-recent-players).
+
+Still open:
+- The table page lists only lobby players, so an invite sent from the profile to a site-only
+  player shows no "Invited / Declined" status there (the player appearing in a seat is the
+  answer). Adding recent players to the table page touches `table-view.tsx`, left for after the
+  leave-table change.
+- Friends, invites to two-player rooms, web push and an "N online" count (ADR 0021 "Next").

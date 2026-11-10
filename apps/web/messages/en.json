@@ -298,8 +298,11 @@
       "registered-only": "Sign in with Google to choose your own username.",
       "generic": "The username could not be saved. Please try again."
     },
+    "onlineTitle": "Online status",
+    "onlineToggle": "Show me as online",
+    "onlineHint": "Players you have played with see when you are online and can invite you to a table. When this is off you appear offline everywhere, game lobbies included, and nobody can invite you.",
     "invitesTitle": "Table invites",
-    "invitesToggle": "Let players in a lobby invite me to their table",
+    "invitesToggle": "Let other players invite me to their table",
     "invitesHint": "When this is off, nobody can invite you and you get no invite notifications. You can still sit at any open table."
   },
   "admin": {
@@ -696,6 +699,30 @@
     "bellTitle": "Table invites",
     "expires": "{seconds, plural, one {Expires in # second} other {Expires in # seconds}}",
     "table": "Table {code}"
+  },
+  "presence": {
+    "recentTitle": "Recent players",
+    "recentEmpty": "Nobody yet. Play at a table or an online match, and the people you play with appear here.",
+    "loading": "Loading…",
+    "failed": "Your recent players could not be loaded. Check your connection and try again.",
+    "times": "{count, plural, one {once} other {# times}}",
+    "ago": {
+      "minutes": "{count, plural, =0 {just now} one {# min ago} other {# min ago}}",
+      "hours": "{count, plural, one {# h ago} other {# h ago}}",
+      "days": "{count, plural, one {yesterday} other {# days ago}}"
+    },
+    "state": {
+      "online": "Online",
+      "lobby": "In a lobby",
+      "table": "At a table",
+      "playing": "Playing",
+      "offline": "Offline"
+    },
+    "stateIn": "{state} · {game}",
+    "showAll": "Show all ({count})",
+    "showLess": "Show fewer",
+    "hiddenNote": "You appear offline, so other players cannot see or invite you.",
+    "settingsLink": "Change in profile settings"
   },
   "progress": {
     "title": "Progress",
