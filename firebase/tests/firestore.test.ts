@@ -621,6 +621,23 @@ describe('votes and rankings', () => {
     await assertFails(getDoc(doc(db, 'games/orbsurge/feedback/2026-10-26')));
     await assertFails(setDoc(doc(db, 'rankings/catalog'), { games: {} }));
   });
+
+  it('keeps the slice 5.22 counters (starts, online, abandoned time) server-written', async () => {
+    const db = google('u1');
+    for (const data of [
+      { starts: 99 },
+      { onlinePlays: 99 },
+      { abandonedSeconds: 9999 },
+      { lastOnlineMatch: 'table:ABC234:1' },
+    ]) {
+      await assertFails(setDoc(doc(db, 'users/u1/stats/orbsurge'), data, { merge: true }));
+      await assertFails(setDoc(doc(db, 'users/u1/stats/newgame'), data));
+    }
+    await assertFails(
+      setDoc(doc(db, 'games/orbsurge/daily/2026-10-26'), { onlineStarted: 9 }, { merge: true }),
+    );
+    await assertFails(setDoc(doc(db, 'sessions/s1'), { status: 'abandoned' }));
+  });
 });
 
 describe('admin reads', () => {

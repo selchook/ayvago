@@ -171,6 +171,15 @@ function distinct(players: Array<MatchPlayer | null>): MatchPlayer[] {
  * with at least two people seated. Bots are left out. Null for every other write.
  */
 export function tableMatch(code: string, before: unknown, after: unknown): Match | null {
+  const match = tableStart(code, before, after);
+  return match && match.players.length >= 2 ? match : null;
+}
+
+/**
+ * Like tableMatch, but also a table one person started with bots: every human seat of a table
+ * that just turned `playing` (the online play counters of slice 5.22 count them all).
+ */
+export function tableStart(code: string, before: unknown, after: unknown): Match | null {
   const was = asRecord(before);
   const is = asRecord(after);
   if (!is || is.status !== 'playing' || was?.status === 'playing') return null;
@@ -183,7 +192,7 @@ export function tableMatch(code: string, before: unknown, after: unknown): Match
       return !seat || seat.bot === true ? null : matchPlayer(seat.uid, seat.name, seat.character);
     }),
   );
-  if (players.length < 2) return null;
+  if (players.length === 0) return null;
   const createdAt = typeof is.createdAt === 'number' ? is.createdAt : 0;
   return { key: `table:${code}:${createdAt}`, gameId: is.gameId, slug: is.slug, players };
 }

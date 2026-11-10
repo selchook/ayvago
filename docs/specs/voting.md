@@ -91,7 +91,7 @@ Engagement inputs come from `sessions` (written by `startSession`/`finishSession
 
 Shipped in Phase 2 slice 2.2 ([plan](../plan/phase-2.md#22-voting-and-ranking-)):
 
-- **Votes:** written only through the `castVote` callable (no client writes, no `onVoteWritten` trigger). The callable checks eligibility (60 s of play from `users/{uid}/stats/{gameId}`, which only the session functions write) and the rate limit (30 changes per hour). It also validates the reasons and comment, and updates the counters in the same transaction. `games/{gameId}/votes/{uid}` is readable by its owner only.
+- **Votes:** written only through the `castVote` callable (no client writes, no `onVoteWritten` trigger). The callable checks eligibility (60 s of play from `users/{uid}/stats/{gameId}.playSeconds`, which only the session functions write; finished runs only: since slice 5.22 starts, the time of left runs and online matches are separate fields that do not count, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) and the rate limit (30 changes per hour). It also validates the reasons and comment, and updates the counters in the same transaction. `games/{gameId}/votes/{uid}` is readable by its owner only.
 - **Feedback:** daily aggregates in `games/{gameId}/feedback/{day}` (`count`, `comments`, `reasons.<id>`), written by `castVote`. No nightly `aggregateFeedback` job.
 - **Ranking:** `recomputeRankings` runs hourly. It computes Wilson, engagement, `qualityScore` and `trendScore` from `games/{gameId}/daily/{day}` (started/finished runs and play time from score sessions), and publishes `rankings/catalog` for the web app.
 - **UI:**

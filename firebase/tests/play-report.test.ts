@@ -68,11 +68,45 @@ describe('getPlayReport', () => {
     // play time of real runs comes from the server clock, so it may be a second longer
     const near = (seconds: number) =>
       expect.toSatisfy((v: number) => v >= seconds && v <= seconds + 3);
+    // runs through startSession count their starts (slice 5.22); seeded documents have none
+    const none = { onlinePlays: 0, abandonedSeconds: 0 };
     expect(report.summary).toEqual({
-      google: { profiles: 2, players: 1, plays: 2, playSeconds: near(60) },
-      registered: { profiles: 1, players: 1, plays: 4, playSeconds: 240 },
-      guest: { profiles: 2, players: 1, plays: 1, playSeconds: near(20) },
-      unknown: { profiles: null, players: 1, plays: 2, playSeconds: 60 },
+      google: {
+        profiles: 2,
+        players: 1,
+        starts: 2,
+        plays: 2,
+        playSeconds: near(60),
+        totalSeconds: near(60),
+        ...none,
+      },
+      registered: {
+        profiles: 1,
+        players: 1,
+        starts: 0,
+        plays: 4,
+        playSeconds: 240,
+        totalSeconds: 240,
+        ...none,
+      },
+      guest: {
+        profiles: 2,
+        players: 1,
+        starts: 1,
+        plays: 1,
+        playSeconds: near(20),
+        totalSeconds: near(20),
+        ...none,
+      },
+      unknown: {
+        profiles: null,
+        players: 1,
+        starts: 0,
+        plays: 2,
+        playSeconds: 60,
+        totalSeconds: 60,
+        ...none,
+      },
     });
     expect(report.allTimeSince).toBe('2026-10-20');
 
@@ -99,7 +133,14 @@ describe('getPlayReport', () => {
       ['PixelFox4821', 'guest', 1],
     ]);
     expect(report.players[1]!.games).toEqual([
-      { gameId: FIXTURE, plays: 2, playSeconds: near(60) },
+      {
+        gameId: FIXTURE,
+        starts: 2,
+        plays: 2,
+        playSeconds: near(60),
+        totalSeconds: near(60),
+        ...none,
+      },
     ]);
     expect(report.playerCount).toBe(4);
     expect(report.truncated).toBe(0);

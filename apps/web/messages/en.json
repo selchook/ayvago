@@ -364,6 +364,7 @@
       "generated": "Generated {time}",
       "ranges": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). The all-time columns count every run since {allTime}, the first day with recorded runs.",
       "rangesNoAllTime": "Per-player numbers start on {since}, when everyone's progress was reset (the fresh start). No runs are recorded yet.",
+      "extendedNote": "* Counted from {extended}: started runs per player, online matches, and the play time of runs left without finishing. Numbers from before that day do not include them. Play time is finished runs plus runs left unfinished; time in online matches is not counted, because the server cannot tell when a match ends. Starts and finished runs per game count every run.",
       "kindsNote": "Google: signed in with Google. Registered: signed in another way. Guest: plays without an account. Unknown: has play stats, but the profile was deleted.",
       "kinds": {
         "google": "Google",
@@ -380,7 +381,9 @@
         "kind": "Player kind",
         "profiles": "Profiles",
         "players": "Players",
+        "starts": "Starts",
         "plays": "Plays",
+        "online": "Online",
         "time": "Play time",
         "total": "Total"
       },
@@ -392,7 +395,9 @@
         "allTimeRuns": "Finished runs",
         "allTimeStarts": "Starts",
         "plays": "Plays since {since}",
-        "playsShort": "Plays",
+        "starts": "Starts",
+        "finished": "Finished",
+        "online": "Online matches",
         "time": "Play time",
         "playersGroup": "Players since {since}",
         "empty": "No runs recorded yet."
@@ -400,16 +405,18 @@
       "players": {
         "title": "Per player since {since} ({count})",
         "truncated": "Showing the {shown} players with the most plays out of {count}.",
-        "empty": "No player has finished a run since {since}.",
+        "empty": "Nobody has played since {since}.",
         "rank": "#",
         "player": "Player",
         "kind": "Kind",
+        "starts": "Starts",
         "plays": "Plays",
+        "online": "Online",
         "time": "Play time",
         "lastPlayed": "Last played",
         "games": "Games",
         "noName": "(no profile)",
-        "gameLine": "{game} × {count}",
+        "gameLine": "{game}{finished, plural, =0 {} other { × #}}{online, plural, =0 {} other { · online × #}}{started, plural, =0 {} other { · started × #}}",
         "gamesSummary": "{count, plural, one {# game} other {# games}}: {first} …"
       },
       "csv": {
@@ -422,8 +429,19 @@
         "playsKind": "Plays: {kind}",
         "playersKind": "Players: {kind}",
         "tag": "Tag",
-        "playerSeconds": "Play time (seconds)",
-        "lastPlayed": "Last played (UTC)"
+        "playerSeconds": "Finished runs' play time (seconds)",
+        "lastPlayed": "Last played (UTC)",
+        "allTimeAbandonedSeconds": "Unfinished runs' play time, all time (seconds)",
+        "allTimeOnline": "Online matches, all time",
+        "windowStarted": "Starts since {since}",
+        "windowFinished": "Finished runs since {since}",
+        "windowOnline": "Online matches since {since}",
+        "windowSeconds": "Finished runs' play time since {since} (seconds)",
+        "windowAbandonedSeconds": "Unfinished runs' play time since {since} (seconds)",
+        "starts": "Starts (since {extended})",
+        "online": "Online matches (since {extended})",
+        "abandonedSeconds": "Unfinished runs' play time (seconds, since {extended})",
+        "totalSeconds": "Total play time (seconds)"
       }
     },
     "feedback": {

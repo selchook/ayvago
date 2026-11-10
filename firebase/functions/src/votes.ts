@@ -1,4 +1,4 @@
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp, type DocumentSnapshot } from 'firebase-admin/firestore';
 import type { CallableRequest } from 'firebase-functions/v2/https';
 import { containsOffensiveWord } from '../../../packages/shared/src/profile';
 import {
@@ -131,6 +131,34 @@ export async function castVote(request: CallableRequest<unknown>) {
   });
 }
 
+/** Counters of users/{uid}/stats/{gameId} that a guest merge adds to the account (slice 5.22). */
+const MOVED_COUNTERS = ['plays', 'playSeconds', 'starts', 'abandonedSeconds', 'onlinePlays'];
+
+/**
+ * A guest's play stats as increments for the account's document: missing counters add nothing
+ * and `lastPlayedAt` only comes along when the guest has one (a document may hold only `starts`
+ * or only online plays) and is newer than the account's. `lastOnlineMatch` stays behind: it
+ * only stops repeated trigger events.
+ */
+function movedStats(stats: DocumentSnapshot, target: DocumentSnapshot): Record<string, unknown> {
+  const moved: Record<string, unknown> = {};
+  for (const field of MOVED_COUNTERS) {
+    const value = stats.get(field) as unknown;
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+      moved[field] = FieldValue.increment(value);
+    }
+  }
+  const last = stats.get('lastPlayedAt') as unknown;
+  const current = target.get('lastPlayedAt') as unknown;
+  if (
+    last instanceof Timestamp &&
+    !(current instanceof Timestamp && current.toMillis() >= last.toMillis())
+  ) {
+    moved.lastPlayedAt = last;
+  }
+  return moved;
+}
+
 /**
  * Removes the player's votes (counters adjusted) and play stats: account deletion and guest
  * cleanup. With `moveTo`, a guest's votes and play time move to the account instead, unless the
@@ -144,18 +172,11 @@ export async function removeVotes(uid: string, moveTo?: string) {
         tx.get(statsRef(uid, gameId)),
       ]);
       const target = moveTo ? await tx.get(voteRef(gameId, moveTo)) : null;
+      const targetStats = moveTo && stats.exists ? await tx.get(statsRef(moveTo, gameId)) : null;
       const game = vote.exists ? await tx.get(gameRef(gameId)) : null;
 
-      if (moveTo && stats.exists) {
-        tx.set(
-          statsRef(moveTo, gameId),
-          {
-            plays: FieldValue.increment((stats.get('plays') as number) ?? 0),
-            playSeconds: FieldValue.increment((stats.get('playSeconds') as number) ?? 0),
-            lastPlayedAt: stats.get('lastPlayedAt'),
-          },
-          { merge: true },
-        );
+      if (moveTo && targetStats) {
+        tx.set(targetStats.ref, movedStats(stats, targetStats), { merge: true });
       }
       if (stats.exists) tx.delete(stats.ref);
       if (!vote.exists) return;

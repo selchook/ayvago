@@ -45,6 +45,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.19 | Quick play, table settings and host hand-over: one tap to a table that starts by itself, hands and turn time chosen when a table opens, another player takes over when the host leaves (protocol 2.7; owner request, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)) | ✅ code · ⏳ studio adapter 2.7 |
 | 5.20 | "Leave table" button: a confirmed leave frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (owner request) | ✅ code |
 | 5.21 | Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, the people you played a table or room with on the lobby and the profile, invites to anyone online (owner request, [ADR 0021](../adr/0021-site-presence-recent-players.md)) | ✅ code · ⏳ deploy check |
+| 5.22 | The "Players and plays" report counts started runs per player, online matches (tables and rooms, never ranked) and the play time of runs left without finishing (`abandonSession`, keepalive on tab close) (owner request, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -1464,3 +1465,128 @@ Still open:
   answer). Adding recent players to the table page touches `table-view.tsx`, left for after the
   leave-table change.
 - Friends, invites to two-player rooms, web push and an "N online" count (ADR 0021 "Next").
+
+## 5.22 Play report counts starts, online matches and abandoned runs ✅ code
+
+The owner noticed that the report's per-player section barely changed. Production (Progress
+report workflow, last 4 days): 126 score sessions, 56 `finished` and 70 still `open`, from four
+players. Per-player stats only grew when a solo run reached `GHA_END`; runs the player left were
+only in `games/{gameId}/daily.started`, and online rounds were never counted. The owner approved
+counting started runs per player, online matches (never ranked) and the play time of left runs.
+
+Design and reasons: [ADR 0022](../adr/0022-started-abandoned-and-online-play.md).
+
+What shipped:
+- **Data model** (new fields; old documents read them as 0):
+  - `users/{uid}/stats/{gameId}`: `starts`, `abandonedSeconds`, `onlinePlays`, `lastOnlineMatch`;
+    `lastPlayedAt` also moves on a start, a left run and an online match;
+  - `games/{gameId}/daily/{day}`: `abandonedSeconds`, `onlineStarted` (matches).
+- **Started runs:** `startSession` writes the session, the day's `started` and the player's
+  `starts` in one batch (`countStart` in `firebase/functions/src/stats.ts`).
+- **Left runs:** new callable **`abandonSession({ sessionId, token, durationMs })`**
+  (`sessions.ts`):
+  - the same checks as `finishSession` (owner, token, open session, ban, App Check mode);
+  - one transaction closes the session as `abandoned` and adds
+    `min(durationMs, server elapsed, MAX_COUNTED_RUN_MS)` to `abandonedSeconds` (stats and day),
+    so finish and abandon can never both count; no `plays`, no `finished`;
+  - sessions over 6 hours old, or of a game no longer live, close as `expired` and count nothing.
+- **Client** (`lib/leaderboard/session.ts`, `run-clock.ts`, `game-player.tsx`):
+  - `Run.abandon()` on a new `GHA_SESSION_START` while a run is open, on `GHA_END` without a
+    score, on reload of the game frame and when the game page unmounts (another route);
+  - on `pagehide` the page sends the callable protocol itself with `fetch(..., { keepalive: true })`
+    (`callableUrl` and `callableHeaders` in `lib/firebase/client.ts`: ID token and App Check
+    token, read ahead when the session is registered and every 15 minutes);
+  - `durationMs` is the time the page was visible since the run started (the game is paused while
+    hidden), so a background tab adds nothing.
+- **No signal:** `cleanupSessions` marks `open` sessions older than 6 hours `expired` and counts
+  nothing (time unknown). New composite index `sessions (status, startedAt)`.
+- **Online matches** (`online.ts`, `countOnlineMatch` in `stats.ts`), from the triggers that
+  already see a match start:
+  - `syncLobbyTable`: every human seat of a table that turns `playing`, bots never, guests always,
+    also one person with bots (`tableStart` in `packages/shared/src/presence.ts`);
+  - `recordRoomPlayers`: both players of a room when the guest seat is taken;
+  - one transaction per match, skipped per player when `lastOnlineMatch` is the match key; the
+    day's `onlineStarted` grows once per match; games outside the live catalog are skipped;
+  - never on boards, XP, achievements or vote eligibility.
+- **Report** (`packages/shared/src/play-report.ts`, `reports.ts`, `components/admin/play-report.tsx`,
+  `lib/admin/play-report.ts`):
+  - per player: starts, finished plays, online matches, play time (finished + left), last played
+    (including online), and per game "Brick Breaker × 12 · online × 3" (or "· started × 3" for a
+    game only started); ordered by finished + online plays, then starts;
+  - per game: next to the all-time columns, the window since `statsSince` from the daily
+    documents: starts, finished, online matches and play time (finished + left);
+  - summary per kind: players, starts, plays, online, play time;
+  - `extendedSince` = `EXTENDED_STATS_SINCE`, a note marks the columns counted only from that day
+    (`*`) and says that online play time is not counted;
+  - CSV: the new columns, with finished and left time in separate seconds columns.
+- **Readers checked:**
+  - `castVote` reads `playSeconds` only: a starts-only, left-time or online-only document is
+    still not eligible;
+  - the guest merge (`removeVotes`) now moves `starts`, `abandonedSeconds` and `onlinePlays`,
+    writes `lastPlayedAt` only when the guest has one and it is newer than the account's (it
+    wrote `undefined` for a document without one) and leaves `lastOnlineMatch` behind;
+  - the profile and **Download my data** read `progress/summary`, the library and recent players,
+    not `stats`; recently played is the library. Unchanged;
+  - `recomputeRankings` and the spotlight `todayScore` read `started`, `finished` and
+    `playSeconds` only. Unchanged;
+  - `deleteMyData`, guest cleanup, bans and the Reset progress script delete whole documents;
+  - the Progress report workflow lists the new `abandoned` and `expired` statuses.
+- Text in `en.json` and `tr.json` (`admin.report.extendedNote`, `summary.starts`, `summary.online`,
+  `games.starts`, `games.finished`, `games.online`, `players.starts`, `players.online`, new CSV
+  headers; `players.empty` and `players.gameLine` reworded; `games.playsShort` removed).
+
+Deviations from the brief:
+- **Left-run time is `abandonedSeconds`, not added to `playSeconds`.** `playSeconds` drives vote
+  eligibility and the ranking's average session length (`playSeconds / finished`); both would
+  change. The report adds the two.
+- **No online play time.** Tables stay `playing` until the host leaves alone or the 2-hour cleanup;
+  rooms have no end marker. Both are client-driven, so the server cannot know when a match ended.
+  Only matches are counted, and the report says so.
+- **Per-game window columns come from the daily documents** (days from `statsSince` on), not from
+  the per-player stats, so starts and finished runs per game are complete since the fresh start;
+  per-player starts exist only from the deploy day.
+- **`lastPlayedAt` moves on a start** too, so a player whose runs were all left still has a date.
+- **`EXTENDED_STATS_SINCE` is `'2026-11-10'`**, a placeholder: set it to the deploy day when
+  merging.
+
+Tests:
+- shared `play-report.test.ts` (7): the 5.16 cases with zeros for old documents, plus starts,
+  online matches and left time per player, kind and game, the order with online plays, a
+  starts-only player and the daily window; `presence.test.ts` (9): `tableStart` takes one person
+  with bots, never a bots-only table;
+- web `lib/admin/play-report.test.ts` (4): the new CSV columns and game lines;
+  `lib/leaderboard/run-clock.test.ts` (3): visible time only, a run started hidden, the callable
+  body;
+- Firestore, Auth, RTDB and Functions emulator `firebase/tests/play-stats.test.ts` (20):
+  - `starts` on `startSession`;
+  - `abandonSession`: the happy path (no plays, no board, no progress), the server clock bound,
+    the 3-hour cap, a session too old (`expired`), a wrong token, someone else's session, unknown
+    and malformed ids and durations, double abandon, finish after abandon, abandon after finish,
+    finish and abandon sent together (exactly one counts), App Check enforce and monitor, and the
+    keepalive request a closing page sends (raw callable protocol, refused without a token);
+  - `expireOpenSessions`: old open sessions only, nothing counted;
+  - online counting called directly: bots left out, guests in, counted once, one person with bots,
+    games outside the catalog skipped, both room players once;
+  - readers: vote eligibility with a starts-only, left-time and online document, guest merge of
+    every counter (newer `lastPlayedAt` kept, starts-only document), `deleteMyData`, the ranking
+    and `todayScore` identical with the new daily fields, `getPlayReport` with all three;
+- `firestore.test.ts`: clients cannot write the new stats fields, the day's `onlineStarted` or a
+  session; `play-report.test.ts` updated for the new shape;
+- full run: shared 106, web 142, themes 16, adapter 29, firebase 212 passed and 3 skipped (the
+  opt-in live-trigger tests);
+- in the browser (`next dev` on the emulators with the fixture game, Playwright Chromium): a run
+  left by a client-side route change and one left by closing the tab were both `abandoned`, the
+  stats showed `starts: 2`, the left time and no `plays`. The report with seeded data in minimal
+  light (1366×900), arcade dark in Turkish (1366×900), minimal dark in Turkish (Pixel 7) and
+  cartoon light (360×780): no page overflow, the tables scroll inside the card on phones.
+
+Owner steps: none beyond merging (new callable, trigger updates and one index, all through the
+usual workflows); set `EXTENDED_STATS_SINCE` to the deploy day. See the
+[setup doc](../setup/phase-5.md#522-play-report-counts-starts-online-matches-and-abandoned-runs).
+
+Still open:
+- Online play time needs a server-observed end of a match (ADR 0022 "Next").
+- Runs left in browsers without `fetch` keepalive, or whose session was not registered yet when
+  the tab closed, end as `expired` without time.
+- A page restored from the back/forward cache after `pagehide` keeps playing a run the server has
+  closed; its finish is then refused (`closed`) and the toolbar falls back to the browser's best.

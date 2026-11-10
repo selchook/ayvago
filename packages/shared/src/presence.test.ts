@@ -8,6 +8,7 @@ import {
   sitePresenceRecord,
   siteStateRank,
   tableMatch,
+  tableStart,
 } from './presence';
 
 const table = (changes: Record<string, unknown> = {}) => ({
@@ -129,6 +130,21 @@ describe('recent players', () => {
     });
     expect(tableMatch('ABC234', null, solo)).toBeNull();
     expect(tableMatch('ABC234', null, table({ gameId: 'Bad' }))).toBeNull();
+  });
+
+  it('tableStart also takes one person with bots, for the online play counters', () => {
+    const solo = table({
+      seats: { 0: { uid: 'a', name: 'Ayşe' }, 1: { bot: true, name: 'Bot 1' } },
+    });
+    expect(tableStart('ABC234', null, solo)).toEqual({
+      key: 'table:ABC234:1000',
+      gameId: 'okey',
+      slug: 'okey',
+      players: [{ uid: 'a', name: 'Ayşe', character: null }],
+    });
+    expect(tableStart('ABC234', table(), table())).toBeNull();
+    const bots = table({ seats: { 0: { bot: true, name: 'Bot 1' } } });
+    expect(tableStart('ABC234', null, bots)).toBeNull();
   });
 
   it('records a room once both seats are taken', () => {

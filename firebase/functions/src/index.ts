@@ -17,9 +17,15 @@ import { reviewScoreFlag as review, setPlayerBan as ban } from './moderation';
 import { recomputeGameScores } from './rankings';
 import { getPlayReport as playReportCall } from './reports';
 import { deleteStaleLobbyData, syncLobbyTable as syncLobby } from './lobby';
+import { countRoomJoin, countTableStart } from './online';
 import { recordRoomJoin, recordTableStart } from './recent';
 import { deleteOldRooms, deleteOldTables, ROOM_TTL_MS } from './rooms';
-import { finishSession as finish, startSession as start } from './sessions';
+import {
+  abandonSession as abandon,
+  expireOpenSessions,
+  finishSession as finish,
+  startSession as start,
+} from './sessions';
 import { reserveUsername as reserve } from './usernames';
 import { castVote as vote } from './votes';
 
@@ -38,6 +44,9 @@ export const mergeGuestAccount = onCall(mergeGuest);
 export const startSession = onCall(start);
 
 export const finishSession = onCall(finish);
+
+/** A run left without GHA_END: its time counts, never a play (slice 5.22). */
+export const abandonSession = onCall(abandon);
 
 export const castVote = onCall(vote);
 
@@ -84,9 +93,15 @@ export const cleanupGuests = onSchedule(
   },
 );
 
+/**
+ * Daily: open sessions that never got GHA_END or an abandon signal are marked `expired` (their
+ * play time is unknown, so they count nothing; slice 5.22), and old sessions are deleted.
+ */
 export const cleanupSessions = onSchedule(
   { schedule: 'every day 04:00', timeZone: 'Europe/Istanbul' },
   async () => {
+    const expired = await expireOpenSessions();
+    logger.info('Unfinished score sessions expired', { expired });
     const old = db()
       .collection('sessions')
       .where('startedAt', '<', Timestamp.fromMillis(Date.now() - SESSION_RETENTION_DAYS * DAY_MS))
@@ -129,7 +144,8 @@ const emulatorTriggerRegion =
 /**
  * Keeps the public lobby list (lobby/{gameId}/tables/{code}) in step with every public table
  * (docs/adr/0019-table-lobby-presence-invites.md), and records who played with whom when a table
- * starts (users/{uid}/recentPlayers, docs/adr/0021-site-presence-recent-players.md).
+ * starts (users/{uid}/recentPlayers, docs/adr/0021-site-presence-recent-players.md) and the
+ * online match in the play stats (slice 5.22).
  */
 export const syncLobbyTable = onValueWritten(
   { ref: 'tables/{code}', ...emulatorTriggerRegion },
@@ -137,26 +153,34 @@ export const syncLobbyTable = onValueWritten(
     const code = event.params.code;
     const before = event.data.before.val() as unknown;
     const after = event.data.after.val() as unknown;
-    const [result, recent] = await Promise.all([
+    const [result, recent, online] = await Promise.all([
       syncLobby(code, before, after, event.data.after.ref.root),
       recordTableStart(code, before, after),
+      countTableStart(code, before, after),
     ]);
     if (result !== 'unchanged') logger.debug('Lobby entry updated', { code, result });
     if (recent > 0) logger.debug('Recent players recorded', { code, entries: recent });
+    if (online > 0) logger.debug('Online match counted', { code, players: online });
   },
 );
 
 /**
  * A two-player room got its second player: both get each other in their recent players
- * (docs/adr/0021-site-presence-recent-players.md). Fires once per room, on the guest seat only,
- * so moves, signals and presence in the room never start it.
+ * (docs/adr/0021-site-presence-recent-players.md) and an online match in their play stats
+ * (slice 5.22). Fires once per room, on the guest seat only, so moves, signals and presence in
+ * the room never start it.
  */
 export const recordRoomPlayers = onValueCreated(
   { ref: 'rooms/{code}/guestUid', ...emulatorTriggerRegion },
   async (event) => {
     const code = event.params.code;
-    const entries = await recordRoomJoin(code, event.data.ref.root);
+    const root = event.data.ref.root;
+    const [entries, online] = await Promise.all([
+      recordRoomJoin(code, root),
+      countRoomJoin(code, root),
+    ]);
     if (entries > 0) logger.debug('Recent players recorded', { code, entries });
+    if (online > 0) logger.debug('Online match counted', { code, players: online });
   },
 );
 

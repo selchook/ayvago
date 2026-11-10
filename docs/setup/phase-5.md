@@ -289,6 +289,33 @@ No secrets or env vars are needed.
   5. In the second browser, turn off **Profil → Çevrimiçi durumu → Çevrimiçi görün**. After a
      reload the first browser shows it as **Çevrimdışı**, without the invite button.
 
+## 5.22 Play report counts starts, online matches and abandoned runs
+Nothing to set up by hand. Merging deploys the web app, and the usual workflows publish the rest:
+- **"Deploy Cloud Functions":**
+  - the new callable **`abandonSession`** (the game page reports runs the player left; on tab
+    close it is sent as a `keepalive` request to the same URL the SDK uses, so no CORS, CSP or
+    hosting change is needed);
+  - the updated `startSession`, `cleanupSessions`, `syncLobbyTable`, `recordRoomPlayers`,
+    `mergeGuestAccount` and `getPlayReport`. The two triggers keep their event types, so no new
+    IAM grant is needed.
+- **"Deploy Firestore and Realtime Database rules":** one new composite index,
+  `sessions (status ASC, startedAt ASC)` in `firebase/firestore.indexes.json`, for the nightly
+  expiry of unfinished sessions. Firestore builds it in the background within minutes; until
+  then that step of `cleanupSessions` logs an error and the old-session cleanup still runs.
+  No rule changes.
+
+No secrets, env vars or studio changes.
+
+- ⏳ **Before merging:** set `EXTENDED_STATS_SINCE` in `packages/shared/src/play-report.ts` to the
+  day the slice is deployed (UTC). The report uses it to say from when starts per player, online
+  matches and the time of left runs are counted.
+- ⏳ **Optional check after the deploy:**
+  1. Play a few seconds of a game on ayvago.com, then close the tab without finishing.
+  2. Play an Okey table (with bots is enough).
+  3. In **Yönetim paneli → Oyuncular ve oynanma**, run the report: your row shows the starts, an
+     online match and some play time. The Progress report workflow lists the left run as
+     `abandoned`.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

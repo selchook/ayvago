@@ -9,16 +9,21 @@ import { fail } from './errors';
 import { leaderboardGame, type LeaderboardGame } from './games';
 import { applyScore, boardRef, playerCard, rankOf } from './leaderboards';
 import { awardPracticeProgress, awardProgress, type ProgressResult } from './progress';
-import { countFinish, countStart, MAX_COUNTED_RUN_MS } from './stats';
+import { countAbandon, countedSeconds, countFinish, countStart, MAX_COUNTED_RUN_MS } from './stats';
 
 // Score sessions (docs/specs/leaderboards.md §7). A run starts with startSession when the game
-// reports GHA_SESSION_START and ends with finishSession on GHA_END. sessions/{id} is written by
-// these functions only; the client holds the session id and a random token.
+// reports GHA_SESSION_START and ends with finishSession on GHA_END, or with abandonSession when
+// the player leaves it (slice 5.22). sessions/{id} is written by these functions only; the client
+// holds the session id and a random token.
+//
+// Status: open → finishing → finished | flagged | rejected   (finishSession)
+//         open → abandoned | expired                         (abandonSession)
+//         open → expired                                     (cleanupSessions, no signal came)
 
 /** Sessions a player may start per game per hour. */
 export const SESSIONS_PER_HOUR = 60;
-/** A session older than this can no longer be finished. */
-const SESSION_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+/** A session older than this can no longer be finished or abandoned. */
+export const SESSION_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 /** Allowed difference between the run length the client measured and the server's clock. */
 const DURATION_TOLERANCE = 0.1;
 const DURATION_SLACK_MS = 3000;
@@ -48,7 +53,8 @@ export async function startSession(request: CallableRequest<unknown>) {
 
   const token = randomBytes(24).toString('base64url');
   const ref = db().collection('sessions').doc();
-  await ref.set({
+  const batch = db().batch();
+  batch.set(ref, {
     uid: caller.uid,
     gameId,
     tokenHash: hash(token).toString('hex'),
@@ -57,8 +63,85 @@ export async function startSession(request: CallableRequest<unknown>) {
     // Share of sessions that carry a verified App Check token, watched before enforcing.
     appCheck: request.app !== undefined,
   });
-  await countStart(gameId, now);
+  // The game's day and the player's own starts (slice 5.22) count with the session.
+  countStart(batch, caller.uid, gameId, now);
+  await batch.commit();
   return { sessionId: ref.id, token };
+}
+
+const SESSION_ID = /^[A-Za-z0-9]{1,40}$/;
+
+export type AbandonResult = { status: 'abandoned'; seconds: number } | { status: 'expired' };
+
+/**
+ * abandonSession({ sessionId, token, durationMs }) → AbandonResult (slice 5.22). The player left
+ * a run without GHA_END: a new run started, the game page closed or the tab went away (sent with
+ * `fetch(..., { keepalive: true })`). The run's time counts, never a play: the smallest of the
+ * client's visible time, the server's clock and MAX_COUNTED_RUN_MS. Closing and counting happen
+ * in one transaction that only an open session passes, so a run is finished or abandoned, once.
+ */
+export async function abandonSession(request: CallableRequest<unknown>): Promise<AbandonResult> {
+  const caller = await requirePlayer(request);
+  const data = (request.data ?? {}) as Record<string, unknown>;
+  const { sessionId, token, durationMs } = data;
+  if (typeof sessionId !== 'string' || !SESSION_ID.test(sessionId)) {
+    throw fail('invalid-argument', 'session');
+  }
+  if (typeof token !== 'string' || token.length > 64) throw fail('invalid-argument', 'token');
+  if (typeof durationMs !== 'number' || !Number.isFinite(durationMs) || durationMs < 0) {
+    throw fail('invalid-argument', 'duration');
+  }
+
+  const now = Date.now();
+  const sessionRef = db().doc(`sessions/${sessionId}`);
+  return db().runTransaction(async (tx) => {
+    const snapshot = await tx.get(sessionRef);
+    if (!snapshot.exists) throw fail('not-found', 'no-session');
+    if (snapshot.get('uid') !== caller.uid) throw fail('permission-denied', 'not-yours');
+    if (snapshot.get('status') !== 'open') throw fail('failed-precondition', 'closed');
+    const expected = Buffer.from(snapshot.get('tokenHash') as string, 'hex');
+    if (!timingSafeEqual(hash(token), expected)) throw fail('permission-denied', 'bad-token');
+
+    const serverMs = now - (snapshot.get('startedAt') as Timestamp).toMillis();
+    const gameId = snapshot.get('gameId') as string;
+    const closed = { closedAt: Timestamp.fromMillis(now), durationMs, serverDurationMs: serverMs };
+    // Too old to say anything about (like finishSession), or a game that left the catalog.
+    if (serverMs > SESSION_MAX_AGE_MS || !leaderboardGame(gameId)) {
+      tx.update(sessionRef, { status: 'expired', ...closed });
+      return { status: 'expired' };
+    }
+    const seconds = countedSeconds(Math.min(durationMs, serverMs));
+    tx.update(sessionRef, { status: 'abandoned', countedSeconds: seconds, ...closed });
+    countAbandon(tx, caller.uid, gameId, seconds, now);
+    return { status: 'abandoned', seconds };
+  });
+}
+
+/**
+ * cleanupSessions' part (slice 5.22): open sessions older than SESSION_MAX_AGE_MS got neither
+ * GHA_END nor an abandon signal (a crashed tab, a lost connection, a browser without keepalive).
+ * Their play time is unknown, so they count nothing; they are only marked `expired`, so the open
+ * ones are runs that may still end. Returns the number of sessions marked.
+ */
+export async function expireOpenSessions(now = Date.now()): Promise<number> {
+  const stale = db()
+    .collection('sessions')
+    .where('status', '==', 'open')
+    .where('startedAt', '<', Timestamp.fromMillis(now - SESSION_MAX_AGE_MS))
+    .limit(400);
+  let expired = 0;
+  for (;;) {
+    const page = await stale.get();
+    if (page.empty) break;
+    const batch = db().batch();
+    page.docs.forEach((doc) =>
+      batch.update(doc.ref, { status: 'expired', closedAt: Timestamp.fromMillis(now) }),
+    );
+    await batch.commit();
+    expired += page.size;
+    if (page.size < 400) break;
+  }
+  return expired;
 }
 
 export type FinishResult =
@@ -154,7 +237,7 @@ export async function finishSession(request: CallableRequest<unknown>): Promise<
   const { sessionId, token, score, durationMs } = data;
   const continues = data.continues ?? 0;
   const practice = data.practice ?? false;
-  if (typeof sessionId !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(sessionId)) {
+  if (typeof sessionId !== 'string' || !SESSION_ID.test(sessionId)) {
     throw fail('invalid-argument', 'session');
   }
   if (typeof token !== 'string' || token.length > 64) throw fail('invalid-argument', 'token');

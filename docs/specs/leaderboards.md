@@ -161,3 +161,9 @@ Shipped in Phase 2 slice 2.1 ([plan](../plan/phase-2.md)):
   - A flagged practice run earns nothing and is not added to `scoreFlags/` (approving it would rank an Easy score); its flags stay on the session, which records `practice: true`.
   - Boards, ranks and the server best in `GHA_START.config.best` (protocol 2.4) are therefore Normal-only.
   - The game toolbar shows "Easy mode: not ranked" after an Easy run, never a personal best, and keeps it out of the browser's local best.
+- **Started, left and online play (Phase 5 slice 5.22, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)):**
+  - `startSession` also counts `starts` in `users/{uid}/stats/{gameId}`.
+  - A run left without `GHA_END` (a new `GHA_SESSION_START`, another page, a reload of the game, the tab closed) is reported with `abandonSession({ sessionId, token, durationMs })`; on `pagehide` as a `fetch` with `keepalive` and the ID and App Check tokens read ahead. The session closes as `abandoned` in the same transaction that adds `min(visible time, server time, 3 h)` to `abandonedSeconds`; no play, no board, no XP. A finish and an abandon can never both count.
+  - `cleanupSessions` marks sessions still `open` after 6 hours `expired`; nothing is counted for them.
+  - Online matches are counted by the table and room triggers as `onlinePlays` (per human seat) and the day's `onlineStarted`, once per match, never ranked. Their play time is not counted.
+  - `playSeconds` stays the time of finished runs, so vote eligibility and the catalog ranking are unchanged.
