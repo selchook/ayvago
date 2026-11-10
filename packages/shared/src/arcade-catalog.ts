@@ -451,6 +451,29 @@ export const ARCADE_GAMES: SeedGame[] = [
     featured: true,
   }),
   arcadeGame({
+    slug: 'golden-podium',
+    title: { en: 'Golden Podium', tr: 'Altın Kürsü' },
+    description: {
+      en: 'Take on three rivals in five events at the Ayvago Cup: 100 m sprint, 100 m hurdles, long jump, 50 m freestyle and archery. Win medals and points in every event, top the final standings and climb the golden podium!',
+      tr: "Ayvago Kupası'nda beş branşta üç rakibe karşı yarış: 100 m koşu, 100 m engelli, uzun atlama, 50 m serbest yüzme ve okçuluk. Her yarışta madalya ve puan topla, toplamda zirveye çık ve altın kürsüye çık!",
+    },
+    category: 'sports',
+    categories: ['sports', 'arcade', 'action'],
+    tags: ['golden', 'podium', 'retro'],
+    orientation: 'landscape',
+    input: ['touch', 'keyboard', 'mouse'],
+    scoring: {
+      metric: 'points',
+      order: 'desc',
+      format: 'number',
+      label: { en: 'Score', tr: 'Puan' },
+      minDurationMs: 45000,
+      maxPerSecond: 1000,
+      maxScore: 10000,
+    },
+    addedAt: '2026-11-09',
+  }),
+  arcadeGame({
     slug: 'gomoku',
     title: { en: 'Five in a Row', tr: 'Beşli Taş' },
     description: {
@@ -709,7 +732,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['mud', 'rally', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.3.0',
+    version: '1.4.0',
     addedAt: '2026-11-07',
   }),
   arcadeGame({
@@ -769,7 +792,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'okey', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.3.0',
+    version: '1.5.0',
     addedAt: '2026-11-06',
     featured: true,
     multiplayer: 4,
@@ -1028,6 +1051,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['sky', 'road', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.2',
     addedAt: '2026-11-07',
   }),
   arcadeGame({
@@ -1205,14 +1229,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'traffic-racer',
     title: { en: 'Traffic Racer', tr: 'Trafik Yarışçısı' },
     description: {
-      en: 'Weave through busy highway traffic, chain near misses for combos, grab coins and fuel, and drive as far as you can before the tank runs dry!',
-      tr: 'Yoğun otoyolda arabaların arasından sıyrıl, kıl payı geçişlerle kombo yap, altın topla ve benzinin bitmeden gidebildiğin kadar uzağa git!',
+      en: 'Weave through busy highway traffic! Chain near misses for combos, hit the boost to double your points while it drinks your fuel, grab coins and fuel cans and drive as far as you can.',
+      tr: 'Yoğun otoyolda arabaların arasından sıyrıl! Kıl payı geçişlerle kombo yap, turboyla puanını ikiye katla ama benzinin daha hızlı biter. Altın ve benzin bidonu topla, gidebildiğin kadar uzağa git.',
     },
     category: 'arcade',
     categories: ['arcade', 'action', 'retro'],
     tags: ['traffic', 'racer', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
