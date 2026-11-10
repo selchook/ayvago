@@ -1,11 +1,15 @@
-// "Players and plays" report of the admin panel (Phase 5 slice 5.16). The getPlayReport Cloud
-// Function reads the documents and builds the report with buildPlayReport; the web app shows it.
-// Pure, so the aggregation is unit-tested without Firebase.
+// "Players and plays" report of the admin panel (Phase 5 slices 5.16 and 5.22). The getPlayReport
+// Cloud Function reads the documents and builds the report with buildPlayReport; the web app shows
+// it. Pure, so the aggregation is unit-tested without Firebase.
 //
 // Sources:
 //   users/{uid}/stats/{gameId}          per player and game; cleared by the fresh start of slice
 //                                       5.13 (docs/adr/0017-server-best-and-fresh-start.md)
 //   games/{gameId}/daily/{YYYY-MM-DD}   per game and day; kept through the fresh start
+//
+// Slice 5.22 (docs/adr/0022-started-abandoned-and-online-play.md) added started runs per player,
+// online matches and the time of runs left without finishing. Documents written before it simply
+// lack those fields, which read as 0.
 
 /**
  * How a player signed in: "google" (Firebase Auth lists google.com), "registered" (another
@@ -21,47 +25,93 @@ export type PlayerKind = (typeof PLAYER_KINDS)[number];
  */
 export const STATS_SINCE = '2026-11-07';
 
+/**
+ * The day slice 5.22 went live (UTC). From then on the server counts started runs per player,
+ * online matches (per player and per game) and the play time of runs left without finishing.
+ * Numbers before this day do not include them.
+ * Placeholder until the slice is deployed: set it to the deploy day when merging.
+ */
+export const EXTENDED_STATS_SINCE = '2026-11-10';
+
 /** The per-player table lists at most this many players (the most plays first). */
 export const PLAY_REPORT_MAX_PLAYERS = 500;
 
 /** Characters of the uid's end shown to tell players with the same name apart. */
 const TAG_LENGTH = 5;
 
+/** One users/{uid}/stats/{gameId} document. Counters are read with countOf (missing = 0). */
 export type StatsInput = {
   uid: string;
   gameId: string;
-  plays: number;
-  playSeconds: number;
+  /** Finished solo runs (GHA_END) and their time. */
+  plays: unknown;
+  playSeconds: unknown;
+  /** Solo runs started (slice 5.22). */
+  starts?: unknown;
+  /** Time of solo runs left without GHA_END (slice 5.22). */
+  abandonedSeconds?: unknown;
+  /** Online matches (tables, rooms) the player sat in (slice 5.22). */
+  onlinePlays?: unknown;
   /** Epoch milliseconds, or null when missing. */
   lastPlayedAt: number | null;
 };
 
+/** One games/{gameId}/daily/{day} document. */
 export type DailyInput = {
   gameId: string;
   /** YYYY-MM-DD */
   day: string;
-  started: number;
-  finished: number;
-  playSeconds: number;
+  started: unknown;
+  finished: unknown;
+  playSeconds: unknown;
+  /** Slice 5.22. */
+  abandonedSeconds?: unknown;
+  /** Online matches started (slice 5.22). */
+  onlineStarted?: unknown;
 };
 
 export type ProfileInput = { username: string | null; kind: Exclude<PlayerKind, 'unknown'> };
 
 export type KindCounts = Record<PlayerKind, number>;
 
-export type KindSummary = {
+/** Counters of one player, one game or one player kind. */
+export type PlayCounts = {
+  /** Solo runs started (per player since EXTENDED_STATS_SINCE). */
+  starts: number;
+  /** Finished solo runs. */
+  plays: number;
+  /** Online matches. */
+  onlinePlays: number;
+  /** Time of finished solo runs. */
+  playSeconds: number;
+  /** Time of solo runs left without finishing. */
+  abandonedSeconds: number;
+  /** playSeconds + abandonedSeconds (online play time is not counted). */
+  totalSeconds: number;
+};
+
+export type KindSummary = PlayCounts & {
   /** Profiles of this kind (null for "unknown", which has none by definition). */
   profiles: number | null;
   /** Players of this kind with at least one stats document. */
   players: number;
-  plays: number;
+};
+
+/** Sums of games/{gameId}/daily over a range of days. */
+export type DailyTotals = {
+  started: number;
+  finished: number;
   playSeconds: number;
+  abandonedSeconds: number;
+  onlineStarted: number;
 };
 
 export type GameReport = {
   gameId: string;
   /** Sums of games/{gameId}/daily: everything since launch. */
-  allTime: { started: number; finished: number; playSeconds: number };
+  allTime: DailyTotals;
+  /** Sums of games/{gameId}/daily from STATS_SINCE on (UTC days). */
+  window: DailyTotals;
   /** Since STATS_SINCE, from users/{uid}/stats/{gameId}. */
   plays: number;
   playSeconds: number;
@@ -69,28 +119,31 @@ export type GameReport = {
   playersByKind: KindCounts;
 };
 
-export type PlayerReport = {
+export type PlayerGame = PlayCounts & { gameId: string };
+
+export type PlayerReport = PlayCounts & {
   /** The end of the uid, never the whole uid. */
   tag: string;
   username: string | null;
   kind: PlayerKind;
-  plays: number;
-  playSeconds: number;
+  /** The last start, finish, abandoned run or online match. */
   lastPlayedAt: number | null;
   /** Most played first. */
-  games: { gameId: string; plays: number; playSeconds: number }[];
+  games: PlayerGame[];
 };
 
 export type PlayReport = {
   generatedAt: number;
   /** First day of the per-player numbers (the fresh start). */
   statsSince: string;
+  /** First day of per-player starts, online matches and abandoned-run time (slice 5.22). */
+  extendedSince: string;
   /** Earliest day in games/{gameId}/daily, null without any. */
   allTimeSince: string | null;
   summary: Record<PlayerKind, KindSummary>;
-  /** Most finished runs of all time first. */
+  /** Most finished runs and online matches of all time first. */
   games: GameReport[];
-  /** Most plays first, at most PLAY_REPORT_MAX_PLAYERS. */
+  /** Most plays (finished and online) first, at most PLAY_REPORT_MAX_PLAYERS. */
   players: PlayerReport[];
   /** Players with stats in total, and how many of them the list leaves out. */
   playerCount: number;
@@ -110,9 +163,61 @@ export type PlayReportInput = {
 
 const zeroKinds = (): KindCounts => ({ google: 0, registered: 0, guest: 0, unknown: 0 });
 
+const zeroCounts = (): PlayCounts => ({
+  starts: 0,
+  plays: 0,
+  onlinePlays: 0,
+  playSeconds: 0,
+  abandonedSeconds: 0,
+  totalSeconds: 0,
+});
+
+const zeroDaily = (): DailyTotals => ({
+  started: 0,
+  finished: 0,
+  playSeconds: 0,
+  abandonedSeconds: 0,
+  onlineStarted: 0,
+});
+
 /** A count read from Firestore: a finite, non-negative number, else 0. */
 export const countOf = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
+
+/** The counters of one stats document; fields from before slice 5.22 are missing and read 0. */
+export function statsCounts(stat: StatsInput): PlayCounts {
+  const playSeconds = countOf(stat.playSeconds);
+  const abandonedSeconds = countOf(stat.abandonedSeconds);
+  return {
+    starts: countOf(stat.starts),
+    plays: countOf(stat.plays),
+    onlinePlays: countOf(stat.onlinePlays),
+    playSeconds,
+    abandonedSeconds,
+    totalSeconds: playSeconds + abandonedSeconds,
+  };
+}
+
+function addCounts(to: PlayCounts, from: PlayCounts) {
+  to.starts += from.starts;
+  to.plays += from.plays;
+  to.onlinePlays += from.onlinePlays;
+  to.playSeconds += from.playSeconds;
+  to.abandonedSeconds += from.abandonedSeconds;
+  to.totalSeconds += from.totalSeconds;
+}
+
+function addDaily(to: DailyTotals, day: DailyInput) {
+  to.started += countOf(day.started);
+  to.finished += countOf(day.finished);
+  to.playSeconds += countOf(day.playSeconds);
+  to.abandonedSeconds += countOf(day.abandonedSeconds);
+  to.onlineStarted += countOf(day.onlineStarted);
+}
+
+/** Order of players and of a player's games: plays (finished and online), then starts. */
+const byActivity = (a: PlayCounts, b: PlayCounts) =>
+  b.plays + b.onlinePlays - (a.plays + a.onlinePlays) || b.starts - a.starts;
 
 export function buildPlayReport(input: PlayReportInput): PlayReport {
   const maxPlayers = input.maxPlayers ?? PLAY_REPORT_MAX_PLAYERS;
@@ -124,7 +229,8 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
     if (!row) {
       row = {
         gameId,
-        allTime: { started: 0, finished: 0, playSeconds: 0 },
+        allTime: zeroDaily(),
+        window: zeroDaily(),
         plays: 0,
         playSeconds: 0,
         playsByKind: zeroKinds(),
@@ -139,21 +245,20 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
   let allTimeSince: string | null = null;
   for (const day of input.daily) {
     const row = game(day.gameId);
-    row.allTime.started += countOf(day.started);
-    row.allTime.finished += countOf(day.finished);
-    row.allTime.playSeconds += countOf(day.playSeconds);
+    addDaily(row.allTime, day);
+    // YYYY-MM-DD strings compare like the days they name.
+    if (day.day >= STATS_SINCE) addDaily(row.window, day);
     if (allTimeSince === null || day.day < allTimeSince) allTimeSince = day.day;
   }
 
   const players = new Map<string, PlayerReport>();
   for (const stat of input.stats) {
-    const plays = countOf(stat.plays);
-    const seconds = countOf(stat.playSeconds);
+    const counts = statsCounts(stat);
     const kind = kindOf(stat.uid);
     const row = game(stat.gameId);
-    row.plays += plays;
-    row.playSeconds += seconds;
-    row.playsByKind[kind] += plays;
+    row.plays += counts.plays;
+    row.playSeconds += counts.playSeconds;
+    row.playsByKind[kind] += counts.plays;
     row.players[kind].add(stat.uid);
 
     let player = players.get(stat.uid);
@@ -162,19 +267,17 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
         tag: stat.uid.slice(-TAG_LENGTH),
         username: input.profiles.get(stat.uid)?.username ?? null,
         kind,
-        plays: 0,
-        playSeconds: 0,
+        ...zeroCounts(),
         lastPlayedAt: null,
         games: [],
       };
       players.set(stat.uid, player);
     }
-    player.plays += plays;
-    player.playSeconds += seconds;
+    addCounts(player, counts);
     if (stat.lastPlayedAt !== null && (player.lastPlayedAt ?? -Infinity) < stat.lastPlayedAt) {
       player.lastPlayedAt = stat.lastPlayedAt;
     }
-    player.games.push({ gameId: stat.gameId, plays, playSeconds: seconds });
+    player.games.push({ gameId: stat.gameId, ...counts });
   }
 
   const summary = Object.fromEntries(
@@ -183,22 +286,20 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
       {
         profiles: kind === 'unknown' ? null : input.profileTotals[kind],
         players: 0,
-        plays: 0,
-        playSeconds: 0,
+        ...zeroCounts(),
       },
     ]),
   ) as Record<PlayerKind, KindSummary>;
   for (const player of players.values()) {
     const row = summary[player.kind];
     row.players += 1;
-    row.plays += player.plays;
-    row.playSeconds += player.playSeconds;
-    player.games.sort((a, b) => b.plays - a.plays || a.gameId.localeCompare(b.gameId));
+    addCounts(row, player);
+    player.games.sort((a, b) => byActivity(a, b) || a.gameId.localeCompare(b.gameId));
   }
 
   const sortedPlayers = [...players.values()].sort(
     (a, b) =>
-      b.plays - a.plays ||
+      byActivity(a, b) ||
       (b.lastPlayedAt ?? 0) - (a.lastPlayedAt ?? 0) ||
       a.tag.localeCompare(b.tag),
   );
@@ -206,6 +307,7 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
   return {
     generatedAt: input.now,
     statsSince: STATS_SINCE,
+    extendedSince: EXTENDED_STATS_SINCE,
     allTimeSince,
     summary,
     games: [...games.values()]
@@ -217,7 +319,9 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
       }))
       .sort(
         (a, b) =>
-          b.allTime.finished - a.allTime.finished ||
+          b.allTime.finished +
+            b.allTime.onlineStarted -
+            (a.allTime.finished + a.allTime.onlineStarted) ||
           b.plays - a.plays ||
           a.gameId.localeCompare(b.gameId),
       ),

@@ -11,7 +11,8 @@ import {
 import { auth, db } from './admin';
 import { requireAdmin } from './roles';
 
-// "Players and plays" report for the admin panel (Phase 5 slice 5.16), computed on demand.
+// "Players and plays" report for the admin panel (Phase 5 slices 5.16 and 5.22), computed on
+// demand.
 //
 // Reads (one run), with P = players with stats, R = registered (non-guest) profiles,
 // S = stats documents, D = daily documents (games × days played):
@@ -49,6 +50,9 @@ async function readStats(): Promise<StatsInput[]> {
       gameId: doc.id,
       plays: doc.get('plays'),
       playSeconds: doc.get('playSeconds'),
+      starts: doc.get('starts'),
+      abandonedSeconds: doc.get('abandonedSeconds'),
+      onlinePlays: doc.get('onlinePlays'),
       lastPlayedAt: millis(doc.get('lastPlayedAt')),
     });
   }
@@ -71,6 +75,8 @@ async function readDaily(): Promise<DailyInput[]> {
       started: doc.get('started'),
       finished: doc.get('finished'),
       playSeconds: doc.get('playSeconds'),
+      abandonedSeconds: doc.get('abandonedSeconds'),
+      onlineStarted: doc.get('onlineStarted'),
     });
   }
   return out;

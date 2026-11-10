@@ -113,7 +113,7 @@ async function main() {
     '',
     table('XP and achievements (current)', byProgress, KINDS),
     '',
-    `Sessions in the window: ${sessions.size}. Status "finished" means the run was accepted (it reached the leaderboards unless it was a practice run on Easy); "flagged" waits for review in /admin; "rejected" failed the checks; "open" was never finished.`,
+    `Sessions in the window: ${sessions.size}. Status "finished" means the run was accepted (it reached the leaderboards unless it was a practice run on Easy); "flagged" waits for review in /admin; "rejected" failed the checks; "abandoned" was left without finishing and its play time counted (slice 5.22); "expired" was never finished and got no signal, so nothing was counted; "open" is still running or not yet expired.`,
   ].join('\n');
   console.log(out);
   if (process.env.GITHUB_STEP_SUMMARY)

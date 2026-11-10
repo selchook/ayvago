@@ -259,3 +259,9 @@
 .top td {
   vertical-align: top;
 }
+
+/* Columns counted only since slice 5.22 (play report); the note above the tables explains it. */
+.mark {
+  color: var(--text-muted);
+  margin-inline-start: 1px;
+}

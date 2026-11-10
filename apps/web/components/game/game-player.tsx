@@ -190,6 +190,8 @@ export function GamePlayer(props: GamePlayerProps) {
         case 'sessionStart':
           // Online rounds are not ranked: the leaderboards are for solo runs.
           if (match) break;
+          // A run still open never reached GHA_END: its time counts, not a play (slice 5.22).
+          runRef.current?.abandon();
           runRef.current = beginRun(gameId, identityRef.current);
           runStartedRef.current = Date.now();
           setRunResult(null);
@@ -224,6 +226,9 @@ export function GamePlayer(props: GamePlayerProps) {
               const earned = runProgress(finished);
               if (earned) applyProgress(earned);
             });
+          } else {
+            // An end without a score: the run's time still counts.
+            run?.abandon();
           }
           if (shouldPromptVote(slug, Date.now() - runStartedRef.current)) setVotePrompt(true);
           break;
@@ -243,6 +248,21 @@ export function GamePlayer(props: GamePlayerProps) {
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder, match]);
+
+  // Leaving the game page (another route, the component goes away) leaves the open run; closing
+  // or reloading the tab does too, through a keepalive request (slice 5.22).
+  useEffect(() => {
+    function onPageHide() {
+      runRef.current?.abandon({ pageExit: true });
+      runRef.current = null;
+    }
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      runRef.current?.abandon();
+      runRef.current = null;
+    };
+  }, []);
 
   // An online match opens the game straight away; it still counts as a play.
   useEffect(() => {
@@ -318,6 +338,7 @@ export function GamePlayer(props: GamePlayerProps) {
     setConnected(false);
     setResult(null);
     setRunResult(null);
+    runRef.current?.abandon();
     runRef.current = null;
     setProgress(null);
     setPhase('loading');
@@ -328,6 +349,9 @@ export function GamePlayer(props: GamePlayerProps) {
   }
 
   function reload() {
+    // A new game window: the run in the old one is left.
+    runRef.current?.abandon();
+    runRef.current = null;
     startRef.current = null;
     setConnected(false);
     setProgress(null);

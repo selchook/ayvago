@@ -1,6 +1,6 @@
 'use client';
 
-import { PLAYER_KINDS, type PlayerKind, type PlayReport } from '@ayvago/shared';
+import { PLAYER_KINDS, type PlayerGame, type PlayerKind, type PlayReport } from '@ayvago/shared';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { downloadCsv } from '@/lib/admin/csv';
@@ -9,7 +9,8 @@ import { playReport } from '@/lib/admin/queries';
 import styles from './admin.module.css';
 
 /**
- * "Players and plays" (slice 5.16): who played, by player kind, and which games how often.
+ * "Players and plays" (slices 5.16 and 5.22): who played, by player kind, and which games how
+ * often: runs started, finished and left, online matches and play time.
  * Built by the getPlayReport function only when the admin asks for it.
  */
 export function PlayReportPanel({ titles }: { titles: Record<string, string> }) {
@@ -85,7 +86,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
   const format = useFormatter();
   const title = (gameId: string) => titles[gameId] ?? gameId;
   const kind = (k: PlayerKind) => t(`kinds.${k}`);
-  // statsSince and allTimeSince are UTC days
+  // statsSince, extendedSince and allTimeSince are UTC days
   const day = (iso: string) =>
     format.dateTime(new Date(`${iso}T00:00:00Z`), { dateStyle: 'medium', timeZone: 'UTC' });
   const duration = (seconds: number) => {
@@ -93,21 +94,39 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
     return hours > 0 ? t('duration.hours', { hours, minutes }) : t('duration.minutes', { minutes });
   };
   const n = (value: number) => format.number(value);
-  const gameLine = (g: { gameId: string; plays: number }) =>
-    t('players.gameLine', { game: title(g.gameId), count: g.plays });
+  // "Okey · online × 7"; runs that were only started show how many, so no line reads "× 0".
+  const gameLine = (g: PlayerGame) =>
+    t('players.gameLine', {
+      game: title(g.gameId),
+      finished: g.plays,
+      online: g.onlinePlays,
+      started: g.plays === 0 && g.onlinePlays === 0 ? g.starts : 0,
+    });
 
   const since = day(report.statsSince);
+  const extended = day(report.extendedSince);
+  // Columns counted only from slice 5.22 on carry this mark; the note below the ranges explains it.
+  const later = (label: string) => (
+    <>
+      {label}
+      <span className={styles.mark} aria-hidden="true">
+        *
+      </span>
+    </>
+  );
   const totals = PLAYER_KINDS.reduce(
     (sum, k) => {
       const row = report.summary[k];
       return {
         profiles: sum.profiles + (row.profiles ?? 0),
         players: sum.players + row.players,
+        starts: sum.starts + row.starts,
         plays: sum.plays + row.plays,
-        playSeconds: sum.playSeconds + row.playSeconds,
+        onlinePlays: sum.onlinePlays + row.onlinePlays,
+        totalSeconds: sum.totalSeconds + row.totalSeconds,
       };
     },
-    { profiles: 0, players: 0, plays: 0, playSeconds: 0 },
+    { profiles: 0, players: 0, starts: 0, plays: 0, onlinePlays: 0, totalSeconds: 0 },
   );
 
   function downloadGames() {
@@ -119,6 +138,13 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
         allTimeFinished: t('csv.allTimeFinished'),
         allTimeStarted: t('csv.allTimeStarted'),
         allTimeSeconds: t('csv.allTimeSeconds'),
+        allTimeAbandonedSeconds: t('csv.allTimeAbandonedSeconds'),
+        allTimeOnline: t('csv.allTimeOnline'),
+        windowStarted: t('csv.windowStarted', { since }),
+        windowFinished: t('csv.windowFinished', { since }),
+        windowOnline: t('csv.windowOnline', { since }),
+        windowSeconds: t('csv.windowSeconds', { since }),
+        windowAbandonedSeconds: t('csv.windowAbandonedSeconds', { since }),
         plays: t('games.plays', { since }),
         seconds: t('csv.seconds', { since }),
         playsByKind: byKind((k) => t('csv.playsKind', { kind: kind(k) })),
@@ -130,13 +156,17 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
   function downloadPlayers() {
     downloadCsv(
       `ayvago-players-${report.statsSince}-${fileStamp(report.generatedAt)}.csv`,
-      playerCsvRows(report, title, kind, t('players.noName'), {
+      playerCsvRows(report, gameLine, kind, t('players.noName'), {
         rank: t('players.rank'),
         player: t('players.player'),
         tag: t('csv.tag'),
         kind: t('players.kind'),
+        starts: t('csv.starts', { extended }),
         plays: t('players.plays'),
+        online: t('csv.online', { extended }),
         seconds: t('csv.playerSeconds'),
+        abandonedSeconds: t('csv.abandonedSeconds', { extended }),
+        totalSeconds: t('csv.totalSeconds'),
         lastPlayed: t('csv.lastPlayed'),
         games: t('players.games'),
       }),
@@ -149,6 +179,9 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
         {report.allTimeSince
           ? t('ranges', { since, allTime: day(report.allTimeSince) })
           : t('rangesNoAllTime', { since })}
+      </p>
+      <p className={styles.note} data-testid="report-extended">
+        {t('extendedNote', { extended })}
       </p>
       <p className={styles.note}>{t('kindsNote')}</p>
 
@@ -163,7 +196,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
               <th scope="col" rowSpan={2} className={styles.num}>
                 {t('summary.profiles')}
               </th>
-              <th scope="colgroup" colSpan={3} className={styles.group}>
+              <th scope="colgroup" colSpan={5} className={styles.group}>
                 {t('games.sinceGroup', { since })}
               </th>
             </tr>
@@ -172,7 +205,13 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 {t('summary.players')}
               </th>
               <th scope="col" className={styles.num}>
+                {later(t('summary.starts'))}
+              </th>
+              <th scope="col" className={styles.num}>
                 {t('summary.plays')}
+              </th>
+              <th scope="col" className={styles.num}>
+                {later(t('summary.online'))}
               </th>
               <th scope="col" className={styles.num}>
                 {t('summary.time')}
@@ -187,8 +226,10 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                   <th scope="row">{kind(k)}</th>
                   <td className={styles.num}>{row.profiles === null ? '–' : n(row.profiles)}</td>
                   <td className={styles.num}>{n(row.players)}</td>
+                  <td className={styles.num}>{n(row.starts)}</td>
                   <td className={styles.num}>{n(row.plays)}</td>
-                  <td className={styles.num}>{duration(row.playSeconds)}</td>
+                  <td className={styles.num}>{n(row.onlinePlays)}</td>
+                  <td className={styles.num}>{duration(row.totalSeconds)}</td>
                 </tr>
               );
             })}
@@ -198,8 +239,10 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
               <th scope="row">{t('summary.total')}</th>
               <td className={styles.num}>{n(totals.profiles)}</td>
               <td className={styles.num}>{n(totals.players)}</td>
+              <td className={styles.num}>{n(totals.starts)}</td>
               <td className={styles.num}>{n(totals.plays)}</td>
-              <td className={styles.num}>{duration(totals.playSeconds)}</td>
+              <td className={styles.num}>{n(totals.onlinePlays)}</td>
+              <td className={styles.num}>{duration(totals.totalSeconds)}</td>
             </tr>
           </tfoot>
         </table>
@@ -226,7 +269,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 <th scope="colgroup" colSpan={2} className={styles.group}>
                   {t('games.allTime', { allTime: day(report.allTimeSince ?? report.statsSince) })}
                 </th>
-                <th scope="colgroup" colSpan={2} className={styles.group}>
+                <th scope="colgroup" colSpan={4} className={styles.group}>
                   {t('games.sinceGroup', { since })}
                 </th>
                 <th scope="colgroup" colSpan={PLAYER_KINDS.length} className={styles.group}>
@@ -241,7 +284,13 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                   {t('games.allTimeStarts')}
                 </th>
                 <th scope="col" className={styles.num}>
-                  {t('games.playsShort')}
+                  {t('games.starts')}
+                </th>
+                <th scope="col" className={styles.num}>
+                  {t('games.finished')}
+                </th>
+                <th scope="col" className={styles.num}>
+                  {later(t('games.online'))}
                 </th>
                 <th scope="col" className={styles.num}>
                   {t('games.time')}
@@ -259,8 +308,12 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                   <th scope="row">{title(g.gameId)}</th>
                   <td className={styles.num}>{n(g.allTime.finished)}</td>
                   <td className={styles.num}>{n(g.allTime.started)}</td>
-                  <td className={styles.num}>{n(g.plays)}</td>
-                  <td className={styles.num}>{duration(g.playSeconds)}</td>
+                  <td className={styles.num}>{n(g.window.started)}</td>
+                  <td className={styles.num}>{n(g.window.finished)}</td>
+                  <td className={styles.num}>{n(g.window.onlineStarted)}</td>
+                  <td className={styles.num}>
+                    {duration(g.window.playSeconds + g.window.abandonedSeconds)}
+                  </td>
                   {PLAYER_KINDS.map((k) => (
                     <td key={k} className={styles.num}>
                       {n(g.playersByKind[k])}
@@ -302,7 +355,13 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 <th scope="col">{t('players.player')}</th>
                 <th scope="col">{t('players.kind')}</th>
                 <th scope="col" className={styles.num}>
+                  {later(t('players.starts'))}
+                </th>
+                <th scope="col" className={styles.num}>
                   {t('players.plays')}
+                </th>
+                <th scope="col" className={styles.num}>
+                  {later(t('players.online'))}
                 </th>
                 <th scope="col" className={styles.num}>
                   {t('players.time')}
@@ -319,8 +378,10 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                     {p.username ?? t('players.noName')} <span className={styles.tag}>#{p.tag}</span>
                   </th>
                   <td>{kind(p.kind)}</td>
+                  <td className={styles.num}>{n(p.starts)}</td>
                   <td className={styles.num}>{n(p.plays)}</td>
-                  <td className={styles.num}>{duration(p.playSeconds)}</td>
+                  <td className={styles.num}>{n(p.onlinePlays)}</td>
+                  <td className={styles.num}>{duration(p.totalSeconds)}</td>
                   <td>
                     {p.lastPlayedAt === null
                       ? '–'

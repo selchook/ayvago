@@ -151,7 +151,7 @@ Firestore has no joins and bills per document read, so frequently read data is *
 |---|---|---|
 | `users/{uid}` | Public profile: `username`, `avatarId`, `characterId`, `theme`, `locale`, `xp`, `level`, `country`, `isGuest`, `createdAt` | Owner (restricted fields) |
 | `users/{uid}/private/account` | `birthYear`, notification preferences, consent record | Owner |
-| `users/{uid}/stats/{gameId}` | `bestScore`, `plays`, `playSeconds`, `lastPlayedAt` | **Functions only** |
+| `users/{uid}/stats/{gameId}` | `bestScore`, `plays`, `playSeconds`, `lastPlayedAt`; since slice 5.22 `starts`, `abandonedSeconds`, `onlinePlays`, `lastOnlineMatch` ([ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) | **Functions only** |
 | `users/{uid}/progress/summary` | XP, level, achievements and the counters behind them (`runs`, `games`, `categories`, `bests`, `playSeconds`, `top10`, `champion`, daily XP caps); `xp` and `level` are copied onto `users/{uid}` ([ADR 0016](../adr/0016-achievements-and-xp.md)) | **Functions only** |
 | `users/{uid}/favorites/{gameId}` | Favorite | Owner |
 | `users/{uid}/recentPlayers/{otherUid}` ✅ | People the player shared a table or a two-player room with: `uid`, `name`, `character`, `gameId`, `slug`, `lastPlayedAt`, `count`; newest 30 ([ADR 0021](../adr/0021-site-presence-recent-players.md)) | **Functions only** (owner reads) |
@@ -202,8 +202,9 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 
 | Function | Type | Purpose |
 |---|---|---|
-| `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored) |
+| `startSession` ✅ | Callable (App Check; enforcement switched in the admin panel) | Creates the session document and a random token (hash stored); since slice 5.22 counts the player's `starts` in `users/{uid}/stats/{gameId}` in the same batch ([ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) |
 | `finishSession` ✅ | Callable | Validates the score; updates `entries` and `top`, or flags it for review; awards XP, levels and achievements in the same transaction (`users/{uid}/progress/summary`, slice 5.2, [ADR 0016](../adr/0016-achievements-and-xp.md)); each board in the result carries the `previous` best, so the toolbar's personal best follows the server (slice 5.13, [ADR 0017](../adr/0017-server-best-and-fresh-start.md)); `practice: true` (an Easy run, protocol 2.6) is validated the same way but writes no board and earns reduced XP (5 per run, no bonuses), returning `{ status: 'practice', progress }` (slice 5.15, [ADR 0018](../adr/0018-difficulty-easy-is-practice.md)) |
+| `abandonSession` ✅ | Callable (App Check like `startSession`) | A run left without `GHA_END` (new run, another page, tab closed with a `keepalive` request): closes the session as `abandoned` and adds `min(visible time, server time, 3 h)` to `abandonedSeconds`, never a play; one transaction, so a run is finished or abandoned once (slice 5.22, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
 | `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore` and the trending-today `todayScore` (finished runs in about the last 24 hours, lightly weighted by votes; slice 5.17), `rankings/catalog` |
@@ -215,13 +216,13 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
-| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress; since slice 5.21 recent players); guest cleanup (30 days); score session cleanup (14 days) |
+| `mergeGuestAccount` ✅ · `cleanupGuests` ✅ · `cleanupSessions` ✅ | Callable · Scheduled · Scheduled | Guest merge (library, scores and, since slice 5.2, progress; since slice 5.21 recent players); guest cleanup (30 days); score session cleanup (14 days; since slice 5.22 also marks `open` sessions older than 6 hours `expired`, counting nothing) |
 | `cleanupRooms` ✅ | Scheduled (hourly) | Removes rooms and tables older than two hours with their signaling, relay and move data; since slice 5.18 also stale lobby entries, invites and invite quotas, since slice 5.19 old quick-play pointers |
-| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)); since slice 5.19 with the table's settings and auto start; since slice 5.21 records the players' recent players when a table starts ([ADR 0021](../adr/0021-site-presence-recent-players.md)) |
-| `recordRoomPlayers` ✅ | RTDB trigger (`rooms/{code}/guestUid` created) | Records both players of a two-player room in each other's `users/{uid}/recentPlayers` once the guest seat is taken; keeps the newest 30 (slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md)) |
+| `syncLobbyTable` ✅ | RTDB trigger (`tables/{code}` written) | Keeps the public table list `lobby/{gameId}/tables/{code}` (no uids) in step with every public table (slice 5.18, [ADR 0019](../adr/0019-table-lobby-presence-invites.md)); since slice 5.19 with the table's settings and auto start; since slice 5.21 records the players' recent players when a table starts ([ADR 0021](../adr/0021-site-presence-recent-players.md)); since slice 5.22 counts an online match for every human seat (`onlinePlays`, the day's `onlineStarted`; never ranked, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) |
+| `recordRoomPlayers` ✅ | RTDB trigger (`rooms/{code}/guestUid` created) | Records both players of a two-player room in each other's `users/{uid}/recentPlayers` once the guest seat is taken; keeps the newest 30 (slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md)); since slice 5.22 counts the match for both players (`onlinePlays`, never ranked) |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
-| `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16) |
+| `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16); since slice 5.22 also starts, online matches and the time of left runs |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
 
@@ -322,6 +323,7 @@ GHA.track(event, props)                                   // forwarded to Google
 1. GHA_READY            → platform: startSession() callable → { sessionId, token }
 2. GHA_END {score, difficulty?} → platform checks origin/source
 3. finishSession({ sessionId, token, score, durationMs, practice? })   practice = difficulty 'easy'
+   (or abandonSession({ sessionId, token, durationMs }) when the run is left: time only, ADR 0022)
 4. Function checks: session belongs to this uid and is open · duration ≥ minDurationMs ·
    score ≤ maxPerSecond × duration · score ≤ maxScore · per-uid rate limit · App Check token
 5. Pass: stats + entries (all/week/day) + top[] if needed, in one transaction
@@ -542,6 +544,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Quick play, table settings (hands, turn time, bots) and host hand-over; auto-starting tables; protocol 2.7 (`config.table`, `GHA_HOST_CHANGE`) (slice 5.19, [ADR 0020](../adr/0020-quick-play-settings-host-handover.md))
 - [x] "Leave table" button with a confirmation: frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (slice 5.20)
 - [x] Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, recent table and room partners on the lobby and the profile, invites to anyone online with the notification on every page (`recordRoomPlayers`, slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md))
+- [x] The "Players and plays" report counts started runs per player, online matches (never ranked) and the play time of runs left without finishing (`abandonSession`, slice 5.22, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

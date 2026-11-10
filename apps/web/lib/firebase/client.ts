@@ -1,6 +1,7 @@
 // Lazily loaded Firebase services. The SDK is only downloaded in the browser when account
 // features are first needed, so catalog pages stay light.
 import type { FirebaseApp } from 'firebase/app';
+import type { AppCheck } from 'firebase/app-check';
 import type { Auth } from 'firebase/auth';
 import type { Database } from 'firebase/database';
 import type { Firestore } from 'firebase/firestore';
@@ -12,6 +13,7 @@ let authPromise: Promise<Auth> | null = null;
 let firestorePromise: Promise<Firestore> | null = null;
 let functionsPromise: Promise<Functions> | null = null;
 let databasePromise: Promise<Database> | null = null;
+let appCheck: AppCheck | null = null;
 
 export function firebaseEnabled(): boolean {
   return readFirebaseConfig() !== null;
@@ -37,7 +39,7 @@ async function startAppCheck(app: FirebaseApp) {
   if (!APP_CHECK_SITE_KEY || USE_EMULATORS) return;
   try {
     const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
-    initializeAppCheck(app, {
+    appCheck = initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
       isTokenAutoRefreshEnabled: true,
     });
@@ -70,15 +72,54 @@ export function loadFirestore(): Promise<Firestore> {
 }
 
 // Cloud Functions live in europe-west1 (firebase/functions).
+const FUNCTIONS_REGION = 'europe-west1';
+
 export function loadFunctions(): Promise<Functions> {
   functionsPromise ??= Promise.all([loadApp(), import('firebase/functions')]).then(
     ([app, { getFunctions, connectFunctionsEmulator }]) => {
-      const functions = getFunctions(app, 'europe-west1');
+      const functions = getFunctions(app, FUNCTIONS_REGION);
       if (USE_EMULATORS) connectFunctionsEmulator(functions, '127.0.0.1', 5001);
       return functions;
     },
   );
   return functionsPromise;
+}
+
+/**
+ * The URL of a callable function, for a request the SDK cannot make: one that must outlive the
+ * page (`fetch(..., { keepalive: true })` on pagehide, slice 5.22). The SDK uses the same URL.
+ */
+export function callableUrl(name: string): string | null {
+  const config = readFirebaseConfig();
+  if (!config) return null;
+  return USE_EMULATORS
+    ? `http://127.0.0.1:5001/${config.projectId}/${FUNCTIONS_REGION}/${name}`
+    : `https://${FUNCTIONS_REGION}-${config.projectId}.cloudfunctions.net/${name}`;
+}
+
+/**
+ * The headers the callable SDK would send for the signed-in player: the ID token and, when App
+ * Check runs, its token. Read ahead of time, because a page that is going away cannot wait for
+ * them. Null when nobody is signed in.
+ */
+export async function callableHeaders(): Promise<Record<string, string> | null> {
+  const auth = await loadAuth();
+  const user = auth.currentUser;
+  if (!user) return null;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${await user.getIdToken()}`,
+  };
+  if (appCheck) {
+    try {
+      const { getToken } = await import('firebase/app-check');
+      headers['X-Firebase-AppCheck'] = (await getToken(appCheck)).token;
+    } catch (error) {
+      // Like the SDK: the call goes without it and the function's App Check mode decides.
+      console.warn('[firebase] App Check token not available', error);
+    }
+  }
+  return headers;
 }
 
 // Realtime Database: online match rooms, WebRTC signaling and the fallback relay
