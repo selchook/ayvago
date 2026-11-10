@@ -93,3 +93,17 @@ export async function invitePlayer(input: {
   }
   return 'pending';
 }
+
+/**
+ * The sender left the table (slice 5.20): invites to it that are still open are taken back, so
+ * nobody joins a table to play with someone who is gone.
+ */
+export function withdrawInvites(from: string, tableCode: string): void {
+  for (const invite of Object.values(invites)) {
+    if (invite.tableCode !== tableCode || invite.status !== 'pending') continue;
+    stops.get(invite.to)?.();
+    stops.delete(invite.to);
+    set(invite.to, null);
+    deleteInvite(invite.to, from).catch(() => undefined);
+  }
+}
