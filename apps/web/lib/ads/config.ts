@@ -9,7 +9,9 @@ export const ADSENSE_CLIENT = readClient(process.env.NEXT_PUBLIC_ADSENSE_CLIENT)
 export const ADSENSE_BANNER_SLOT = readSlot(process.env.NEXT_PUBLIC_ADSENSE_BANNER_SLOT);
 
 /** The contact for privacy and KVKK requests shown on the privacy page. Optional. */
-export const PRIVACY_CONTACT = (process.env.NEXT_PUBLIC_PRIVACY_CONTACT ?? '').trim();
+/** The privacy contact; `NEXT_PUBLIC_PRIVACY_CONTACT` overrides the owner's default address. */
+export const PRIVACY_CONTACT =
+  (process.env.NEXT_PUBLIC_PRIVACY_CONTACT ?? '').trim() || 'ayvagogames@gmail.com';
 
 function readClient(value: string | undefined): string {
   const id = (value ?? '').trim();
