@@ -917,7 +917,9 @@
       "allow": "Kişiselleştirilmiş reklamlara izin ver",
       "deny": "Yalnızca kişiselleştirilmemiş",
       "saved": "Tercihiniz kaydedildi.",
-      "note": "Tercih bu tarayıcıda saklanır."
+      "note": "Tercih bu tarayıcıda saklanır.",
+      "google": "Bulunduğunuz bölgede reklam izni Google'ın izin mesajıyla yönetilir. İzninizi orada istediğiniz zaman gözden geçirebilir veya geri alabilirsiniz.",
+      "googleButton": "Gizlilik ve çerez ayarları"
     }
   },
   "privacy": {
@@ -939,7 +941,7 @@
     "ads": {
       "title": "Reklamlar",
       "p1": "Reklamlar Ayvago'nun ücretsiz kalmasını sağlar. Reklamları Google AdSense (H5 Games Ads) aracılığıyla Ayvago sayfasının kendisi gösterir; oyunlar kendi başına reklam göstermez. Üç tür reklam vardır: bir oyunda ödül kazanmak için izlemeyi kendiniz seçtiğiniz ödüllü reklamlar, oyunlar arasındaki kısa reklamlar ve büyük ekranlarda yan sütundaki bir banner. Oyun oynarken ya da çevrim içi maçlarda hiçbir zaman reklam gösterilmez.",
-      "p2": "Siz izin verene kadar Google'dan kişiselleştirilmemiş reklamlar isteriz ve reklam çerezlerini reddederiz (Google İzin Modu). Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre'deki ziyaretçiler Google'ın izin mesajını (IAB TCF v2.2), diğer herkes kendi bildirimimizi görür. Çerezlere ve ilgi alanlarınıza dayanan kişiselleştirilmiş reklamlar yalnızca izin verirseniz kullanılır.",
+      "p2": "Siz izin verene kadar Google'dan kişiselleştirilmemiş reklamlar isteriz ve reklam çerezlerini reddederiz (Google İzin Modu). Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre'deki ziyaretçiler Google'ın izin mesajını (IAB TCF v2.2), diğer herkes kendi bildirimimizi görür. Çerezlere ve ilgi alanlarınıza dayanan kişiselleştirilmiş reklamlar yalnızca izin verirseniz kullanılır. Google'ın mesajı sizi kapsıyorsa izninizi aşağıdaki \"Gizlilik ve çerez ayarları\" düğmesiyle değiştirebilir veya geri alabilirsiniz.",
       "p3": "Ödüllü reklamlarda günlük sınırı uygulayabilmek için bir ödülün verildiğini (zamanını ve oyunu) kaydederiz. Hesap verilerinizi Google'a vermeyiz.",
       "p4": "Google'ın reklamlarda verileri nasıl kullandığı policies.google.com/technologies/ads adresinde açıklanır.",
       "p5": "Reklam kaldırma (remove_ads) sunulduğunda oyunlar arasındaki reklamları ve banner'ı kapatır; ödüllü reklamlar isteğe bağlı olarak kalır."

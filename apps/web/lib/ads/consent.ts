@@ -20,6 +20,8 @@ type ConsentWindow = Window & {
     version: number,
     callback: (data: { gdprApplies?: boolean } | null, success: boolean) => void,
   ) => void;
+  /** Google's CMP (AdSense Privacy & messaging, "Funding Choices"). */
+  googlefc?: { callbackQueue?: Array<() => void>; showRevocationMessage?: () => void };
 };
 
 const AD_SIGNALS = ['ad_storage', 'ad_user_data', 'ad_personalization'] as const;
@@ -109,4 +111,16 @@ export function gdprApplies(timeoutMs = 4000): Promise<boolean | null> {
     };
     poll();
   });
+}
+
+/**
+ * Opens Google's own consent settings ("Privacy and cookie settings"), where visitors covered by
+ * its TCF CMP change or withdraw their ad consent. The call is queued, so it also works while the
+ * CMP script is still loading; it does nothing when the CMP never loads (ads off).
+ */
+export function openGooglePrivacyOptions(win: Window = window): void {
+  const w = win as ConsentWindow;
+  w.googlefc = w.googlefc || {};
+  w.googlefc.callbackQueue = w.googlefc.callbackQueue || [];
+  w.googlefc.callbackQueue.push(() => w.googlefc?.showRevocationMessage?.());
 }
