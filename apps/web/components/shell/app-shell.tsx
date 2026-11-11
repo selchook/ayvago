@@ -1,7 +1,9 @@
 import { getTranslations } from 'next-intl/server';
+import { AdHost } from '../ads/ad-host';
 import { InstallLink } from '../pwa/install-link';
 import { InstallPrompt } from '../pwa/install-prompt';
 import { BottomNav } from './bottom-nav';
+import { NavLink } from './nav-link';
 import { SideNav } from './side-nav';
 import { TopBar } from './top-bar';
 import styles from './shell.module.css';
@@ -20,10 +22,15 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Phones have no side menu: the install link closes the page instead. */}
         <div className={styles.phoneInstall}>
           <InstallLink className={styles.navItem} />
+          <NavLink href="/privacy" className={styles.legalLink}>
+            {t('privacy')}
+          </NavLink>
         </div>
       </main>
       <BottomNav />
       <InstallPrompt />
+      {/* Ads (Phase 3): renders and loads nothing unless ads are configured and switched on. */}
+      <AdHost />
     </div>
   );
 }

@@ -60,7 +60,7 @@ Grid of `GameTile`s with sort (Popular, New, Top rated) and tag filters; infinit
 ```
 - **Theater mode** widens the player and hides the side column; **fullscreen** uses the Fullscreen API on the player container. A landscape game (manifest `orientation: landscape`) also locks the screen to landscape in fullscreen where the browser allows it (Chrome on Android), and unlocks on leaving; portrait games never lock. *Implemented in slice 5.8.*
 - On phones the page shows a cover with a big Play button; playing opens an immersive view with a floating exit/pause control (respecting safe-area insets) and locks orientation when the manifest requires it.
-- Ads never overlay the iframe during gameplay.
+- Ads never overlay the iframe during gameplay. *Implemented in slice 3.1 ([ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)), switched **off** until the owner turns it on in the admin panel:* the "Ad slot (desktop)" is a labelled ("Advertisement / Reklam") 300×250 banner in the side column between the leaderboard and the related games, rendered only at 1100 px and wider (where the column exists), never on phones, never in theater mode (the column is hidden) and never for `remove_ads` owners. Interstitials come only between games (a game's `requestInterstitial`, leaving a game page after a finished run) and rewarded ads only when the player asks in a game; neither ever covers a run in progress or an online match. With the switch off nothing renders and no ad code loads.
 
 ### 3.4 Profile, Leaderboard, Settings, Search
 Profile and settings per the [accounts spec](accounts.md); full leaderboard page per the [leaderboards spec](leaderboards.md); search page with instant results (title, tags; localized titles in both locales).

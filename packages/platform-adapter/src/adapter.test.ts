@@ -103,7 +103,7 @@ describe('createPlatformAdapter', () => {
   it('sends GHA_READY to the platform origin only and adopts GHA_START', async () => {
     const { adapter, posted } = await connected();
     expect(posted[0]).toEqual({
-      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.7.0' },
+      message: { type: 'GHA_READY', gameId: 'orbsurge', adapter: '2.8.0' },
       origin: PLATFORM,
     });
     expect(adapter.name).toBe('ayvago');
@@ -136,6 +136,16 @@ describe('ayvago adapter', () => {
       { type: 'GHA_END', score: 480, won: false, message: undefined },
     ]);
     expect(posted.every((p) => p.origin === PLATFORM)).toBe(true);
+  });
+
+  it('reports one rewarded-ad continue with the game over (protocol 2.8)', async () => {
+    const { adapter, posted } = await connected();
+    adapter.endGame({ score: 70, continues: 1 });
+    adapter.endGame({ score: 80, continues: 0 });
+    expect(posted.slice(1).map((p) => p.message)).toEqual([
+      { type: 'GHA_END', score: 70, won: undefined, message: undefined, continues: 1 },
+      { type: 'GHA_END', score: 80, won: undefined, message: undefined },
+    ]);
   });
 
   it("reports the run's difficulty with the game over (protocol 2.6)", async () => {

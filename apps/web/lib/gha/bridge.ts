@@ -18,7 +18,13 @@ export type GameMessage =
   | { type: 'loading'; progress: number }
   | { type: 'score'; score: number }
   /** `difficulty` is 'normal' unless the game said 'easy' (older games send nothing). */
-  | { type: 'end'; score: number | null; won: boolean | null; difficulty: Difficulty }
+  | {
+      type: 'end';
+      score: number | null;
+      won: boolean | null;
+      difficulty: Difficulty;
+      continues: 0 | 1;
+    }
   | { type: 'moveOut'; data: unknown }
   | { type: 'openLeaderboard' }
   /** Protocol 2.5: the game's own sound switch, so the player's sound button can match it. */
@@ -141,6 +147,8 @@ export function parseGameMessage(data: unknown): GameMessage | null {
         won: typeof msg.won === 'boolean' ? msg.won : null,
         // Only an explicit 'easy' makes a run practice; a game can only lower its own rewards.
         difficulty: msg.difficulty === 'easy' ? 'easy' : 'normal',
+        // One rewarded-ad continue at most (protocol 2.8); finishSession checks it again.
+        continues: msg.continues === 1 ? 1 : 0,
       };
     case 'GHA_MOVE_OUT':
       return { type: 'moveOut', data: msg.data };
@@ -256,4 +264,20 @@ export function relayableMove(data: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * The answer to a game's GHA_AD_REQUEST. `rewarded` is true only when the ad was shown and the
+ * server confirmed the reward (grantAdReward); games must carry on either way.
+ */
+export function adResult(
+  id: number,
+  answer: { shown: boolean; rewarded: boolean },
+): PlatformMessage {
+  return {
+    type: 'GHA_AD_RESULT',
+    id,
+    shown: answer.shown,
+    rewarded: answer.shown && answer.rewarded,
+  };
 }

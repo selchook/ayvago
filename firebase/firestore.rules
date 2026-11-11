@@ -98,6 +98,13 @@ service cloud.firestore {
         allow read: if isOwner(uid);
       }
 
+      // Rewarded-ad tickets and grants (grantAdReward, docs/adr/0023), kept with the player so
+      // account deletion removes them. The owner reads them; nobody writes them from a client. The
+      // daily counters (adQuota/{day}) are functions-only: no rule, so they stay closed.
+      match /adRewards/{rewardId} {
+        allow read: if isOwner(uid) || isAdmin();
+      }
+
       // XP, level and achievements (docs/adr/0016-achievements-and-xp.md), awarded by
       // finishSession only. Nobody writes it from a client; xp and level on the profile above are
       // a server-written copy and are not in the profile's writable keys either.
@@ -165,6 +172,55 @@ service cloud.firestore {
     }
     match /usernames/{key} {
       allow read: if isAdmin();
+    }
+
+    // Ads (Phase 3, docs/adr/0023-ads-behind-an-admin-switch.md). config/ads holds the switch and
+    // the caps every visitor's browser follows, so anyone may read it; it holds nothing private.
+    // Admins write it from the admin panel; a missing document means "ads off". The ranges match
+    // AD_SETTING_LIMITS in packages/shared/src/ads.ts. Other config/ documents stay closed.
+    function validAdSettings(d) {
+      return d.keys().hasOnly(['enabled', 'rewarded', 'interstitial', 'banner', 'testMode',
+          'cmpConfirmed', 'interstitialGapSeconds', 'interstitialsPerSession',
+          'interstitialsPerDay', 'rewardedPerDay', 'rewardAmount', 'updatedAt'])
+        && d.keys().hasAll(['enabled', 'rewarded', 'interstitial', 'banner', 'testMode',
+          'cmpConfirmed', 'interstitialGapSeconds', 'interstitialsPerSession',
+          'interstitialsPerDay', 'rewardedPerDay', 'rewardAmount', 'updatedAt'])
+        && d.enabled is bool && d.rewarded is bool && d.interstitial is bool
+        && d.banner is bool && d.testMode is bool && d.cmpConfirmed is bool
+        && d.interstitialGapSeconds is int
+        && d.interstitialGapSeconds >= 180 && d.interstitialGapSeconds <= 3600
+        && d.interstitialsPerSession is int
+        && d.interstitialsPerSession >= 0 && d.interstitialsPerSession <= 50
+        && d.interstitialsPerDay is int
+        && d.interstitialsPerDay >= 0 && d.interstitialsPerDay <= 200
+        && d.rewardedPerDay is int && d.rewardedPerDay >= 0 && d.rewardedPerDay <= 200
+        && d.rewardAmount is int && d.rewardAmount >= 0 && d.rewardAmount <= 1000
+        && d.updatedAt == request.time;
+    }
+
+    match /config/ads {
+      allow read: if true;
+      allow create, update: if isAdmin() && validAdSettings(request.resource.data);
+
+      // Who changed the settings and when: one entry per save, written by the admin who saved,
+      // never changed afterwards. Admins only (it names admin accounts).
+      match /history/{entryId} {
+        allow read: if isAdmin();
+        allow create: if isAdmin()
+          && request.resource.data.keys().hasOnly(['by', 'name', 'at', 'enabled', 'settings'])
+          && request.resource.data.keys().hasAll(['by', 'name', 'at', 'enabled', 'settings'])
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.name is string && request.resource.data.name.size() <= 80
+          && request.resource.data.at == request.time
+          && request.resource.data.enabled is bool
+          && request.resource.data.settings is map;
+      }
+    }
+
+    // remove_ads and later purchases (roadmap §9.2). Written by the purchase webhooks only (a
+    // later slice); the player reads their own, admins read all.
+    match /entitlements/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
     }
 
     // voteRate/ is Functions-only: it falls through to the rule below.

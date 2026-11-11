@@ -10,14 +10,16 @@ and touch controls for Space Defender are live. App Check is turned on once its 
 up. **Phase 4 — Multiplayer** has started: eight games can be played online against a friend from an
 invite link (slice 4.1). **Phase 5 — Retention** has started: players pick one of five characters on
 their profile, and games with a hero play with it (slice 5.1; 5.1b retired the five aliens). Finished
-runs earn XP, levels and achievement badges (slice 5.2).
+runs earn XP, levels and achievement badges (slice 5.2). **Phase 3 — Monetization** has started: the
+ad infrastructure (H5 Games Ads, server-confirmed rewarded ads, consent and KVKK) is in place behind
+an admin-panel switch that stays off until the owner turns it on (slice 3.1).
 
 | Phase | Scope | Status | Docs |
 |---|---|---|---|
 | 0 | Preparation: monorepo, CI, Firebase projects, i18n, ADRs | Done, owner items open | [Plan](docs/plan/phase-0.md) · [Setup](docs/setup/phase-0.md) |
 | 1 | MVP platform: themes, catalog, game player, adapter, accounts, library, profile | Done (catalog in Firestore and sdk-playground carried forward; PWA shipped in 2.9) | [Plan](docs/plan/phase-1.md) · [Setup](docs/setup/phase-1.md) |
 | 2 | Competition and community: score sessions, leaderboards, voting, admin panel, Ayvago Arcade | Code complete (2.1–2.21), owner steps open | [Plan](docs/plan/phase-2.md) · [Setup](docs/setup/phase-2.md) |
-| 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | Not started | [Roadmap](docs/plan/roadmap.md#12-phases-and-timeline) |
+| 3 | Monetization: consent, ads, rewarded placements, `remove_ads` | In progress: 3.1 (ad infrastructure behind an admin switch: H5 Games Ads, `grantAdReward`, consent and KVKK, privacy page) code complete, the switch **off**; AdSense setup open | [Plan](docs/plan/phase-3.md) · [Setup](docs/setup/phase-3.md) |
 | 4 | Multiplayer: online rooms with invite links, WebRTC + Cloudflare TURN, import wave 3 | In progress: 4.1 live (8 games online), 4.4 and 4.5 (always TURN) code complete; TURN key open | [Plan](docs/plan/phase-4.md) · [Setup](docs/setup/phase-4.md) |
 | 5 | Retention: player characters, achievements, XP, quests, push, cloud saves | In progress: 5.1 (player characters), 5.1b (five characters), 5.6 (equal card heights), 5.7 (Turkish İ in the pixel font), 5.8 (landscape fullscreen), 5.9 (one-line toolbar on phones), 5.10 (stage fits on screen), 5.11 (three themes, Minimal by default), 5.12 (game tables for up to four with bots) and 5.2 (achievements, XP and levels) code complete, nothing to set up; 5.13 (fresh start: server-synced bests, protocol 2.4; progress reset run on 2026-11-07), 5.14 (one sound switch, protocol 2.5), 5.15 (difficulty: Easy runs are practice, protocol 2.6), 5.16 (admin "Players and plays" report), 5.17 (home spotlight carousel of the games trending today), 5.18 (lobby for table games: public tables, players online, invites; one-time IAM step for the first database trigger) 5.19 (quick play, table settings and host hand-over, protocol 2.7), 5.20 (Leave table button), 5.21 (site-wide online status, recent players, invites to anyone online) and 5.22 (play report counts starts, online matches and left runs) code complete | [Plan](docs/plan/phase-5.md) · [Setup](docs/setup/phase-5.md) |
 | 6 | Developer program | Not started | |

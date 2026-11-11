@@ -14,7 +14,8 @@
     "multiplayer": "Çok oyunculu",
     "categories": "Kategoriler",
     "skipToContent": "İçeriğe geç",
-    "search": "Ara"
+    "search": "Ara",
+    "privacy": "Gizlilik"
   },
   "categories": {
     "arcade": "Arcade",
@@ -319,7 +320,8 @@
       "report": "Oyuncular ve oynanma",
       "feedback": "Geri bildirim",
       "players": "Oyuncular",
-      "appCheck": "App Check"
+      "appCheck": "App Check",
+      "ads": "Reklamlar"
     },
     "flags": {
       "title": "İşaretli skorlar ({count})",
@@ -477,6 +479,79 @@
       "enforced": "Zorunlu mod açıldı.",
       "monitoring": "İzleme moduna dönüldü; doğrulanmamış çağrılar yeniden kabul ediliyor.",
       "notReady": "Zorunlu modu güvenle açmak için henüz yeterli doğrulanmış oturum yok."
+    },
+    "ads": {
+      "title": "Reklamlar",
+      "intro": "Reklamları yalnızca platform sayfası gösterir; oyunlar sadece reklam ister. Her ziyaretçinin tarayıcısı bu anahtarı saniyeler içinde izler; kapatıldığında yeni reklam istekleri hemen durur.",
+      "stateOn": "Reklamlar AÇIK",
+      "stateOff": "Reklamlar KAPALI",
+      "stateOnHint": "Ziyaretçiler, aşağıdaki ayarların izin verdiği yerlerde reklam görebilir.",
+      "stateOffHint": "Hiçbir reklam kodu yüklenmez ve oyunlara adsEnabled: false gider. Oyuncular için hiçbir şey değişmez.",
+      "switchLabel": "Reklam ana anahtarı",
+      "on": "AÇIK",
+      "off": "KAPALI",
+      "turnedOn": "Reklamlar açıldı.",
+      "turnedOff": "Reklamlar kapatıldı.",
+      "saved": "Ayarlar kaydedildi.",
+      "save": "Ayarları kaydet",
+      "discard": "Değişiklikleri geri al",
+      "invalid": "Sayıları kontrol edin: her biri kendi aralığında bir tam sayı olmalı.",
+      "status": {
+        "live": "Reklamlar şu anda gösterilebilir.",
+        "offTitle": "Reklamlar kapalı; oyuncular için hiçbir şey yüklenmiyor.",
+        "missing": "Açılsa bile şunlar tamamlanana kadar reklam gösterilmez:",
+        "onButBlocked": "Reklamlar açık, ancak şunlar tamamlanana kadar reklam gösterilemez:",
+        "blockers": {
+          "no-client-id": "AdSense istemci kimliği (NEXT_PUBLIC_ADSENSE_CLIENT) Vercel'de tanımlanır ve site yeniden dağıtılır",
+          "cmp-not-confirmed": "onay mesajı AdSense'in Gizlilik ve mesajlaşma bölümünde yayımlanır ve aşağıda onaylanır",
+          "all-formats-off": "en az bir reklam biçimi açılır"
+        },
+        "warnings": {
+          "firebase-off": "Firebase yapılandırılmamış: ödüllü reklamlar onaylanamaz, bu yüzden kapalı kalır.",
+          "no-banner-slot": "Banner reklam birimi yok (NEXT_PUBLIC_ADSENSE_BANNER_SLOT): masaüstü banner'ı kapalı kalır.",
+          "test-mode": "Test modu açık: yalnızca Google'ın test reklamları gösterilir ve bunlar gelir getirmez.",
+          "no-privacy-contact": "Gizlilik iletişim adresi yok (NEXT_PUBLIC_PRIVACY_CONTACT): gizlilik sayfasında KVKK başvuruları için adres yer almaz."
+        }
+      },
+      "formats": {
+        "title": "Biçimler",
+        "rewarded": "Ödüllü",
+        "rewardedHint": "oyuncu bir ödül için izlemeyi kendisi seçer; ödülü sunucu onaylar",
+        "interstitial": "Geçiş reklamı",
+        "interstitialHint": "oyunlar arasında ve oyun bittikten sonra; oynarken ya da çevrim içi maçlarda asla",
+        "banner": "Banner",
+        "bannerHint": "yalnızca masaüstünde yan sütunda; telefonda ya da oyunun üzerinde asla"
+      },
+      "caps": {
+        "title": "Sıklık ve ödüller",
+        "interstitialGapSeconds": "Geçiş reklamları arasındaki saniye",
+        "interstitialsPerSession": "Ziyaret başına geçiş reklamı",
+        "interstitialsPerDay": "Günlük geçiş reklamı",
+        "rewardedPerDay": "Oyuncu başına günlük ödüllü reklam",
+        "rewardAmount": "Ödüllü reklam başına platform ödülü",
+        "range": "{min}–{max}",
+        "rewardAmountHint": "Günler UTC'ye göre sayılır. Platform ödülü, 5. fazda planlanan jetonlar için her ödülle birlikte kaydedilir; devam etme gibi oyun içi ödülleri oyunun kendisi verir."
+      },
+      "setup": {
+        "title": "Kurulum",
+        "testMode": "Test modu",
+        "testModeHint": "yalnızca Google'ın test reklamları, gelir yok; canlıya geçerken kapatın",
+        "cmpConfirmed": "Onay mesajı yayımlandı",
+        "cmpConfirmedHint": "AEA, Birleşik Krallık ve İsviçre için AdSense Gizlilik ve mesajlaşma GDPR mesajı yayımlandı; bu işaretlenmeden hiçbir reklam kodu yüklenmez"
+      },
+      "audit": {
+        "title": "Değişiklikler",
+        "last": "Son değişiklik: {name}, {time}.",
+        "never": "Hiç değiştirilmedi: reklamlar varsayılan olarak kapalı. İlk kayıt ayarları oluşturur.",
+        "unknown": "Henüz değişiklik geçmişi yok."
+      },
+      "confirm": {
+        "title": "Reklamlar açılsın mı?",
+        "body": "Her ziyaretçinin tarayıcısı bu anahtarı saniyeler içinde izler. Reklam kaldırma satın almamış oyuncular geçiş reklamlarını ve masaüstü banner'ını görebilir; destekleyen oyunlar ödüllü reklam sunar.",
+        "blocked": "{count, plural, one {Bir kurulum adımı hâlâ eksik; tamamlanana kadar hiçbir reklam gösterilmez.} other {# kurulum adımı hâlâ eksik; tamamlanana kadar hiçbir reklam gösterilmez.}}",
+        "confirm": "Reklamları aç",
+        "cancel": "Vazgeç"
+      }
     }
   },
   "install": {
@@ -818,6 +893,70 @@
     "marathon": {
       "name": "Maraton",
       "desc": "Toplam 60 dakika oyna."
+    }
+  },
+  "ads": {
+    "label": "Reklam",
+    "loading": "Reklam yükleniyor…",
+    "rewardGranted": "Ödül verildi",
+    "rewardFailed": "Ödül onaylanamadı",
+    "unavailable": "Şu anda gösterilecek reklam yok",
+    "consent": {
+      "title": "Ayvago'da reklamlar",
+      "body": "Reklamlar Ayvago'nun ücretsiz kalmasını sağlar. İzin verirseniz reklam ortağımız Google, ilgi alanlarınıza uygun reklamlar göstermek için çerez kullanabilir. İzin vermezseniz de reklam görürsünüz, ancak bunlar kişiselleştirilmemiş reklamlar olur.",
+      "more": "Gizlilik ve KVKK",
+      "allow": "Kişiselleştirilmiş reklamlara izin ver",
+      "deny": "Yalnızca kişiselleştirilmemiş"
+    },
+    "choice": {
+      "title": "Reklam tercihiniz",
+      "current": "Şu anki tercih: {choice}",
+      "granted": "kişiselleştirilmiş reklamlara izin verildi",
+      "denied": "yalnızca kişiselleştirilmemiş reklamlar",
+      "unset": "henüz seçilmedi (kişiselleştirilmemiş reklamlar)",
+      "allow": "Kişiselleştirilmiş reklamlara izin ver",
+      "deny": "Yalnızca kişiselleştirilmemiş",
+      "saved": "Tercihiniz kaydedildi.",
+      "note": "Tercih bu tarayıcıda saklanır."
+    }
+  },
+  "privacy": {
+    "title": "Gizlilik, çerezler ve KVKK",
+    "description": "Ayvago'nun verilerinizi, çerezleri ve reklamları nasıl ele aldığı; KVKK ve GDPR kapsamındaki haklarınız.",
+    "updated": "Son güncelleme: {date}",
+    "intro": "Ayvago (ayvago.com) ücretsiz bir web oyun platformudur. Bu sayfa hakkınızda neleri sakladığımızı, hangi çerezleri ve benzeri teknolojileri kullandığımızı, reklamların nasıl çalıştığını ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ile GDPR kapsamındaki haklarınızı açıklar.",
+    "data": {
+      "title": "Sakladığımız veriler",
+      "p1": "Oynamaya başladığınızda size bir misafir hesabı açılır; dilerseniz Google ile de giriş yapabilirsiniz. Kullanıcı adınızı, avatarınızı ve karakterinizi, ayarlarınızı (tema, dil), kitaplığınızı (favoriler, son oynananlar), skorlarınızı, oyun istatistiklerinizi, başarımlarınızı ve oylarınızı saklarız. Google ile giriş yaptığınızda e-posta adresiniz de hesaba eklenir.",
+      "p2": "Veriler Avrupa Birliği'nde, Google Firebase'de (europe-west1, Belçika) tutulur. Oyunlar korumalı bir alanda çalışır ve hesap verilerinizi hiçbir zaman almaz; yalnızca oynamak için gerekenleri, örneğin seçtiğiniz karakteri ve en iyi skorunuzu alır.",
+      "p3": "Profil sayfanızdan istediğiniz zaman tüm verilerinizi indirebilir ya da hesabınızı silebilirsiniz. Kullanılmayan misafir hesapları 30 gün sonra silinir."
+    },
+    "storage": {
+      "title": "Çerezler ve yerel depolama",
+      "p1": "Zorunlu depolama sitenin çalışmasını sağlar: diliniz (bir çerez), temanız, oturumunuz ve kitaplığınızın tarayıcıdaki bir kopyası. Bunlar için izin gerekmez ve hiçbir zaman reklam amacıyla kullanılmaz.",
+      "p2": "Analiz çerezleri kullanmıyoruz. Reklam çerezleri yalnızca reklamlar açıkken ve yalnızca izninizle kullanılır (aşağıya bakın)."
+    },
+    "ads": {
+      "title": "Reklamlar",
+      "p1": "Reklamlar Ayvago'nun ücretsiz kalmasını sağlar. Reklamları Google AdSense (H5 Games Ads) aracılığıyla Ayvago sayfasının kendisi gösterir; oyunlar kendi başına reklam göstermez. Üç tür reklam vardır: bir oyunda ödül kazanmak için izlemeyi kendiniz seçtiğiniz ödüllü reklamlar, oyunlar arasındaki kısa reklamlar ve büyük ekranlarda yan sütundaki bir banner. Oyun oynarken ya da çevrim içi maçlarda hiçbir zaman reklam gösterilmez.",
+      "p2": "Siz izin verene kadar Google'dan kişiselleştirilmemiş reklamlar isteriz ve reklam çerezlerini reddederiz (Google İzin Modu). Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre'deki ziyaretçiler Google'ın izin mesajını (IAB TCF v2.2), diğer herkes kendi bildirimimizi görür. Çerezlere ve ilgi alanlarınıza dayanan kişiselleştirilmiş reklamlar yalnızca izin verirseniz kullanılır.",
+      "p3": "Ödüllü reklamlarda günlük sınırı uygulayabilmek için bir ödülün verildiğini (zamanını ve oyunu) kaydederiz. Hesap verilerinizi Google'a vermeyiz.",
+      "p4": "Google'ın reklamlarda verileri nasıl kullandığı policies.google.com/technologies/ads adresinde açıklanır.",
+      "p5": "Reklam kaldırma (remove_ads) sunulduğunda oyunlar arasındaki reklamları ve banner'ı kapatır; ödüllü reklamlar isteğe bağlı olarak kalır."
+    },
+    "kvkk": {
+      "title": "KVKK aydınlatma metni",
+      "p1": "Veri sorumlusu: Ayvago (ayvago.com). Bu aydınlatma, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun (KVKK) 10. maddesi uyarınca yapılır.",
+      "p2": "Kişisel verilerinizi platformu ve hesabınızı işletmek, skor tablolarını adil tutmak, kötüye kullanımı ve hileyi önlemek, hizmetin güvenliğini sağlamak ve reklamlar açıkken reklam göstermek ve reklam sınırlarını uygulamak amacıyla işleriz.",
+      "p3": "Hukuki sebepler: kullandığınız hizmetin ifası (KVKK m. 5/2-c), güvenlik ve adil oyun konusundaki meşru menfaatimiz (m. 5/2-f) ve kişiselleştirilmiş reklamlar ile reklam çerezleri için, bu sayfadan istediğiniz zaman geri alabileceğiniz açık rızanız (m. 5/1).",
+      "p4": "Hizmet sağlayıcılarımız Google (Firebase, AdSense) ve Vercel verileri Türkiye dışındaki sunucularda işler; yurt dışına aktarım KVKK'nın 9. maddesine uygun olarak yapılır.",
+      "p5": "KVKK'nın 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse buna ilişkin bilgi talep etme, işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini, silinmesini veya yok edilmesini isteme, münhasıran otomatik sistemlerle analiz edilmesi sonucunda aleyhinize bir sonucun ortaya çıkmasına itiraz etme ve kanuna aykırı işleme nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme haklarına sahipsiniz.",
+      "p6": "Taleplerin çoğunu Profil sayfanızdan yerine getirebilirsiniz (verilerinizi indirme veya silme)."
+    },
+    "contact": {
+      "title": "İletişim",
+      "withEmail": "Sorularınız ve KVKK başvurularınız için {email} adresine yazabilirsiniz.",
+      "withoutEmail": "Verilerinizi Profil sayfanızdan indirebilir veya silebilirsiniz."
     }
   }
 }

@@ -15,7 +15,7 @@
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
 
-Phase 3 (monetization) has still not started; the owner asked for player characters first.
+Phase 3 (monetization) waited while the owner asked for player characters first; it started on 2026-11-11 ([Phase 3 plan](phase-3.md)).
 
 Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 
