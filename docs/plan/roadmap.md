@@ -466,7 +466,7 @@ Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage →
 - [x] Platform name **Ayvago**, domain **ayvago.com** purchased
 - [ ] Connect `ayvago.com` DNS to Vercel (apex + `www` redirect), add it to Firebase Auth authorized domains
 - [ ] Email: SPF/DKIM/DMARC for `ayvago.com` (Firebase Auth email links and the support address)
-- [ ] `ads.txt` on `ayvago.com` for AdSense verification (before Phase 3)
+- [x] `ads.txt` on `ayvago.com` for AdSense verification (before Phase 3): `pub-1982569451422503`
 - [x] List the games' production Vercel URLs
 - [x] `selchook/ayvago` monorepo scaffold, CI, ADRs 0001–0005, Firebase deny-all rules, i18n foundation (en/tr) — details: [phase 0 checklist](../setup/phase-0.md)
 - [ ] Firebase projects `ayvago-dev` / `ayvago-prod` — `ayvago-prod` set up on the Blaze plan (Firestore + RTDB in `europe-west1`, Auth, web config in Vercel, rules and functions deployed from GitHub Actions); `ayvago-dev` web config and budget alerts still open

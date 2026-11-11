@@ -28,9 +28,10 @@ until the list is empty.
    Payment details need the legal name of the business (roadmap open decision 3).
 2. ⏳ **Sites → Add site:** `ayvago.com`. AdSense shows a verification snippet; choose the
    **ads.txt** option instead.
-3. ⏳ Put the `ads.txt` line AdSense shows (`google.com, pub-…, DIRECT, f08c47fec0942fa0`) in
-   `apps/web/public/ads.txt`. Ask Claude to add it: it is public and not a secret. It must be
-   served at `https://ayvago.com/ads.txt`. This is the open Phase 0 item.
+3. ✅ `apps/web/public/ads.txt` holds `google.com, pub-1982569451422503, DIRECT, f08c47fec0942fa0`
+   (publisher ID `pub-1982569451422503`; public, not a secret) and is served at
+   `https://ayvago.com/ads.txt` once merged. This closes the open Phase 0 item.
+   ⏳ Check that the URL shows the line, then press **Verify** in AdSense.
 4. ⏳ Wait for the site review (days to weeks). The site needs the privacy page, which ships
    with this slice (`/en/privacy`, `/tr/privacy`).
 5. ⏳ **Ads → By site → ayvago.com → Auto ads: off.** The platform places every ad itself;
@@ -64,7 +65,7 @@ repository:
 
 | Variable | Value | Needed for |
 |---|---|---|
-| `NEXT_PUBLIC_ADSENSE_CLIENT` | Your publisher ID, `ca-pub-` followed by 16 digits (AdSense → Account → Settings → Account information) | Everything. Without it the ad code stays inert |
+| `NEXT_PUBLIC_ADSENSE_CLIENT` | Your publisher ID with the `ca-` prefix: **`ca-pub-1982569451422503`** | Everything. Without it the ad code stays inert |
 | `NEXT_PUBLIC_ADSENSE_BANNER_SLOT` | The ID of a **display ad unit** (AdSense → Ads → By ad unit → Display ads, fixed size 300×250) | The desktop banner. Optional |
 | `NEXT_PUBLIC_PRIVACY_CONTACT` | The e-mail address for privacy and KVKK requests | The privacy page's contact line. Strongly recommended before going live |
 

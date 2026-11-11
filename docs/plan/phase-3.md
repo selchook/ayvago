@@ -22,7 +22,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 3.1 | Ad infrastructure behind an admin switch: `config/ads` (switch, formats, caps, test mode) with an admin-panel section, the ad manager on the platform page (Google H5 Games Ads: rewarded, interstitial, desktop banner), `grantAdReward`, the `remove_ads` entitlement read, Consent Mode v2 with Google's CMP and a KVKK notice, and a privacy page (owner request, [ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)) | ✅ code · switch **off** · ⏳ AdSense setup |
 | 3.2 | `remove_ads` checkout: Paddle or Lemon Squeezy, webhook → `purchases` + `entitlements/{uid}` | ⬜ |
 | 3.3 | Google Analytics revenue funnel (ad events are already dispatched as `ayvago:ad`), BigQuery export later | ⬜ |
-| 3.4 | Rewarded placements in games ("continue", "2× reward"), built in the studio (`selchook/ayvago-games`) | ⬜ studio |
+| 3.4 | Rewarded placements in games ("continue", "2× reward"), built in the studio (`selchook/ayvago-games`): core hooks plus five games, with protocol 2.8 carrying the continue | ✅ studio (selchook/ayvago-games#100) |
 
 ## 3.1 Ad infrastructure behind an admin switch ✅ code
 
