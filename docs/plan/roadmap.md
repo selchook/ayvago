@@ -163,8 +163,10 @@ Firestore has no joins and bills per document read, so frequently read data is *
 | `leaderboards/{gameId}/boards/{boardKey}` | `boardKey` = `season` or `all`; cached top 100 (`top: [...]`) — one read per page view | Functions |
 | `leaderboards/{gameId}/boards/{boardKey}/entries/{uid}` | User's best score in the current period | Functions |
 | `leaderboards/{gameId}/seasons/{seasonKey}` | Archived final top 100 of each weekly season | Functions |
-| `entitlements/{uid}` | `removeAds`, `premiumUntil`, `source` | **Functions only** |
-| `purchases/{id}`, `adRewards/{id}` | Payment and rewarded-ad records | Functions |
+| `entitlements/{uid}` | `removeAds`, `premiumUntil`, `source`; read by the owner since slice 3.1 | **Functions only** |
+| `purchases/{id}` | Payment records | Functions |
+| `users/{uid}/adRewards/{id}` ✅ | Rewarded-ad tickets and grants (`status`, `gameId`, `placement`, `day`, `amount`); kept with the player so account deletion removes them (slice 3.1) | **Functions only** (owner reads) |
+| `config/ads` ✅ | The ads switch, formats, caps, test mode; public read; `history/{id}` audit entries ([ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)) | Admins (rules check every field) |
 | `wallets/{uid}` + `/tx/{id}` | Platform currency (Phase 5) | Functions |
 | `developers/{uid}`, `submissions/{id}`, `reviews/{id}` | Developer program (Phase 6) | Owner + Functions |
 | `reports/{id}` | User reports | Anyone creates, admins read |
@@ -212,7 +214,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
 | `matchmake` | RTDB trigger | Pairs queued players and opens a lobby |
-| `grantAdReward` | Callable | Grants rewarded-ad rewards (daily cap) |
+| `grantAdReward` ✅ | Callable (App Check like `startSession`) | Rewarded ads in two steps: `begin` opens a ticket before the ad (switch on, under the daily cap), `claim` grants it once after the ad, in one transaction (ticket 5 s – 10 min old, daily cap per player); records in `users/{uid}/adRewards`, counters in `users/{uid}/adQuota/{day}` (slice 3.1, [ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)) |
 | `paddleWebhook` / `lemonWebhook` | HTTPS | Signature check → `purchases` + `entitlements` |
 | `revenuecatWebhook` | HTTPS (or the official extension) | Store purchases → `entitlements` |
 | `closeLeaderboardSeason` ✅ | Scheduled (Monday 09:00 UTC) | Archives the weekly top 100, starts the new season (rewards in Phase 5) |
@@ -377,7 +379,7 @@ Client-side games can never be fully cheat-proof; this layer stops casual cheati
 | Banner | Desktop side column | Not on mobile; none with `remove_ads` |
 
 - Ads are always shown by the **top-level platform page**; games only request them via `GHA.requestAd()`.
-- Frequency caps and reward amounts are tuned with **Remote Config** + A/B Testing.
+- Frequency caps and reward amounts are tuned in the admin panel (Firestore `config/ads`, [ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)); Remote Config + A/B Testing can take over later.
 - Provider: Google H5 Games Ads (needs an AdSense account and an H5 Games application; approval can take weeks → apply in Phase 0). Fallback: AppLixir.
 - **CMP required:** a Google-certified TCF v2.2 CMP for EEA/UK traffic, wired to Google Analytics **Consent Mode v2**; consent UI localized. KVKK notice for Turkey.
 
@@ -504,12 +506,13 @@ Slice plan and status: [Phase 2 plan](phase-2.md) · owner steps: [Phase 2 setup
 - [x] Studio and platform split ([ADR 0011](../adr/0011-studio-and-platform.md)): automatic arcade catalog PRs, Arcade default theme, platform skill and agents — slices 2.17–2.19
 - **Done when:** a fake score sent from the console never reaches a leaderboard. ✅ (emulator-tested)
 
-### Phase 3 — Monetization (3 weeks)
-- [ ] CMP + Consent Mode v2, KVKK/GDPR texts (en + tr)
-- [ ] Ad manager (H5 Games Ads), frequency via Remote Config
-- [ ] Rewarded placements + `grantAdReward`
+### Phase 3 — Monetization (3 weeks) — in progress
+Slice plan and status: [Phase 3 plan](phase-3.md) · owner steps: [Phase 3 setup](../setup/phase-3.md)
+- [x] CMP + Consent Mode v2, KVKK/GDPR texts (en + tr) — Google's Privacy & messaging CMP for the EEA/UK/CH, the platform's own notice elsewhere, `/privacy` page (slice 3.1); the CMP message itself is an owner step
+- [x] Ad manager (H5 Games Ads) behind an admin-panel switch, **off** until the owner turns it on; frequency caps in Firestore `config/ads` instead of Remote Config ([ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)) — slice 3.1
+- [ ] Rewarded placements + `grantAdReward` — `grantAdReward` and the platform side done (slice 3.1); the in-game placements are built in the studio
 - [ ] Paddle/Lemon Squeezy checkout + webhook → `entitlements`; `remove_ads`
-- [ ] Google Analytics revenue funnel (BigQuery export later)
+- [ ] Google Analytics revenue funnel (BigQuery export later) — ad events are dispatched as `ayvago:ad` for it (slice 3.1)
 - **Done when:** a `remove_ads` buyer never sees an interstitial; rewarded rewards arrive only after server confirmation.
 
 ### Phase 4 — Multiplayer (2–3 weeks) — in progress

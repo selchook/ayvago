@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { DEFAULT_AD_SETTINGS } from '@ayvago/shared';
+import { describe, expect, it, vi } from 'vitest';
+import { createAdManager, type AdDeps } from '../ads/manager';
+import { EMPTY_LOG } from '../ads/policy';
 import {
+  adResult,
   buildStartConfig,
   isTrustedGameMessage,
   originOf,
@@ -333,5 +337,73 @@ describe('buildStartConfig best (protocol 2.4)', () => {
     expect(
       buildStartConfig({ ...base, best: null }, { isHost: true, peerName: 'Ayşe' }),
     ).toMatchObject({ mode: 'multiplayer', best: null });
+  });
+});
+
+// Ads while the admin switch is off (Phase 3, docs/adr/0023): exactly the behaviour before ads
+// existed. GHA_START says adsEnabled: false and every GHA_AD_REQUEST is answered "not shown"
+// at once, without loading anything.
+describe('ads while off (regression)', () => {
+  function offManager(clientId: string) {
+    const deps: AdDeps = {
+      clientId,
+      bannerSlot: '',
+      firebase: () => true,
+      provider: {
+        id: 'fake',
+        load: vi.fn(async () => true),
+        interstitial: vi.fn(async () => 'viewed' as const),
+        rewarded: vi.fn(async () => 'viewed' as const),
+        fillBanner: vi.fn(),
+      },
+      rewards: { begin: vi.fn(), claim: vi.fn() },
+      storage: { readLog: () => EMPTY_LOG, writeLog: vi.fn() },
+      consentDefaults: vi.fn(),
+      track: vi.fn(),
+      now: () => 0,
+    };
+    return { manager: createAdManager(deps), deps };
+  }
+
+  const theme = { theme: 'minimal' as const, colorMode: 'dark' as const, tokens: {}, locale: 'en' };
+
+  it.each([
+    ['no client ID', ''],
+    ['the switch off', 'ca-pub-1234567890123456'],
+  ])('sends adsEnabled: false in GHA_START with %s', async (_, clientId) => {
+    const { manager } = offManager(clientId);
+    manager.setSettings(DEFAULT_AD_SETTINGS);
+    manager.setRemoveAds(false);
+    const adsEnabled = await manager.startAdsEnabled(false);
+    expect(buildStartConfig({ ...theme, adsEnabled }).adsEnabled).toBe(false);
+  });
+
+  it.each(['rewarded', 'interstitial'] as const)(
+    'answers a %s request "not shown" at once',
+    async (format) => {
+      const { manager, deps } = offManager('');
+      const message = parseGameMessage({ type: 'GHA_AD_REQUEST', id: 7, format, placement: 'x' });
+      expect(message?.type).toBe('adRequest');
+      if (message?.type !== 'adRequest') return;
+      const answer = await manager.request({
+        format: message.format,
+        placement: message.placement,
+        gameId: 'g',
+        moment: { online: false, inRun: false },
+      });
+      expect(adResult(message.id, answer)).toEqual({
+        type: 'GHA_AD_RESULT',
+        id: 7,
+        shown: false,
+        rewarded: false,
+      });
+      expect(deps.provider.load).not.toHaveBeenCalled();
+      expect(deps.rewards.begin).not.toHaveBeenCalled();
+    },
+  );
+
+  it('never reports a reward for an ad that was not shown', () => {
+    expect(adResult(1, { shown: false, rewarded: true })).toMatchObject({ rewarded: false });
+    expect(adResult(1, { shown: true, rewarded: true })).toMatchObject({ rewarded: true });
   });
 });

@@ -20,16 +20,17 @@ import {
 } from '@/lib/admin/queries';
 import { refreshClaims, useAccount } from '@/lib/account/store';
 import { formatScore, type ScoreFormat } from '@/lib/format';
+import { AdsPanel } from './ads-panel';
 import styles from './admin.module.css';
 import { PlayReportPanel } from './play-report';
 
 export type AdminGame = { gameId: string; title: string; scoreFormat: ScoreFormat };
 
-type Tab = 'flags' | 'games' | 'report' | 'feedback' | 'players' | 'appCheck';
+type Tab = 'flags' | 'games' | 'report' | 'feedback' | 'players' | 'appCheck' | 'ads';
 // Reasons finishSession records on a flag (firebase/functions/src/sessions.ts judgeRun).
 const FLAG_REASONS = ['too-fast', 'max-score', 'duration-mismatch', 'outlier'] as const;
 type FlagReason = (typeof FLAG_REASONS)[number];
-const TABS: Tab[] = ['flags', 'games', 'report', 'feedback', 'players', 'appCheck'];
+const TABS: Tab[] = ['flags', 'games', 'report', 'feedback', 'players', 'appCheck', 'ads'];
 
 /** Admin panel v1 (docs/plan/phase-2.md §2.3). Visible only with the `admin` claim. */
 export function AdminView({
@@ -92,6 +93,7 @@ export function AdminView({
       {tab === 'feedback' ? <FeedbackPanel games={games} /> : null}
       {tab === 'players' ? <Players /> : null}
       {tab === 'appCheck' ? <AppCheckPanel /> : null}
+      {tab === 'ads' ? <AdsPanel /> : null}
     </div>
   );
 }

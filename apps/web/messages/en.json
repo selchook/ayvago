@@ -14,7 +14,8 @@
     "multiplayer": "Multiplayer",
     "categories": "Categories",
     "skipToContent": "Skip to content",
-    "search": "Search"
+    "search": "Search",
+    "privacy": "Privacy"
   },
   "categories": {
     "arcade": "Arcade",
@@ -319,7 +320,8 @@
       "report": "Players and plays",
       "feedback": "Feedback",
       "players": "Players",
-      "appCheck": "App Check"
+      "appCheck": "App Check",
+      "ads": "Ads"
     },
     "flags": {
       "title": "Flagged scores ({count})",
@@ -477,6 +479,79 @@
       "enforced": "Enforcement is on.",
       "monitoring": "Back to monitoring; unverified calls are accepted again.",
       "notReady": "Not enough verified sessions yet to enforce safely."
+    },
+    "ads": {
+      "title": "Ads",
+      "intro": "Only the platform page shows ads; games just ask for them. Every visitor's browser follows this switch within seconds, and turning it off stops new ad requests at once.",
+      "stateOn": "Ads are ON",
+      "stateOff": "Ads are OFF",
+      "stateOnHint": "Visitors can see ads where the settings below allow them.",
+      "stateOffHint": "No ad code loads and games get adsEnabled: false. Nothing changes for players.",
+      "switchLabel": "Ads master switch",
+      "on": "ON",
+      "off": "OFF",
+      "turnedOn": "Ads turned on.",
+      "turnedOff": "Ads turned off.",
+      "saved": "Settings saved.",
+      "save": "Save settings",
+      "discard": "Discard changes",
+      "invalid": "Check the numbers: each must be a whole number in its range.",
+      "status": {
+        "live": "Ads can show now.",
+        "offTitle": "Ads are off, so nothing loads for players.",
+        "missing": "Even when switched on, nothing would show until:",
+        "onButBlocked": "Ads are on, but nothing can show until:",
+        "blockers": {
+          "no-client-id": "the AdSense client ID (NEXT_PUBLIC_ADSENSE_CLIENT) is set in Vercel and the site is redeployed",
+          "cmp-not-confirmed": "the consent message is published in AdSense Privacy & messaging and confirmed below",
+          "all-formats-off": "at least one ad format is turned on"
+        },
+        "warnings": {
+          "firebase-off": "Firebase is not configured: rewarded ads cannot be confirmed, so they stay off.",
+          "no-banner-slot": "No banner ad unit (NEXT_PUBLIC_ADSENSE_BANNER_SLOT): the desktop banner stays off.",
+          "test-mode": "Test mode is on: only Google's test ads show, and they earn nothing.",
+          "no-privacy-contact": "No privacy contact (NEXT_PUBLIC_PRIVACY_CONTACT): the privacy page gives no address for KVKK requests."
+        }
+      },
+      "formats": {
+        "title": "Formats",
+        "rewarded": "Rewarded",
+        "rewardedHint": "the player chooses to watch for a reward; the server confirms it",
+        "interstitial": "Interstitial",
+        "interstitialHint": "between games and after a game over; never during play or in online matches",
+        "banner": "Banner",
+        "bannerHint": "desktop side column only; never on phones or over the game"
+      },
+      "caps": {
+        "title": "Frequency and rewards",
+        "interstitialGapSeconds": "Seconds between interstitials",
+        "interstitialsPerSession": "Interstitials per visit",
+        "interstitialsPerDay": "Interstitials per day",
+        "rewardedPerDay": "Rewarded ads per player per day",
+        "rewardAmount": "Platform reward per rewarded ad",
+        "range": "{min}–{max}",
+        "rewardAmountHint": "Days are counted in UTC. The platform reward is recorded with each grant for the coins planned in Phase 5; in-game rewards such as a continue are given by the game."
+      },
+      "setup": {
+        "title": "Setup",
+        "testMode": "Test mode",
+        "testModeHint": "Google's test ads only, no revenue; turn it off when going live",
+        "cmpConfirmed": "Consent message published",
+        "cmpConfirmedHint": "the AdSense Privacy & messaging GDPR message for the EEA, the UK and Switzerland is published; no ad code loads before this is ticked"
+      },
+      "audit": {
+        "title": "Changes",
+        "last": "Last changed by {name} on {time}.",
+        "never": "Never changed: ads are off by default. The first save creates the settings.",
+        "unknown": "No change history yet."
+      },
+      "confirm": {
+        "title": "Turn ads on?",
+        "body": "Every visitor's browser follows this switch within seconds. Players without ad removal may see interstitials and the desktop banner, and games that support it offer rewarded ads.",
+        "blocked": "{count, plural, one {One setup step is still missing, so no ad will show until it is done.} other {# setup steps are still missing, so no ad will show until they are done.}}",
+        "confirm": "Turn ads on",
+        "cancel": "Cancel"
+      }
     }
   },
   "install": {
@@ -818,6 +893,70 @@
     "marathon": {
       "name": "Marathon",
       "desc": "Play for 60 minutes in total."
+    }
+  },
+  "ads": {
+    "label": "Advertisement",
+    "loading": "Loading an ad…",
+    "rewardGranted": "Reward granted",
+    "rewardFailed": "The reward could not be confirmed",
+    "unavailable": "No ad available right now",
+    "consent": {
+      "title": "Ads on Ayvago",
+      "body": "Ads keep Ayvago free. With your permission, our ad partner Google may use cookies to show ads that match your interests. Without it you still see ads, just not personalised ones.",
+      "more": "Privacy and KVKK",
+      "allow": "Allow personalised ads",
+      "deny": "Non-personalised only"
+    },
+    "choice": {
+      "title": "Your ad choice",
+      "current": "Current choice: {choice}",
+      "granted": "personalised ads allowed",
+      "denied": "non-personalised ads only",
+      "unset": "not chosen yet (non-personalised ads)",
+      "allow": "Allow personalised ads",
+      "deny": "Non-personalised only",
+      "saved": "Your choice is saved.",
+      "note": "The choice is stored in this browser."
+    }
+  },
+  "privacy": {
+    "title": "Privacy, cookies and KVKK",
+    "description": "How Ayvago handles your data, cookies and ads, and your rights under KVKK and the GDPR.",
+    "updated": "Last updated: {date}",
+    "intro": "Ayvago (ayvago.com) is a free web game platform. This page explains what we store about you, which cookies and similar technologies we use, how ads work, and your rights under the Turkish Personal Data Protection Law (KVKK) and the GDPR.",
+    "data": {
+      "title": "What we store",
+      "p1": "When you play, you get a guest account; you can also sign in with Google. We store your username, avatar and character, your settings (theme, language), your library (favourites, recently played), your scores, play statistics, achievements and votes. Signing in with Google adds your email address to the account.",
+      "p2": "The data is kept in Google Firebase in the European Union (europe-west1, Belgium). Games run in a sandbox and never receive your account data; they only get what they need to play, such as your chosen character and your best score.",
+      "p3": "On your Profile page you can download all your data or delete your account at any time. Unused guest accounts are deleted after 30 days."
+    },
+    "storage": {
+      "title": "Cookies and local storage",
+      "p1": "Necessary storage keeps the site working: your language (a cookie), your theme, your sign-in session and a copy of your library in the browser. It needs no consent and is never used for advertising.",
+      "p2": "We do not use analytics cookies. Ad cookies are used only while ads are on and only with your consent (see below)."
+    },
+    "ads": {
+      "title": "Ads",
+      "p1": "Ads keep Ayvago free. The Ayvago page shows them itself, through Google AdSense (H5 Games Ads); games never show ads on their own. There are three kinds: rewarded ads you choose to watch for a reward in a game, short ads between games, and a banner in the side column on large screens. There are never ads during play or in online matches.",
+      "p2": "Until you agree, we ask Google for non-personalised ads and deny ad cookies (Google Consent Mode). Visitors in the European Economic Area, the United Kingdom and Switzerland see Google's consent message (IAB TCF v2.2); everyone else sees our own notice. Personalised ads, based on cookies and your interests, are used only if you allow them.",
+      "p3": "For rewarded ads we record that a reward was granted (the time and the game) to apply the daily limit. We do not give Google your account data.",
+      "p4": "How Google uses data in ads is explained at policies.google.com/technologies/ads.",
+      "p5": "Ad removal (remove_ads), once it is offered, turns off the ads between games and the banner; rewarded ads stay optional."
+    },
+    "kvkk": {
+      "title": "KVKK notice",
+      "p1": "Data controller: Ayvago (ayvago.com). This notice is given under Article 10 of the Personal Data Protection Law No. 6698 (KVKK).",
+      "p2": "We process your personal data to run the platform and your account, keep the leaderboards fair, prevent abuse and cheating, keep the service secure and, while ads are on, to show ads and apply the ad limits.",
+      "p3": "Legal grounds: the performance of the service you use (KVKK Art. 5/2-c), our legitimate interest in security and fair play (Art. 5/2-f), and, for personalised ads and ad cookies, your explicit consent (Art. 5/1), which you can withdraw on this page at any time.",
+      "p4": "Our service providers Google (Firebase, AdSense) and Vercel process data on servers outside Turkey; transfers abroad are made in line with Article 9 of KVKK.",
+      "p5": "Under Article 11 of KVKK you have the right to learn whether your personal data is processed and, if so, to request information about it; to learn the purpose of the processing and whether the data is used for that purpose; to know the third parties in Turkey or abroad it is transferred to; to ask for incomplete or incorrect data to be corrected, and for your data to be deleted or destroyed; to object to a result against you that comes only from automated analysis; and to claim compensation for damage caused by unlawful processing.",
+      "p6": "Most requests can be made on your Profile page (download or delete your data)."
+    },
+    "contact": {
+      "title": "Contact",
+      "withEmail": "For questions and KVKK requests, write to {email}.",
+      "withoutEmail": "You can download or delete your data on your Profile page."
     }
   }
 }

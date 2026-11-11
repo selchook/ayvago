@@ -50,6 +50,11 @@
       <button id="easy" type="button">End on Easy</button>
       <button id="board" type="button">Leaderboard</button>
     </div>
+    <div class="row">
+      <button id="rewarded" type="button">Rewarded ad</button>
+      <button id="interstitial" type="button">Interstitial</button>
+    </div>
+    <p id="ads" data-testid="ads">ads: unknown</p>
     <p id="status" data-testid="status">waiting for platform</p>
     <script>
       // Minimal implementation of the platform protocol (v1 message names) for end-to-end tests.
@@ -60,6 +65,8 @@
         // A run starts with GHA_START and again with the first point after a game over.
         var running = false;
         var status = document.getElementById('status');
+        var ads = document.getElementById('ads');
+        var adId = 0;
 
         function send(message) {
           if (embedded && platformOrigin) window.parent.postMessage(message, platformOrigin);
@@ -81,7 +88,11 @@
             status.textContent =
               'started: ' + config.theme + '/' + config.colorMode + ' ' + config.locale;
             running = true;
+            ads.textContent = 'ads: ' + (config.adsEnabled ? 'enabled' : 'disabled');
             send({ type: 'GHA_SESSION_START' });
+          } else if (msg.type === 'GHA_AD_RESULT') {
+            // Phase 3: the platform's answer to an ad request (shown, rewarded).
+            ads.textContent = 'ad ' + msg.id + ': shown=' + msg.shown + ' rewarded=' + msg.rewarded;
           } else if (msg.type === 'GHA_THEME_CHANGE') {
             Object.keys(msg.tokens || {}).forEach(function (name) {
               document.documentElement.style.setProperty(name, msg.tokens[name]);
@@ -123,6 +134,14 @@
         });
         document.getElementById('board').addEventListener('click', function () {
           send({ type: 'GHA_OPEN_LEADERBOARD' });
+        });
+        // Ad requests as a game sends them (the platform shows the ad; protocol 2).
+        ['rewarded', 'interstitial'].forEach(function (format) {
+          document.getElementById(format).addEventListener('click', function () {
+            adId += 1;
+            ads.textContent = 'ad ' + adId + ': requested';
+            send({ type: 'GHA_AD_REQUEST', id: adId, format: format, placement: 'fixture' });
+          });
         });
 
         send({ type: 'GHA_READY' });

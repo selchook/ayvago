@@ -6,6 +6,7 @@ import { onValueCreated, onValueWritten } from 'firebase-functions/v2/database';
 import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db } from './admin';
+import { grantAdReward as adReward } from './ads';
 import {
   getAppCheckStatus as appCheckStatusCall,
   setAppCheckMode as appCheckModeCall,
@@ -49,6 +50,9 @@ export const finishSession = onCall(finish);
 export const abandonSession = onCall(abandon);
 
 export const castVote = onCall(vote);
+
+/** Rewarded ads: a ticket before the ad, the grant after it, capped per day (Phase 3, ADR 0023). */
+export const grantAdReward = onCall(adReward);
 
 // Admin panel (requires the `admin` custom claim).
 export const reviewScoreFlag = onCall(review);

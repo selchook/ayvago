@@ -5,6 +5,7 @@ import { gameTokens } from '@ayvago/themes';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  adResult,
   buildStartConfig,
   isTrustedGameMessage,
   originOf,
@@ -13,6 +14,7 @@ import {
   type MatchSeat,
   type PlatformMessage,
 } from '@/lib/gha/bridge';
+import { adManager } from '@/lib/ads/client';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { lockLandscape, locksInFullscreen, unlockOrientation } from '@/lib/orientation';
 import { applyProgress, chosenCharacter, ensureGuest, useAccount } from '@/lib/account/store';
@@ -88,6 +90,11 @@ export function GamePlayer(props: GamePlayerProps) {
   // The run in progress, registered with the server for the leaderboards.
   const runRef = useRef<Run | null>(null);
   const runStartedRef = useRef(0);
+  // Runs that reached GHA_END on this page: leaving after one may show an interstitial (Phase 3).
+  const finishedRunsRef = useRef(0);
+  // The sound switch as the player last set it, and whether an ad is playing over the page.
+  const mutedRef = useRef(false);
+  const adPlayingRef = useRef(false);
 
   const [phase, setPhase] = useState<Phase>(match ? 'loading' : 'cover');
   // Site presence (docs/adr/0021): on the game's page, "playing" during a solo round. Rooms and
@@ -136,7 +143,10 @@ export function GamePlayer(props: GamePlayerProps) {
     // The player's server best (protocol 2.4), solo runs only: online rounds are not ranked.
     // Both reads have their own short timeout and run side by side.
     const best = match ? Promise.resolve(undefined) : startBest(gameId);
-    startRef.current = Promise.all([character, best]).then(([chosen, serverBest]) => {
+    // Ads (docs/adr/0023): true only when a rewarded ad can be served now; false at once while
+    // ads are off, and always in online matches.
+    const ads = adManager.startAdsEnabled(Boolean(match));
+    startRef.current = Promise.all([character, best, ads]).then(([chosen, serverBest, adsOn]) => {
       // A reload in the meantime opened a new game window, which asks again.
       if (frameRef.current?.contentWindow !== target) return false;
       const theme = readThemeState();
@@ -148,7 +158,7 @@ export function GamePlayer(props: GamePlayerProps) {
             colorMode: theme.mode,
             tokens: gameTokens(theme.theme, theme.mode),
             locale,
-            adsEnabled: false,
+            adsEnabled: adsOn,
             character: chosen,
             best: serverBest,
           },
@@ -180,6 +190,8 @@ export function GamePlayer(props: GamePlayerProps) {
           break;
         case 'muteState':
           // The game's own sound switch was used: the toolbar button follows it (no echo back).
+          // While an ad plays the platform muted the game itself; that is not the player's choice.
+          if (adPlayingRef.current) break;
           setMuted(message.muted);
           break;
         case 'moveOut': {
@@ -200,6 +212,7 @@ export function GamePlayer(props: GamePlayerProps) {
           if (match) break;
           const run = runRef.current;
           runRef.current = null;
+          finishedRunsRef.current += 1;
           if (message.score !== null) {
             const score = message.score;
             // A run played on Easy is practice (docs/adr/0018-difficulty-easy-is-practice.md):
@@ -233,10 +246,32 @@ export function GamePlayer(props: GamePlayerProps) {
           if (shouldPromptVote(slug, Date.now() - runStartedRef.current)) setVotePrompt(true);
           break;
         }
-        case 'adRequest':
-          // Ads are not live yet (adsEnabled is false); answer so the game never waits.
-          post({ type: 'GHA_AD_RESULT', id: message.id, shown: false, rewarded: false });
+        case 'adRequest': {
+          // Ads (docs/adr/0023): this page shows the ad, never the game. While ads are off, in
+          // online matches and for interstitials during a run the answer is "not shown" at once;
+          // `rewarded` is true only after grantAdReward confirmed it. The game carries on either way.
+          const id = message.id;
+          let mutedBefore = false;
+          adManager
+            .request({
+              format: message.format,
+              placement: message.placement,
+              gameId,
+              moment: { online: Boolean(match), inRun: runRef.current !== null },
+              beforeAd: () => {
+                adPlayingRef.current = true;
+                mutedBefore = mutedRef.current;
+                post({ type: 'GHA_MUTE', muted: true });
+              },
+              afterAd: () => {
+                post({ type: 'GHA_MUTE', muted: mutedBefore });
+                adPlayingRef.current = false;
+              },
+              notify: (note) => setToast(t(`ads.${note}`)),
+            })
+            .then((answer) => post(adResult(id, answer)));
           break;
+        }
         case 'openLeaderboard':
           document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' });
           break;
@@ -247,7 +282,21 @@ export function GamePlayer(props: GamePlayerProps) {
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder, match]);
+  }, [phase, gameOrigin, post, sendStart, slug, gameId, scoreOrder, match, t]);
+
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
+  // Leaving a game page after finishing a run is one of the platform's own ad moments (an
+  // interstitial between games, Phase 3). Never after online matches; the caps and the minimum
+  // gap apply, and nothing happens while ads are off.
+  useEffect(() => {
+    if (match) return;
+    return () => {
+      if (finishedRunsRef.current > 0) void adManager.leaveInterstitial();
+    };
+  }, [match]);
 
   // Leaving the game page (another route, the component goes away) leaves the open run; closing
   // or reloading the tab does too, through a keepalive request (slice 5.22).

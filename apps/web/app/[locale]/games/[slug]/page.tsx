@@ -2,6 +2,7 @@ import { pickLocalized, type Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { AdBanner } from '@/components/ads/ad-banner';
 import { CoverArt } from '@/components/catalog/cover-art';
 import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
@@ -225,6 +226,9 @@ export default async function GamePage({ params }: Props) {
               <p>{t('game.leaderboardSoon')}</p>
             )}
           </section>
+
+          {/* Desktop only, beside the game, never over it; nothing while ads are off. */}
+          <AdBanner />
 
           <section className={styles.section} aria-labelledby="related-heading">
             <h2 id="related-heading">{t('game.related')}</h2>

@@ -257,3 +257,19 @@ export function relayableMove(data: unknown): string | null {
     return null;
   }
 }
+
+/**
+ * The answer to a game's GHA_AD_REQUEST. `rewarded` is true only when the ad was shown and the
+ * server confirmed the reward (grantAdReward); games must carry on either way.
+ */
+export function adResult(
+  id: number,
+  answer: { shown: boolean; rewarded: boolean },
+): PlatformMessage {
+  return {
+    type: 'GHA_AD_RESULT',
+    id,
+    shown: answer.shown,
+    rewarded: answer.shown && answer.rewarded,
+  };
+}

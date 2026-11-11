@@ -14,3 +14,4 @@ export * from './play-report';
 export * from './lobby';
 export * from './tables';
 export * from './presence';
+export * from './ads';
