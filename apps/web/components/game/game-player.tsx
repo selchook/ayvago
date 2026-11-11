@@ -225,7 +225,7 @@ export function GamePlayer(props: GamePlayerProps) {
             // best; without one (Firebase off, not registered) the browser's answer stands.
             const shown = { score, improved: run ? false : localImproved, practice };
             setResult(shown);
-            run?.finish(score, { practice }).then((finished) => {
+            run?.finish(score, { practice, continues: message.continues }).then((finished) => {
               setRunResult(finished);
               const improved =
                 finished === null

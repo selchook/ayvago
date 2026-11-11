@@ -249,6 +249,17 @@ Players see no change except the new privacy page and its link at the bottom of 
   - switching off removes the banner at once and the next request answers "not shown";
   - a phone gets no banner.
 
+### Protocol 2.8: one rewarded-ad continue (adapter 2.8.0)
+The studio's rewarded "continue" (one extra life after an ad, offered once per run) needs the
+platform to know that the run continued. The run stays one score session.
+- **Adapter:** `GameResult.continues?: 0 | 1`. `endGame` sends `continues: 1` in `GHA_END` only when
+  the run continued, and nothing otherwise.
+- **Bridge:** `parseGameMessage` reads `continues` from `GHA_END`; only the number `1` counts, every
+  other value reads as `0`.
+- **Player page:** passes it to `finishSession({ ..., continues })`, which already accepted
+  `continues: 0 | 1` and checks it again.
+- **Studio:** copies the adapter verbatim; its CI fails until the copy matches.
+
 ### Still open
 - ⏳ The owner's AdSense steps ([Phase 3 setup](../setup/phase-3.md)). Until then the switch can be
   turned on, but the panel says why nothing shows.

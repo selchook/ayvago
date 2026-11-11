@@ -56,7 +56,19 @@ describe('parseGameMessage', () => {
       score: null,
       won: false,
       difficulty: 'normal',
+      continues: 0,
     });
+  });
+
+  it('reads one rewarded-ad continue from GHA_END (protocol 2.8)', () => {
+    expect(parseGameMessage({ type: 'GHA_END', score: 40, continues: 1 })).toMatchObject({
+      continues: 1,
+    });
+    for (const continues of [0, 2, '1', true, undefined]) {
+      expect(parseGameMessage({ type: 'GHA_END', score: 40, continues })).toMatchObject({
+        continues: 0,
+      });
+    }
   });
 
   it('reads the run difficulty from GHA_END (protocol 2.6)', () => {
@@ -65,6 +77,7 @@ describe('parseGameMessage', () => {
       score: 40,
       won: null,
       difficulty: 'easy',
+      continues: 0,
     });
     expect(parseGameMessage({ type: 'GHA_END', score: 40, difficulty: 'normal' })).toMatchObject({
       difficulty: 'normal',

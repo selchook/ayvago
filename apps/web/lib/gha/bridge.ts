@@ -18,7 +18,13 @@ export type GameMessage =
   | { type: 'loading'; progress: number }
   | { type: 'score'; score: number }
   /** `difficulty` is 'normal' unless the game said 'easy' (older games send nothing). */
-  | { type: 'end'; score: number | null; won: boolean | null; difficulty: Difficulty }
+  | {
+      type: 'end';
+      score: number | null;
+      won: boolean | null;
+      difficulty: Difficulty;
+      continues: 0 | 1;
+    }
   | { type: 'moveOut'; data: unknown }
   | { type: 'openLeaderboard' }
   /** Protocol 2.5: the game's own sound switch, so the player's sound button can match it. */
@@ -141,6 +147,8 @@ export function parseGameMessage(data: unknown): GameMessage | null {
         won: typeof msg.won === 'boolean' ? msg.won : null,
         // Only an explicit 'easy' makes a run practice; a game can only lower its own rewards.
         difficulty: msg.difficulty === 'easy' ? 'easy' : 'normal',
+        // One rewarded-ad continue at most (protocol 2.8); finishSession checks it again.
+        continues: msg.continues === 1 ? 1 : 0,
       };
     case 'GHA_MOVE_OUT':
       return { type: 'moveOut', data: msg.data };
