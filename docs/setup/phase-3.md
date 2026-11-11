@@ -67,7 +67,7 @@ repository:
 |---|---|---|
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | Your publisher ID with the `ca-` prefix: **`ca-pub-1982569451422503`** | Everything. Without it the ad code stays inert |
 | `NEXT_PUBLIC_ADSENSE_BANNER_SLOT` | The ID of a **display ad unit** (AdSense → Ads → By ad unit → Display ads, fixed size 300×250) | The desktop banner. Optional |
-| `NEXT_PUBLIC_PRIVACY_CONTACT` | The e-mail address for privacy and KVKK requests | The privacy page's contact line. Strongly recommended before going live |
+| `NEXT_PUBLIC_PRIVACY_CONTACT` | Optional. The privacy contact defaults to `ayvagogames@gmail.com`; set this only to use another address | The privacy page's contact line |
 
 ⏳ Redeploy after setting them (Deployments → the latest production deployment → Redeploy). The
 admin panel's status line confirms the client ID once the new build is live.

@@ -155,9 +155,16 @@ Players see no change except the new privacy page and its link at the bottom of 
   - the choice can be changed on `/privacy`.
 
 ### Privacy page (`/[locale]/privacy`)
-- What is stored, cookies and local storage, ads and consent (with the ad choice), a KVKK notice
-  (data controller, purposes, legal grounds per Art. 5, transfers abroad per Art. 9, rights per
-  Art. 11) and contact. All of it in en and tr.
+- What is stored, cookies and local storage, ads and consent (with the ad choice), the reader's
+  rights and contact, in en and tr.
+- The rights section follows the reader's language (owner request): the **English page carries a
+  GDPR section** (controller, purposes, legal bases per Art. 6(1)(a), (b) and (f), transfers
+  outside the EEA, retention, the rights of Arts. 15–22 and the right to complain to a supervisory
+  authority), and the **Turkish page the KVKK notice** (legal grounds per Art. 5, transfers per
+  Art. 9, rights per Art. 11, 30-day answer per Art. 13). Both live under one message key
+  (`privacy.rights`), so the catalogs stay in step.
+- Contact: `ayvagogames@gmail.com` as a mailto link (owner's address);
+  `NEXT_PUBLIC_PRIVACY_CONTACT` can override it.
 - It is linked at the bottom of the side menu and on phones at the end of the page, and listed in
   the sitemap.
 

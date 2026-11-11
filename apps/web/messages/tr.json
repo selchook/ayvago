@@ -922,9 +922,9 @@
   },
   "privacy": {
     "title": "Gizlilik, çerezler ve KVKK",
-    "description": "Ayvago'nun verilerinizi, çerezleri ve reklamları nasıl ele aldığı; KVKK ve GDPR kapsamındaki haklarınız.",
+    "description": "Ayvago'nun verilerinizi, çerezleri ve reklamları nasıl ele aldığı; KVKK kapsamındaki haklarınız.",
     "updated": "Son güncelleme: {date}",
-    "intro": "Ayvago (ayvago.com) ücretsiz bir web oyun platformudur. Bu sayfa hakkınızda neleri sakladığımızı, hangi çerezleri ve benzeri teknolojileri kullandığımızı, reklamların nasıl çalıştığını ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) ile GDPR kapsamındaki haklarınızı açıklar.",
+    "intro": "Ayvago (ayvago.com) ücretsiz bir web oyun platformudur. Bu sayfa hakkınızda neleri sakladığımızı, hangi çerezleri ve benzeri teknolojileri kullandığımızı, reklamların nasıl çalıştığını ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamındaki haklarınızı açıklar.",
     "data": {
       "title": "Sakladığımız veriler",
       "p1": "Oynamaya başladığınızda size bir misafir hesabı açılır; dilerseniz Google ile de giriş yapabilirsiniz. Kullanıcı adınızı, avatarınızı ve karakterinizi, ayarlarınızı (tema, dil), kitaplığınızı (favoriler, son oynananlar), skorlarınızı, oyun istatistiklerinizi, başarımlarınızı ve oylarınızı saklarız. Google ile giriş yaptığınızda e-posta adresiniz de hesaba eklenir.",
@@ -944,18 +944,19 @@
       "p4": "Google'ın reklamlarda verileri nasıl kullandığı policies.google.com/technologies/ads adresinde açıklanır.",
       "p5": "Reklam kaldırma (remove_ads) sunulduğunda oyunlar arasındaki reklamları ve banner'ı kapatır; ödüllü reklamlar isteğe bağlı olarak kalır."
     },
-    "kvkk": {
+    "rights": {
       "title": "KVKK aydınlatma metni",
       "p1": "Veri sorumlusu: Ayvago (ayvago.com). Bu aydınlatma, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun (KVKK) 10. maddesi uyarınca yapılır.",
       "p2": "Kişisel verilerinizi platformu ve hesabınızı işletmek, skor tablolarını adil tutmak, kötüye kullanımı ve hileyi önlemek, hizmetin güvenliğini sağlamak ve reklamlar açıkken reklam göstermek ve reklam sınırlarını uygulamak amacıyla işleriz.",
       "p3": "Hukuki sebepler: kullandığınız hizmetin ifası (KVKK m. 5/2-c), güvenlik ve adil oyun konusundaki meşru menfaatimiz (m. 5/2-f) ve kişiselleştirilmiş reklamlar ile reklam çerezleri için, bu sayfadan istediğiniz zaman geri alabileceğiniz açık rızanız (m. 5/1).",
       "p4": "Hizmet sağlayıcılarımız Google (Firebase, AdSense) ve Vercel verileri Türkiye dışındaki sunucularda işler; yurt dışına aktarım KVKK'nın 9. maddesine uygun olarak yapılır.",
       "p5": "KVKK'nın 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse buna ilişkin bilgi talep etme, işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini, silinmesini veya yok edilmesini isteme, münhasıran otomatik sistemlerle analiz edilmesi sonucunda aleyhinize bir sonucun ortaya çıkmasına itiraz etme ve kanuna aykırı işleme nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme haklarına sahipsiniz.",
-      "p6": "Taleplerin çoğunu Profil sayfanızdan yerine getirebilirsiniz (verilerinizi indirme veya silme)."
+      "p6": "Taleplerin çoğunu Profil sayfanızdan yerine getirebilirsiniz (verilerinizi indirme veya silme).",
+      "p7": "Diğer talepleriniz için aşağıdaki iletişim adresini kullanabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır (KVKK m. 13)."
     },
     "contact": {
       "title": "İletişim",
-      "withEmail": "Sorularınız ve KVKK başvurularınız için {email} adresine yazabilirsiniz.",
+      "withEmail": "Sorularınız ve KVKK başvurularınız için <link>{email}</link> adresine yazabilirsiniz.",
       "withoutEmail": "Verilerinizi Profil sayfanızdan indirebilir veya silebilirsiniz."
     }
   }

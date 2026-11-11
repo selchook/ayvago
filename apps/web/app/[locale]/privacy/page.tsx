@@ -17,7 +17,8 @@ const SECTIONS = [
   { id: 'data', paragraphs: ['p1', 'p2', 'p3'] },
   { id: 'storage', paragraphs: ['p1', 'p2'] },
   { id: 'ads', paragraphs: ['p1', 'p2', 'p3', 'p4', 'p5'] },
-  { id: 'kvkk', paragraphs: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'] },
+  // GDPR in English, KVKK in Turkish: each locale carries the law that fits its readers.
+  { id: 'rights', paragraphs: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] },
 ] as const;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -31,8 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Privacy, cookies and KVKK (Phase 3, slice 3.1): what the platform stores, the storage it uses,
- * how ads and consent work, and the KVKK notice. One page, both locales.
+ * Privacy and cookies (Phase 3, slice 3.1): what the platform stores, the storage it uses, how ads
+ * and consent work, and the reader's rights: the GDPR on the English page, KVKK on the Turkish one.
  */
 export default async function PrivacyPage({ params }: Props) {
   const { locale } = await params;
@@ -61,7 +62,10 @@ export default async function PrivacyPage({ params }: Props) {
         <h2 id="contact-heading">{t('contact.title')}</h2>
         <p>
           {PRIVACY_CONTACT ? (
-            t('contact.withEmail', { email: PRIVACY_CONTACT })
+            t.rich('contact.withEmail', {
+              email: PRIVACY_CONTACT,
+              link: (chunks) => <a href={`mailto:${PRIVACY_CONTACT}`}>{chunks}</a>,
+            })
           ) : (
             <Link href="/profile">{t('contact.withoutEmail')}</Link>
           )}
