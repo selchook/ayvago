@@ -163,6 +163,11 @@ Players see no change except the new privacy page and its link at the bottom of 
   authority), and the **Turkish page the KVKK notice** (legal grounds per Art. 5, transfers per
   Art. 9, rights per Art. 11, 30-day answer per Art. 13). Both live under one message key
   (`privacy.rights`), so the catalogs stay in step.
+- The ad choice on the page follows the consent owner (owner request): where Google's CMP covers
+  the visitor (`__tcfapi` reports `gdprApplies`, i.e. the EEA, the UK and Switzerland, and only
+  while ads are on), the platform's Allow / Non-personalised buttons give way to Google's own
+  **Privacy and cookie settings** (`googlefc.showRevocationMessage`, queued so it works while the
+  CMP loads). Everyone else keeps the platform's buttons. One consent, one place to change it.
 - Contact: `ayvagogames@gmail.com` as a mailto link (owner's address);
   `NEXT_PUBLIC_PRIVACY_CONTACT` can override it.
 - It is linked at the bottom of the side menu and on phones at the end of the page, and listed in

@@ -917,7 +917,9 @@
       "allow": "Allow personalised ads",
       "deny": "Non-personalised only",
       "saved": "Your choice is saved.",
-      "note": "The choice is stored in this browser."
+      "note": "The choice is stored in this browser.",
+      "google": "In your region, ad consent is managed by Google's consent message. You can review or withdraw it there at any time.",
+      "googleButton": "Privacy and cookie settings"
     }
   },
   "privacy": {
@@ -939,7 +941,7 @@
     "ads": {
       "title": "Ads",
       "p1": "Ads keep Ayvago free. The Ayvago page shows them itself, through Google AdSense (H5 Games Ads); games never show ads on their own. There are three kinds: rewarded ads you choose to watch for a reward in a game, short ads between games, and a banner in the side column on large screens. There are never ads during play or in online matches.",
-      "p2": "Until you agree, we ask Google for non-personalised ads and deny ad cookies (Google Consent Mode). Visitors in the European Economic Area, the United Kingdom and Switzerland see Google's consent message (IAB TCF v2.2); everyone else sees our own notice. Personalised ads, based on cookies and your interests, are used only if you allow them.",
+      "p2": "Until you agree, we ask Google for non-personalised ads and deny ad cookies (Google Consent Mode). Visitors in the European Economic Area, the United Kingdom and Switzerland see Google's consent message (IAB TCF v2.2); everyone else sees our own notice. Personalised ads, based on cookies and your interests, are used only if you allow them. If Google's message covers you, change or withdraw your consent with the \"Privacy and cookie settings\" button below.",
       "p3": "For rewarded ads we record that a reward was granted (the time and the game) to apply the daily limit. We do not give Google your account data.",
       "p4": "How Google uses data in ads is explained at policies.google.com/technologies/ads.",
       "p5": "Ad removal (remove_ads), once it is offered, turns off the ads between games and the banner; rewarded ads stay optional."
