@@ -119,7 +119,7 @@ describe('play report rows', () => {
       guest: `${prefix} M`,
       unknown: `${prefix} U`,
     });
-    const rows = gameCsvRows(report, (id) => (id === 'snake' ? 'Yılan' : id), {
+    const rows = gameCsvRows(report.games, (id) => (id === 'snake' ? 'Yılan' : id), {
       game: 'Game',
       gameId: 'Id',
       allTimeFinished: 'Runs',
@@ -182,7 +182,7 @@ describe('play report rows', () => {
 
   it('builds the per-player rows with their games', () => {
     const rows = playerCsvRows(
-      report,
+      report.players,
       (g) => `${g.gameId === 'snake' ? 'Snake' : 'Okey'} × ${g.plays + g.onlinePlays}`,
       (kind) => kind.toUpperCase(),
       '(no name)',

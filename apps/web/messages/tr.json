@@ -320,6 +320,10 @@
     "loadFailed": "Bu liste yüklenemedi. Firestore indekslerini kontrol edip tekrar dene.",
     "actionFailed": "İşlem başarısız oldu. Tekrar dene.",
     "guest": "misafir",
+    "sort": {
+      "ascending": "{column} sütununa göre artan sırala",
+      "descending": "{column} sütununa göre azalan sırala"
+    },
     "tabs": {
       "flags": "İşaretli skorlar",
       "games": "Oyunlar",
