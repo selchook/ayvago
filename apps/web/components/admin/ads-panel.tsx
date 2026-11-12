@@ -158,11 +158,6 @@ export function AdsPanel() {
             ) : null}
           </>
         )}
-        {saved.banner ? (
-          <p className={styles.config} data-testid="ads-banner-where">
-            {t('status.bannerWhere')}
-          </p>
-        ) : null}
         {status.warnings.length > 0 ? (
           <ul className={styles.statusList}>
             {status.warnings.map((warning) => (

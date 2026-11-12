@@ -519,8 +519,7 @@
           "no-banner-slot": "Banner reklam birimi yok (NEXT_PUBLIC_ADSENSE_BANNER_SLOT): masaüstü banner'ı kapalı kalır.",
           "test-mode": "Test modu açık: yalnızca Google'ın test reklamları gösterilir ve bunlar gelir getirmez.",
           "no-privacy-contact": "Gizlilik iletişim adresi yok (NEXT_PUBLIC_PRIVACY_CONTACT): gizlilik sayfasında KVKK başvuruları için adres yer almaz."
-        },
-        "bannerWhere": "Banner yalnızca oyun sayfalarında, en az 1100 px genişliğindeki ekranların yan sütununda ve reklamlar açıkken görünür. Yeni bir reklam biriminin dolması bir saati bulabilir; AdSense siteyi onaylayana kadar alan boş kalabilir."
+        }
       },
       "formats": {
         "title": "Biçimler",

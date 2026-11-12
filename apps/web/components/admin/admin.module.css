@@ -368,13 +368,6 @@
   background: color-mix(in srgb, var(--success) 10%, transparent);
 }
 
-.config {
-  margin: 8px 0 0;
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  overflow-wrap: anywhere;
-}
-
 .statusList {
   margin: 0;
   padding-inline-start: 18px;
