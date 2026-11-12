@@ -1703,8 +1703,18 @@ What shipped:
     `--accent` / `--accent-contrast`.
   - **Arcade is unchanged.** It shows the screenshot, or the cover for games without one; no
     zoom, scrim or play button, and its badges look as before.
-  - **Covers elsewhere.** The home spotlight and the game page keep the full cover; only tiles
-    (shelves, grids, related games, search, recent and favorites) switch to card art.
+  - **Covers elsewhere.** The home spotlight keeps the full cover. Tiles switch to card art:
+    shelves, grids, related games, search, recent and favorites.
+  - **Player overlay (owner request, follow-up).** The overlay with the Play button, before a
+    game starts, also shows the card art in Minimal and Cartoon:
+    - the game page, the online room page and the table page;
+    - `srcset` with `sizes="(max-width: 960px) 100vw, 960px"`, so dense screens get the 1280 px
+      card;
+    - the art is kept sharp and only lightly dimmed (`brightness(0.85)`) under a radial scrim that
+      darkens the middle, where the Play button sits.
+
+    The cover was blurred and darkened because it carries a menu screenshot and text; the card
+    art does not. Arcade keeps the dimmed cover there.
 - **Only shown images load.** Each image that a theme may hide sits in a wrapper the theme hides.
   The cover behind a card is only shown in Arcade, and the card is hidden there. Lazy images
   under a hidden parent are never fetched.
