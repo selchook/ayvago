@@ -520,8 +520,6 @@
           "test-mode": "Test mode is on: only Google's test ads show, and they earn nothing.",
           "no-privacy-contact": "No privacy contact (NEXT_PUBLIC_PRIVACY_CONTACT): the privacy page gives no address for KVKK requests."
         },
-        "config": "Live build: AdSense client <code>{client}</code> · banner ad unit <code>{slot}</code>. These come from Vercel and change only after a redeploy.",
-        "notSet": "not set",
         "bannerWhere": "The banner shows only on game pages, in the side column of screens at least 1100 px wide, and only while ads are on. A new ad unit can take up to an hour to fill, and until AdSense approves the site the slot may stay blank."
       },
       "formats": {

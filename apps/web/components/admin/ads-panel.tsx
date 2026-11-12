@@ -158,13 +158,6 @@ export function AdsPanel() {
             ) : null}
           </>
         )}
-        <p className={styles.config} data-testid="ads-config">
-          {t.rich('status.config', {
-            client: ADSENSE_CLIENT || t('status.notSet'),
-            slot: ADSENSE_BANNER_SLOT || t('status.notSet'),
-            code: (chunks) => <code>{chunks}</code>,
-          })}
-        </p>
         {saved.banner ? (
           <p className={styles.config} data-testid="ads-banner-where">
             {t('status.bannerWhere')}

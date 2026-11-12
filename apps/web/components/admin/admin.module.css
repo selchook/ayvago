@@ -375,10 +375,6 @@
   overflow-wrap: anywhere;
 }
 
-.config code {
-  font-size: 0.8125rem;
-}
-
 .statusList {
   margin: 0;
   padding-inline-start: 18px;

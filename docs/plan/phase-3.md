@@ -89,9 +89,6 @@ Players see no change except the new privacy page and its link at the bottom of 
     format is off;
   - warnings: Firebase is off (no rewarded ads), there is no banner ad unit, test mode is on,
     there is no privacy contact;
-  - a config line shows the AdSense client ID and the banner ad unit the live build was made
-    with. Both come from Vercel and change only after a redeploy, so the owner can see whether
-    a new value has reached the site;
   - while the banner format is on, a note says where the banner appears: game pages only, in the
     side column of screens at least 1100 px wide, only while ads are on. It also says that a new
     ad unit can take up to an hour to fill and may stay blank until AdSense approves the site.
