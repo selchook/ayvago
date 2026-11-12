@@ -1,4 +1,5 @@
-/* App shell: top bar across the page, side rail on tablet/desktop, bottom bar on phones. */
+/* App shell: top bar across the page; the full side menu on desktop, a collapsible icon rail on
+   tablets and a drawer behind the top bar's menu button on phones (slice 5.26). */
 
 .shell {
   /* The top bar grows by the top safe area: the iPhone status bar in the installed app
@@ -202,10 +203,6 @@ button.navItem {
   cursor: pointer;
 }
 
-.phoneInstall {
-  display: none;
-}
-
 .content {
   grid-area: main;
   min-width: 0;
@@ -283,23 +280,242 @@ button.navItem {
   outline-offset: 0;
 }
 
-.bottomNav {
-  display: none;
-}
-
 /* Wins over the popover trigger look it borrows. */
 .topActions .phoneSearch {
   display: none;
 }
 
-/* Tablet: icon-only rail. */
-@media (max-width: 1023px) {
-  .shell {
-    --rail-w: 76px;
+/* Menu buttons: the phone menu button and the drawer's close button. */
+.menuButton {
+  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--easing);
+}
+
+.menuButton:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* The rail toggle and its tips only exist at tablet widths. */
+.railToggle,
+.railTip {
+  display: none;
+}
+
+/* ---------- Phone drawer (a modal <dialog>, in the top layer) ---------- */
+
+.drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(300px, 85vw);
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--text);
+}
+
+.drawer[open] {
+  animation: drawer-in var(--motion-base) var(--easing);
+}
+
+.drawer[data-closing] {
+  animation: drawer-out var(--motion-fast) ease-in forwards;
+}
+
+.drawer::backdrop {
+  background: rgb(0 0 0 / 0.5);
+  animation: backdrop-in var(--motion-base) var(--easing);
+}
+
+.drawer[data-closing]::backdrop {
+  animation: backdrop-out var(--motion-fast) ease-in forwards;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes drawer-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: no slide; the drawer and the backdrop only fade (the global rule in
+   globals.css shortens every animation to an instant). */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes drawer-in {
+    from {
+      opacity: 0;
+    }
   }
 
-  .navLabel,
-  .navHeading {
+  @keyframes drawer-out {
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+.drawerPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-inline-start: env(safe-area-inset-left, 0px);
+  background: var(--surface);
+  border-inline-end: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.drawerHead {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 60px;
+  padding-inline: 16px 8px;
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.drawerLogo {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.drawerHead .menuButton {
+  display: inline-flex;
+}
+
+.drawerNav {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+/* Every item is a comfortable touch target in the drawer. */
+.drawerNav .navItem {
+  min-height: 44px;
+}
+
+[data-theme='arcade'] .drawerLogo [data-pixel] {
+  filter: url(#ayvago-pixel-drawer);
+}
+
+/* Ayvago Arcade: the hard black outline, the red rule under the head like the top bar's, and
+   the page's scanlines (the dialog sits above them in the top layer). */
+[data-theme='arcade'] .drawerPanel {
+  border-inline-end: 3px solid #000;
+  box-shadow: 6px 0 0 #000;
+}
+
+[data-theme='arcade'] .drawerHead {
+  border-bottom-color: var(--accent);
+}
+
+[data-theme='arcade'] .drawerPanel::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0) 0,
+    rgb(0 0 0 / 0) 2px,
+    rgb(0 0 0 / 0.16) 3px
+  );
+}
+
+/* Locks the page behind the open drawer. */
+:global(html[data-drawer-open]) {
+  overflow: hidden;
+}
+
+/* ---------- Tablet: the icon rail, expandable to the full menu ---------- */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .shell {
+    --rail-w: 72px;
+    transition: grid-template-columns var(--motion-base) var(--easing);
+  }
+
+  /* Expanded (remembered, lib/shell/rail.ts): the full menu pushes the content over. */
+  :global(html[data-rail='expanded']) .shell {
+    --rail-w: 232px;
+  }
+
+  /* Above the content column (a sticky element is its own stacking context), so the label
+     tips beside the collapsed rail are not painted under the page. */
+  .sideNav {
+    z-index: 15;
+    overflow-x: hidden;
+  }
+
+  .railToggle {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 8px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: background var(--motion-fast) var(--easing);
+  }
+
+  .railToggle:hover {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
+  :global(html[data-rail='expanded']) .railToggle {
+    margin-inline: auto 0;
+  }
+
+  /* Collapsed: icons only; the labels stay for screen readers and show as tips. */
+  :global(html:not([data-rail='expanded'])) .sideNav .navLabel,
+  :global(html:not([data-rail='expanded'])) .sideNav .navHeading {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -308,13 +524,39 @@ button.navItem {
     white-space: nowrap;
   }
 
-  .navItem {
+  :global(html:not([data-rail='expanded'])) .sideNav .navItem {
     justify-content: center;
     padding: 12px;
   }
+
+  :global(html[data-rail='expanded']) .sideNav .navLabel {
+    white-space: nowrap;
+  }
+
+  .railTip {
+    position: fixed;
+    z-index: 50;
+    display: block;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: var(--border-width) solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: var(--shadow-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  [data-theme='arcade'] .railTip {
+    border: 3px solid #000;
+    box-shadow: 0 4px 0 #000;
+  }
 }
 
-/* Phone: no rail, bottom navigation instead. */
+/* ---------- Phone: no side menu; the drawer instead ---------- */
 @media (max-width: 639px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
@@ -327,9 +569,14 @@ button.navItem {
     display: none;
   }
 
-  .phoneInstall {
-    display: block;
-    margin-top: 24px;
+  .menuButton {
+    display: inline-flex;
+    /* Lines the icon up with the page's 12 px gutter. */
+    margin-inline-start: -10px;
+  }
+
+  .drawerHead .menuButton {
+    margin-inline: 0;
   }
 
   /* The two sides stack, centred: the copyright on one line, the links on the next. */
@@ -346,57 +593,37 @@ button.navItem {
   }
 
   .topBar {
-    gap: 8px;
+    gap: 6px;
     padding-inline: max(12px, env(safe-area-inset-left, 0px))
       max(12px, env(safe-area-inset-right, 0px));
   }
 
-  /* A smaller lockup and tighter actions, so the bar fits 320 px screens. */
+  /* A smaller lockup and tighter actions, so the bar with the menu button fits. When the
+     actions need more room (the account and level chip, an invite bell, a 320 px screen) the
+     lockup shrinks further instead of pushing the bar wider than the screen. */
+  .logo {
+    flex: 0 1 auto;
+    min-width: 64px;
+  }
+
   .logo svg {
-    width: auto;
-    height: 30px;
+    width: 106px;
+    max-width: 100%;
+    height: auto;
   }
 
   .topActions {
-    gap: 6px;
+    flex-shrink: 0;
+    gap: 4px;
   }
 
   .topActions .phoneSearch {
     display: inline-flex;
   }
 
-  /* The bottom padding keeps the footer clear of the fixed bottom bar. */
+  /* No bar is fixed to the bottom any more: only the home indicator's safe area. */
   .content {
     padding: 16px max(16px, env(safe-area-inset-right, 0px))
-      calc(88px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-  }
-
-  .bottomNav {
-    position: fixed;
-    inset: auto 0 0;
-    z-index: 20;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-    background: var(--surface);
-    border-top: var(--border-width) solid var(--border);
-  }
-
-  .bottomItem {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    min-height: 48px;
-    padding-top: 6px;
-    font-size: 0.7rem;
-    line-height: 1.2;
-    text-align: center;
-    color: var(--text-muted);
-    text-decoration: none;
-  }
-
-  .bottomItem[aria-current='page'] {
-    color: var(--accent);
-    font-weight: 700;
+      max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   }
 }

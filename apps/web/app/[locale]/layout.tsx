@@ -9,6 +9,7 @@ import { routing } from '@/i18n/routing';
 import { INSTALL_CAPTURE_SCRIPT } from '@/lib/pwa/install-capture';
 import { BAR_COLOR_SCRIPT } from '@/lib/pwa/manifest';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
+import { RAIL_BOOTSTRAP_SCRIPT } from '@/lib/shell/rail';
 // Self-hosted fonts (Latin + Latin Extended for Turkish); each face downloads only when used.
 import '@fontsource-variable/inter';
 import '@fontsource/press-start-2p';
@@ -69,6 +70,8 @@ export default async function LocaleLayout({ children, params }: Props) {
         <script dangerouslySetInnerHTML={{ __html: BAR_COLOR_SCRIPT }} />
         {/* Keeps an early beforeinstallprompt for the install banner (lib/pwa/install-store.ts). */}
         <script dangerouslySetInnerHTML={{ __html: INSTALL_CAPTURE_SCRIPT }} />
+        {/* The tablet menu rail opens expanded when the player left it so (lib/shell/rail.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: RAIL_BOOTSTRAP_SCRIPT }} />
       </head>
       <body>
         <ThemeRestorer />

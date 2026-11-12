@@ -12,6 +12,8 @@ import { SearchIcon } from '../icons';
 import popover from '../popover.module.css';
 import { ThemeSwitcher } from '../theme-switcher';
 import { BrandLogo } from './brand-logo';
+import { MobileMenu } from './mobile-menu';
+import { NavMenu } from './nav-menu';
 import { SloganTicker } from './slogan-ticker';
 import styles from './shell.module.css';
 
@@ -51,6 +53,19 @@ export async function TopBar() {
   );
   return (
     <header className={styles.topBar}>
+      {/* Phones: the menu button and its drawer (the side menu's content). */}
+      <MobileMenu
+        logo={
+          <>
+            <BrandLogo height={30} idSuffix="-drawer" />
+            <span className="visually-hidden">{t('title')}</span>
+          </>
+        }
+      >
+        <nav className={styles.drawerNav} aria-label={tn('main')}>
+          <NavMenu />
+        </nav>
+      </MobileMenu>
       <Link href="/" className={styles.logo}>
         <BrandLogo />
         <span className="visually-hidden">{t('title')}</span>

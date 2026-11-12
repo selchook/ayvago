@@ -354,6 +354,15 @@ run the report and click a column heading (for example **Oynanma**). The rows so
 arrow marks the column; a second click reverses the order. **Download CSV** ("CSV indir") then saves the rows
 in the order shown. The choice stays until the browser is closed.
 
+## 5.26 Mobile menu drawer
+**Nothing to set up.** Merging deploys the web app. There are no new secrets, env vars, functions,
+rules or studio changes.
+
+Optional check after the deploy, on a phone: open ayvago.com. The bottom tab bar is gone; tap ☰
+at the left of the top bar. The menu slides in from the left with every category; tap a category,
+the backdrop or ✕ to close it. On a tablet (or a computer window about 800 px wide) the left rail
+shows icons; the ☰ at its top expands it, and the choice stays after a reload.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

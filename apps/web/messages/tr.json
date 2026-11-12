@@ -14,7 +14,12 @@
     "multiplayer": "Çok oyunculu",
     "categories": "Kategoriler",
     "skipToContent": "İçeriğe geç",
-    "search": "Ara"
+    "search": "Ara",
+    "menu": "Menü",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "expandMenu": "Menüyü genişlet",
+    "collapseMenu": "Menüyü daralt"
   },
   "footer": {
     "label": "Yasal bilgiler ve iletişim",

@@ -1,9 +1,9 @@
-/* Install banner: bottom of the screen, above the phone bottom bar. */
+/* Install banner: bottom of the screen, clear of the home indicator. */
 .banner {
   position: fixed;
   z-index: 40;
   inset-inline: 16px;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   max-width: 440px;
   margin-inline: auto;
   display: grid;
@@ -79,12 +79,6 @@
 [data-theme='arcade'] .banner {
   border: 3px solid #000;
   box-shadow: 0 6px 0 #000;
-}
-
-@media (max-width: 639px) {
-  .banner {
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 .hint {

@@ -14,7 +14,12 @@
     "multiplayer": "Multiplayer",
     "categories": "Categories",
     "skipToContent": "Skip to content",
-    "search": "Search"
+    "search": "Search",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu"
   },
   "footer": {
     "label": "Legal and contact",

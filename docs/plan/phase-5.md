@@ -11,7 +11,7 @@
   [ADR 0018](../adr/0018-difficulty-easy-is-practice.md),
   [ADR 0019](../adr/0019-table-lobby-presence-invites.md),
   [ADR 0020](../adr/0020-quick-play-settings-host-handover.md),
-  [ADR 0024](../adr/0024-game-card-art.md)
+  [ADR 0024](../adr/0024-game-card-art.md), [ADR 0025](../adr/0025-phone-menu-drawer.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -50,6 +50,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.23 | Site footer: a copyright line and the Privacy, Cookie preferences and Contact links at the end of every page; the side-menu and phone privacy links move into it (owner request) | ✅ code |
 | 5.24 | Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card image per game (optional `assets.card` / `card2x` in `ayvago.json`) instead of the store cover, with a play button on hover; Arcade unchanged (owner request, [ADR 0024](../adr/0024-game-card-art.md)) | ✅ code · ⏳ merge before the card sync |
 | 5.25 | Sortable admin report tables: the "Players and plays" per-game and per-player tables and the admin Games table sort by a click on a column heading, remembered for the browser session; the CSV downloads follow the order shown (owner request) | ✅ code |
+| 5.26 | Mobile menu drawer: phones get a ☰ button and a slide-in drawer with the full side menu (every category) instead of the bottom tab bar; tablets get a collapsible icon rail that remembers its state; desktop unchanged (owner request, [ADR 0025](../adr/0025-phone-menu-drawer.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -1876,3 +1877,156 @@ Tests:
 Owner steps: none. See the [setup doc](../setup/phase-5.md#525-sortable-admin-report-tables).
 
 Still open: nothing.
+
+## 5.26 Mobile menu drawer ✅
+
+The owner asked for a hamburger menu on phones instead of the bottom tab bar, with every category
+as on desktop. On phones the bar showed only Home, New, Recently played and Favorites; the
+categories could not be reached from the navigation at all. The owner chose a drawer on phones,
+a collapsible icon rail on tablets and no change on desktop. Contract and reasons:
+[ADR 0025](../adr/0025-phone-menu-drawer.md).
+
+**Breakpoints.** They stay where the side menu already changed, so the phone search icon, the
+footer stacking and the other phone rules keep one boundary:
+
+| Width | Navigation |
+|---|---|
+| below 640 px (phones) | ☰ in the top bar and a drawer |
+| 640–1023 px (tablets, phones held sideways) | an icon rail with a toggle |
+| 1024 px and wider (desktop) | the full side menu, unchanged |
+
+What shipped (`components/shell`, `lib/shell/rail.ts`):
+- **One menu, three shapes.** The menu content is one server component, `NavMenu`: Home, New,
+  Recently played, Favorites, the CATEGORIES heading with every category that has games,
+  Multiplayer while there are multiplayer games, and "Install the app" until the app is installed.
+  The side menu and the drawer both render it, so they cannot drift apart. The active item is
+  marked with `aria-current="page"` and the same highlight as on desktop.
+- **Phones: the menu button.**
+  - ☰ sits at the left of the top bar, before the logo: 44×44 px, "Open menu" / "Menüyü aç",
+    `aria-expanded`, `aria-controls="menu-drawer"`, `aria-haspopup="dialog"`.
+  - The top bar fits 320 px wide. The lockup is 106×26 px (was 122×30) and shrinks, down to
+    64 px wide, when the actions need the room (the signed-in account trigger with its level
+    chip, an invite bell). The bar gap is 6 px and the actions' gap 4 px.
+- **Phones: the drawer** (`mobile-menu.tsx`).
+  - A modal `<dialog>` (`showModal`, labelled "Menu" / "Menü") slides in from the left: 300 px
+    wide, at most 85vw, full height with the safe areas, over a 50 % black backdrop.
+  - At the top: the lockup (a link home) and a ✕ close button ("Close menu" / "Menüyü kapat").
+    Then the menu in a `<nav>` ("Main navigation" / "Ana menü"), every item 44 px tall.
+  - It closes on:
+    - a tap on the backdrop;
+    - the ✕ button;
+    - Esc (the dialog's `cancel`, animated like the rest);
+    - any link, the current page's included, and "Install the app", which opens its banner;
+    - a left swipe on the drawer (at least 60 px, more sideways than vertical);
+    - a route change, or the screen growing past phone width (a phone turned sideways gets the
+      rail).
+  - **Focus.** Opening focuses ✕. Tab and Shift+Tab wrap inside the drawer. Closing returns focus
+    to ☰.
+  - **Scroll lock.** `html[data-drawer-open]` sets `overflow: hidden` while it is open. The
+    drawer itself scrolls with `overscroll-behavior: contain`.
+  - **Motion.** A slide of the theme's `--motion-base` (160–220 ms) and a backdrop fade;
+    closing uses `--motion-fast`. Under `prefers-reduced-motion` the slide becomes a fade, and
+    the global reduced-motion rule makes it instant; closing then skips the animation.
+  - **Themes.** Only semantic tokens (`--surface`, `--border`, `--accent`, `--text`). Arcade adds
+    its 3 px black outline with a hard shadow, the red rule under the head, the pixelated lockup
+    and the page's scanlines: the dialog sits in the top layer, above the page's own scanline
+    overlay. Items use the body pixel font (Pixelify Sans) and the heading its uppercase style,
+    as in the desktop side menu.
+  - **Game pages.** ☰ is in the top bar, outside the game stage, so fullscreen (the stage) never
+    shows it. While the drawer is open the page, the game's iframe included, is inert, and taps
+    land on the backdrop. Nothing listens for keys or gestures while it is closed, and there is no
+    edge-swipe zone over the game.
+- **The bottom tab bar is gone** (`bottom-nav.tsx` deleted, with its CSS). The content's
+  `88px + safe area` bottom padding is now `max(16px, safe area)`. The install banner, the ad
+  consent notice and the invite toasts lost their 80 px phone offset: they sit 16 px above the
+  bottom edge plus the safe area, as on larger screens. The phones' extra "Install the app" link
+  at the end of every page is gone too: it lives in the drawer, as in the desktop menu.
+- **Tablets: the rail** (`rail-toggle.tsx`, `lib/shell/rail.ts`).
+  - Collapsed it is 72 px wide (was 76) with icons only. Every link has its label as
+    `aria-label`. Hovering or focusing an icon shows the label in a tip beside the rail: a fixed
+    element, because the rail clips overflow. It is decorative (`aria-hidden`), since the name is
+    already the label. The rail now sits above the content column (`z-index: 15`) so the tip is
+    not painted under the page.
+  - A toggle at the top (☰ collapsed, a left chevron expanded; "Expand menu" / "Menüyü
+    genişlet", "Collapse menu" / "Menüyü daralt", `aria-expanded`, `aria-controls="side-nav"`)
+    expands the rail to the full 232 px menu with labels and the CATEGORIES heading. The grid
+    column animates.
+  - **Push, not overlay.** The expanded rail pushes the content over instead of covering it, so
+    a player who prefers the labels can keep the menu open while browsing. That is why the choice
+    is remembered.
+  - Esc collapses it while focus is in the menu, and focus returns to the toggle.
+  - **Remembered.** The choice is stored in `localStorage` (`ayvago-rail` = `expanded`;
+    collapsed removes the key), with every access in try/catch. An inline head script
+    (`RAIL_BOOTSTRAP_SCRIPT`) sets `html[data-rail="expanded"]` before the first paint, so the
+    page never jumps. Other tabs follow through the `storage` event.
+- **Desktop is unchanged.** The toggle and ☰ are hidden at 1024 px and wider, and a stored
+  "expanded" has no effect there.
+- **Logo ids.** `BrandLogo` takes an `idSuffix`, so the drawer's second lockup has its own mask
+  and filter ids.
+- **New message keys** (en and tr): `nav.menu`, `nav.openMenu`, `nav.closeMenu`,
+  `nav.expandMenu`, `nav.collapseMenu`.
+
+Deviations:
+- **No "click outside" collapse on tablets.** The expanded rail pushes the content instead of
+  covering it, so there is no backdrop. Collapsing it on every click in the page would undo the
+  remembered choice whenever the player taps a game. It collapses with its toggle and with Esc.
+- **The phones' "Install the app" link at the end of every page** is removed; the drawer has it,
+  like the desktop menu.
+
+Tests:
+- web `lib/shell/rail.test.ts` (9):
+  - the stored value parses only when it is exactly `expanded`;
+  - storing and forgetting the choice;
+  - blocked or missing storage never throws and reads as collapsed;
+  - the head script marks `<html>` only for a stored `expanded`, also with blocked storage;
+  - the left-swipe threshold;
+- the message test checks the five new `nav` keys in both locales;
+- full run: shared 116, web 210, themes 16, adapter 30, firebase 232 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass;
+- Playwright on `next start` (122 checks, all passing):
+  - **Phone, 390×844 touch:**
+    - ☰ is 44×44 with its label and `aria-expanded`; no bottom bar;
+    - the drawer is `:modal`, 300 px at the left edge, and focus lands on ✕;
+    - the page scroll is locked;
+    - the drawer has the same 14 links in the same order as the side menu, with the active item
+      marked;
+    - 80 Tab / Shift+Tab presses never leave the drawer;
+    - Esc closes it and returns focus to ☰; the backdrop, ✕, a link (navigates to `/new` and
+      marks it active), a link to the current page and a left swipe (CDP touch events) each close
+      it;
+    - reduced motion opens and closes without the slide;
+    - on a game page ☰ is outside the stage, and a tap over the game hits the backdrop.
+  - **No horizontal overflow**, and a top bar one line (60 px) tall that ends inside the screen,
+    at 320, 360, 390 and 412 px. Checked in Minimal light (EN), Arcade (TR) and Cartoon light
+    (TR) on the home, New, game, category and privacy pages, and with the drawer open.
+  - **Signed-in top bar.** Firebase is off locally, so a mock of the signed-in account trigger
+    (68 px) and of an invite bell was injected at 320, 360 and 412 px. The lockup shrinks to fit,
+    except the bell case at 360 px (below).
+  - **Tablet, 768×1024:**
+    - no ☰; the rail is 72 px with labels hidden and `aria-label` on every icon;
+    - hover and keyboard focus show the tip;
+    - the toggle states and labels;
+    - expanded is 232 px with labels, with no overflow;
+    - the choice is stored and survives a reload and a navigation, with the active item marked;
+    - Esc collapses it, returns focus to the toggle and forgets the choice.
+  - **Desktop, 1366×900:** no ☰ or toggle (even with a stored "expanded"); the menu is 232 px.
+    Against a build of `main`, the side menu, top bar and footer element screenshots and the
+    layout boxes of the menu, main column, header and footer are identical in all five theme and
+    mode combinations on the home, category, game and Turkish home pages. The only pixel
+    differences, on the theme button of two game-page top bars, change from run to run.
+  - Screenshots: the phone home with ☰, the drawer in Minimal light and dark, Cartoon light and
+    dark and Arcade, in EN and TR, the end of the home page in Minimal and Arcade, a game page
+    with and without the drawer, the tablet rail collapsed (with a tip) and expanded in all
+    themes, and desktop.
+
+Owner steps: none. See the [setup doc](../setup/phase-5.md#526-mobile-menu-drawer).
+
+Still open:
+- **An invite bell at 360 px.** With the signed-in account trigger *and* the invite bell (shown
+  only while invites are pending) the phone top bar is about 12 px too wide below about 375 px,
+  even with the smallest lockup. This was already the case before this slice (by about 44 px);
+  the shrinking lockup made it smaller. A later fix could hide the level chip while the bell
+  shows.
+- **Real devices.** Checked in Chromium with touch emulation. iOS Safari's handling of
+  `overflow: hidden` on `<html>` (scroll lock) and the dialog's top layer should be checked on a
+  phone after the deploy.

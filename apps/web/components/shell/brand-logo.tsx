@@ -43,7 +43,10 @@ function PixelFilter({ id, block }: { id: string; block: number }) {
   );
 }
 
-export function BrandLogo({ height = 40 }: { height?: number }) {
+/**
+ * `idSuffix` keeps the SVG ids unique when a second lockup is on the page (the phone drawer's).
+ */
+export function BrandLogo({ height = 40, idSuffix = '' }: { height?: number; idSuffix?: string }) {
   return (
     <svg
       viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
@@ -53,9 +56,9 @@ export function BrandLogo({ height = 40 }: { height?: number }) {
       focusable="false"
     >
       <defs>
-        <PixelFilter id="ayvago-pixel" block={24} />
+        <PixelFilter id={`ayvago-pixel${idSuffix}`} block={24} />
         <mask
-          id="ayvago-logo-letters"
+          id={`ayvago-logo-letters${idSuffix}`}
           maskUnits="userSpaceOnUse"
           x="-639.7"
           y="-175.2"
@@ -73,7 +76,7 @@ export function BrandLogo({ height = 40 }: { height?: number }) {
           />
         </mask>
         <mask
-          id="ayvago-logo-games"
+          id={`ayvago-logo-games${idSuffix}`}
           maskUnits="userSpaceOnUse"
           x="2.3"
           y="70.5"
@@ -98,7 +101,7 @@ export function BrandLogo({ height = 40 }: { height?: number }) {
           width="1125.6"
           height="239.7"
           fill="currentColor"
-          mask="url(#ayvago-logo-letters)"
+          mask={`url(#ayvago-logo-letters${idSuffix})`}
         />
         <g transform={`translate(${MARK_X} ${MARK_Y})`}>
           <circle r={MARK * 0.4197} fill="none" stroke="currentColor" strokeWidth={MARK * 0.15} />
@@ -122,7 +125,7 @@ export function BrandLogo({ height = 40 }: { height?: number }) {
         width="488.9"
         height="64.6"
         fill="currentColor"
-        mask="url(#ayvago-logo-games)"
+        mask={`url(#ayvago-logo-games${idSuffix})`}
       />
     </svg>
   );
