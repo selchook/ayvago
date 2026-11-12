@@ -188,3 +188,9 @@
 [data-theme='cartoon'] .rank {
   border-color: var(--border);
 }
+
+/* A single list (only one tab has games): its name as a small heading instead of a tab row. */
+.single {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
