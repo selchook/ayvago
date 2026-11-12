@@ -1,7 +1,7 @@
 import { GAME_CATEGORIES } from '@ayvago/shared';
 import { getTranslations } from 'next-intl/server';
 import { CategoryIcon } from '../category-icon';
-import { ClockIcon, HeartIcon, HomeIcon, SparkleIcon, UsersIcon } from '../icons';
+import { HeartIcon, HomeIcon, SparkleIcon, TrophyIcon, UsersIcon } from '../icons';
 import { categoryPath, getGamesByCategory, getMultiplayerGames } from '@/lib/catalog';
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode };
@@ -11,7 +11,7 @@ export async function getNavItems() {
   const primary: NavItem[] = [
     { href: '/', label: t('nav.home'), icon: <HomeIcon /> },
     { href: '/new', label: t('nav.new'), icon: <SparkleIcon /> },
-    { href: '/recent', label: t('nav.recent'), icon: <ClockIcon /> },
+    { href: '/most-played', label: t('nav.mostPlayed'), icon: <TrophyIcon /> },
     { href: '/favorites', label: t('nav.favorites'), icon: <HeartIcon /> },
   ];
   const categories: NavItem[] = [

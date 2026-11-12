@@ -29,9 +29,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
     getTileLabels(),
     getRankings(),
   ]);
-  // Spotlight: the games trending today, filled up with this week's trend and the featured games
-  // (slice 5.17). The ranking job runs hourly, so the carousel follows the day.
+  // Spotlight: ten games mixing today's and this week's trend, the featured games and the newest
+  // (slices 5.17 and 5.27). The ranking job runs hourly, so the carousel follows the day.
   const picks = pickSpotlight(getAllGames(), getFeaturedGames(), rankings);
+  const badges = {
+    today: (rank: number) => t('home.spotlightToday', { rank }),
+    week: () => t('home.spotlightWeek'),
+    featured: () => t('home.spotlightFeatured'),
+    new: () => t('home.spotlightNew'),
+  };
   const slides: SpotlightSlide[] = picks.map(({ game, reason, rank }) => ({
     slug: game.slug,
     href: gamePath(game),
@@ -40,13 +46,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
     description: gameDescription(game, locale),
     category: game.manifest.category,
     cover: game.coverUrl,
+    card: game.cardUrl,
+    card2x: game.card2xUrl,
     categoryLabels: allTiles.find((tile) => tile.slug === game.slug)?.categoryLabels ?? [],
-    badge:
-      reason === 'today'
-        ? t('home.spotlightToday', { rank })
-        : reason === 'week'
-          ? t('home.spotlightWeek')
-          : t('home.spotlightFeatured'),
+    badge: badges[reason](rank),
     reason,
   }));
   // "Popular this week" needs play data; it stays hidden until the ranking job has scores.

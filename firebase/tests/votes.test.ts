@@ -140,6 +140,40 @@ describe('recomputeGameScores', () => {
     const later = (await read('rankings/catalog'))?.games as Record<string, Record<string, number>>;
     expect(later[FIXTURE]!.todayScore).toBeCloseTo(10 * 0.5 * (0.5 + 0.5 * (3 / 4)), 6);
   });
+
+  it('writes the weekly and all-time finished runs, archiving old days once', async () => {
+    const games = async () =>
+      (await read('rankings/catalog'))?.games as Record<string, Record<string, number>>;
+    // Inside the 10-day window (from 2030-03-06): the 15th, the 12th and the 6th; the 5th and
+    // older days go to the archive. Started-only counters never count.
+    await write(`${GAME}/daily/2030-03-15`, { started: 9, finished: 5 });
+    await write(`${GAME}/daily/2030-03-12`, { finished: 7 });
+    await write(`${GAME}/daily/2030-03-06`, { finished: 11 });
+    await write(`${GAME}/daily/2030-03-05`, { finished: 100 });
+    await write(`${GAME}/daily/2029-12-31`, { finished: 1000, started: 5000 });
+    await recomputeGameScores(Date.parse('2030-03-15T12:00:00Z'));
+    expect((await games())[FIXTURE]).toMatchObject({ plays7d: 12, playsTotal: 1123 });
+    expect(await read(GAME)).toMatchObject({
+      plays7d: 12,
+      playsTotal: 1123,
+      playsArchive: { through: '2030-03-05', finished: 1100 },
+    });
+
+    // A day later the 6th leaves the window and is archived; the older days are not read again
+    // (a change to one of them, which the server never makes, stays unseen).
+    await write(`${GAME}/daily/2029-12-31`, { finished: 999_999 });
+    await write(`${GAME}/daily/2030-03-16`, { finished: 2 });
+    await recomputeGameScores(Date.parse('2030-03-16T12:00:00Z'));
+    expect((await games())[FIXTURE]).toMatchObject({ plays7d: 14, playsTotal: 1125 });
+    expect((await read(GAME))!.playsArchive).toEqual({ through: '2030-03-06', finished: 1111 });
+
+    // A clock set back rebuilds the archive from the daily documents.
+    await recomputeGameScores(Date.parse('2030-03-15T12:00:00Z'));
+    expect((await read(GAME))!.playsArchive).toEqual({
+      through: '2030-03-05',
+      finished: 999_999 + 100,
+    });
+  });
 });
 
 describe('player data', () => {

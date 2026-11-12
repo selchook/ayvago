@@ -51,6 +51,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.24 | Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card image per game (optional `assets.card` / `card2x` in `ayvago.json`) instead of the store cover, with a play button on hover; Arcade unchanged (owner request, [ADR 0024](../adr/0024-game-card-art.md)) | ✅ code · ⏳ merge before the card sync |
 | 5.25 | Sortable admin report tables: the "Players and plays" per-game and per-player tables and the admin Games table sort by a click on a column heading, remembered for the browser session; the CSV downloads follow the order shown (owner request) | ✅ code |
 | 5.26 | Mobile menu drawer: phones get a ☰ button and a slide-in drawer with the full side menu (every category) instead of the bottom tab bar; tablets get a collapsible icon rail that remembers its state; desktop unchanged (owner request, [ADR 0025](../adr/0025-phone-menu-drawer.md)) | ✅ code |
+| 5.27 | Most played, a bigger spotlight and thinkers' quotes: "Recently played" becomes a "Most played" page with This week, All time and Yours tabs; the home spotlight grows to ten slides with in-game card art, a progress bar and thumbnails; the top-bar ticker mixes in short, sourced quotes from philosophers (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -2030,3 +2031,151 @@ Still open:
 - **Real devices.** Checked in Chromium with touch emulation. iOS Safari's handling of
   `overflow: hidden` on `<html>` (scroll lock) and the dialog's top layer should be checked on a
   phone after the deploy.
+
+## 5.27 Most played, a bigger spotlight and thinkers' quotes ✅ code
+
+Three owner-approved changes in one slice.
+
+### Most played (replaces Recently played)
+
+What shipped:
+- **Page** `/[locale]/most-played` (`app/[locale]/most-played/page.tsx`), in the sitemap, with
+  one canonical URL for every tab. The nav item (`components/shell/nav-items.tsx`) is now
+  "Most played" / "En çok oynananlar" with the trophy icon; its active state is the usual path
+  match.
+- **Tabs** (`components/catalog/most-played-view.tsx`): the WAI-ARIA tabs pattern with automatic
+  activation (`role="tablist"`, roving `tabIndex`, ←/→/Home/End). The selected tab is kept in
+  the URL (`?tab=all`, `?tab=mine`; "This week" is the bare URL) with `history.replaceState`, and
+  the server renders the tab named in the query, so a shared link opens it.
+- **Ranked grid:** the usual game tiles in an ordered list, a round rank chip (1, 2, 3 …) over
+  each tile's top corner with gold, silver and bronze for the top three, and a play count under
+  the tile ("1.2K plays" / "1,2 B oynanma", next-intl compact number with ICU plural).
+- **Data per tab:**
+
+  | Tab | Source | Reads |
+  |---|---|---|
+  | This week / Bu hafta | `rankings/catalog` → `games.{id}.plays7d`: finished runs in the last 7 days, the number the admin Games table shows as "Plays (7 days)" | none extra: the page reads the same public document the home page reads (server fetch, cached for an hour) |
+  | All time / Tüm zamanlar | `rankings/catalog` → `games.{id}.playsTotal` (new, below) | same single cached read |
+  | Yours / Senin oyunların | `users/{uid}/stats/{gameId}` (`plays` + `onlinePlays`, `lastPlayedAt`) of the signed-in player, guests included, merged with this browser's recently played list | one read per game the player has played, only when the tab is opened; nothing for signed-out visitors |
+
+  "This week" and "All time" list live games with at least one finished run, most first, ties
+  in catalog order. "Yours" sorts by plays, then by the last time played; games only in the
+  browser's list (played signed out) come after the counted ones, without a count. Empty tabs
+  show a friendly message and a "Browse games" button.
+- **All-time aggregate** (`firebase/functions/src/rankings.ts`): the hourly `recomputeRankings`
+  already reads each game's last 10 daily documents. It now also keeps
+  `games/{gameId}.playsArchive = { through, finished }`, the finished runs of every day older
+  than that window, and publishes `plays7d` and `playsTotal` (archive + window) in
+  `rankings/catalog` and on `games/{gameId}`. Old daily documents are never written again (runs
+  count on the current UTC day), so each day is added to the archive once.
+  - **Cost:** nothing extra while the archive is current; one small query per game per day when
+    a day leaves the window (one read); once, on the first run after the deploy, a read of every
+    older daily document (the backfill, games × days played). No extra writes: the fields ride on
+    the batch the job already commits.
+  - **Rules:** unchanged. `rankings/catalog` was already public read and server-written; the
+    owner-only read of `users/{uid}/stats` already allowed listing the collection, now covered by
+    an emulator test.
+- **Old URL:** `/{locale}/recent` redirects permanently to `/{locale}/most-played?tab=mine`
+  (`next.config.ts`); the page and its `library.recentTitle` / `recentEmpty` messages are gone.
+  The home "Continue playing" shelf still shows the recent games; its "See all" now opens the
+  Yours tab. Nothing else linked to `/recent`.
+
+### Spotlight: ten slides with in-game art
+
+- **Mix** (`lib/catalog/spotlight.ts`, `SPOTLIGHT_SIZE = 10`): up to 3 games trending today, up
+  to 3 popular this week, the featured games, then the newest live games by `addedAt`; never the
+  same game twice. The new fill has the badge "New on Ayvago" / "Ayvago'da yeni"; `rank` is now
+  the rank within the reason ("#2 Trending today").
+- **Art:** the slide shows the game's card art (`cardUrl` with a `srcset` of the 640 and
+  1280 px cards, `sizes` for its ~640 px box), falling back to the cover. The slide's image box
+  is 16:9 in every layout and theme, Arcade included, so portrait games also use their card art
+  as is; the composed `PlayerCover` is not needed there. `CoverArt` got optional `sizes` and
+  `loading` props for this.
+- **Navigation:** the dots became a slim segmented **progress bar** (one segment per slide, the
+  current one fills over the 6 s a slide waits and its CSS animation's end moves the carousel on,
+  so a pause freezes the fill and a resume continues it), a "3 / 10" position, the stop / start
+  button and a strip of **thumbnails** (the card art, up to 96 px wide) to jump to a slide. The
+  thumbnails show where the carousel is at least 600 px wide; phones keep swipe, the bar and the
+  position.
+- Kept: pause on hover, keyboard focus, touch hold and hidden tab; no auto-advance under
+  `prefers-reduced-motion` (the current segment is simply full); arrow keys, Home and End;
+  `aria-roledescription` on the carousel and the slides, slide labels now "3 of 10".
+- **Loading:** only the first slide's art is eager; the other slides are lazy. The thumbnails
+  are lazy and low priority, and use the 640 px card, which is the same file the slide picks on
+  standard screens.
+
+### Thinkers' quotes in the slogan ticker
+
+- `lib/shell/ticker.ts` holds the slogan and quote keys and the order: two slogans, then one
+  quote, repeating; slogans stay 4 s, quotes 6 s. `components/shell/slogan-ticker.tsx` shows the
+  quote in italics and the attribution after an em dash in a muted style; a long line ends in an
+  ellipsis while the attribution stays whole, and the bar never wraps. Hidden below 900 px as
+  before; `aria-hidden` and the reduced-motion behaviour are unchanged.
+- The 15 quotes (messages `quotes.<key>.text` / `.by`), each at most 60 characters in both
+  languages, checked against the primary source (the English follows the named translation):
+
+  | Key | English | Turkish | Source |
+  |---|---|---|---|
+  | `laozi` | A journey of a thousand miles begins with a single step. — Laozi | Bin millik yolculuk tek bir adımla başlar. — Lao Tzu | *Tao Te Ching* 64 |
+  | `epictetusGreat` | No great thing is created suddenly. — Epictetus | Hiçbir büyük şey birden yaratılmaz. — Epiktetos | *Discourses* 1.15.7 (tr. Long) |
+  | `marcus` | What stands in the way becomes the way. — Marcus Aurelius | Yolu tıkayan şey, yolun kendisi olur. | *Meditations* 5.20 (tr. Hays) |
+  | `platoBeginning` | The beginning is the most important part of any work. — Plato | Her işin en önemli kısmı başlangıçtır. — Platon | *Republic* 2.377a–b (tr. Jowett) |
+  | `periander` | Practice is everything. — Periander | Pratik her şeydir. — Periandros | Diogenes Laërtius, *Lives* 1.99 (tr. Hicks) |
+  | `heraclitusRiver` | You cannot step twice into the same river. — Heraclitus | Aynı nehirde iki kez yıkanılmaz. — Herakleitos | DK 22 B91, quoted in Plato, *Cratylus* 402a (tr. Jowett) |
+  | `senecaPostpone` | While we are postponing, life speeds by. — Seneca | Biz ertelerken hayat hızla akıp gider. | *Letters to Lucilius* 1.3 (tr. Gummere) |
+  | `publiliusPractice` | Practice is the best of all instructors. — Publilius Syrus | Alıştırma, öğretmenlerin en iyisidir. | *Sententiae* (tr. Lyman, 1856) |
+  | `publiliusHelm` | Anyone can hold the helm when the sea is calm. — Publilius Syrus | Deniz durgunken dümeni herkes tutabilir. | *Sententiae*, maxim 358 (tr. Lyman) |
+  | `aristotle` | One swallow does not make a summer. — Aristotle | Bir kırlangıçla yaz gelmez. — Aristoteles | *Nicomachean Ethics* 1.7, 1098a18 (tr. Ross) |
+  | `senecaTeach` | Men learn while they teach. — Seneca | İnsan öğretirken öğrenir. | *Letters to Lucilius* 7.8 (tr. Gummere) |
+  | `heraclitusPlay` | Lifetime is a child at play, moving pieces in a game. — Heraclitus | Ömür, oyun oynayıp taşlarını süren bir çocuktur. — Herakleitos | DK 22 B52, quoted in Hippolytus, *Refutation* 9.9.4 (tr. Kahn) |
+  | `epictetusReader` | If you would be a good reader, read. — Epictetus | İyi bir okur olmak istiyorsan, oku. — Epiktetos | *Discourses* 2.18.2 (tr. Long) |
+  | `democritus` | More men become good through practice than by nature. — Democritus | İnsanların çoğu doğuştan değil, alıştırmayla iyi olur. — Demokritos | DK 68 B242, in Stobaeus (tr. Freeman) |
+  | `socrates` | The unexamined life is not worth living. — Socrates | Sorgulanmamış bir hayat yaşanmaya değmez. — Sokrates | Plato, *Apology* 38a (tr. Jowett) |
+
+  Left out as misattributed: the "hour of play" line credited to Plato and "It does not matter
+  how slowly you go…" credited to Confucius. The same list with sources is in a comment next to
+  `QUOTE_KEYS`.
+
+Deviations:
+- The spotlight's image box is 16:9 everywhere, so portrait games use their card art there, as
+  the brief allowed, rather than `PlayerCover`.
+- A slide now waits 6 s instead of 5 s (ten slides, a visible fill).
+- Platform-wide counts are finished solo runs (the ranking's `finished`), like the admin
+  "Plays (7 days)"; online table and room matches are not in them. "Yours" counts both, so a
+  table-game player sees their games too.
+
+Tests:
+- web `lib/catalog/spotlight.test.ts` (rewritten, 8): the ten-slide mix with its limits per
+  reason, catalog order between equal scores, the newest-first fill, no repeats, zero scores,
+  unknown ids and coming-soon games ignored, the no-rankings start, a small catalog;
+- web `lib/catalog/most-played.test.ts` (9): the tab parser, medals, weekly and all-time ranking
+  (ties, never-played and coming-soon games, no rankings), the player's own ranking (plays then
+  last played, browser-only games after counted ones, retired games and bad numbers skipped);
+- web `lib/shell/ticker.test.ts` (4): two slogans then one quote, slogans or quotes alone,
+  6 s / 4 s durations, every quote in both locales attributed and at most 60 characters;
+- web `lib/catalog/catalog.test.ts`: `parseRankings` reads `plays7d` and `playsTotal`, 0 from
+  older documents;
+- firebase `votes.test.ts`: `recomputeGameScores` writes `plays7d` and `playsTotal`, archives
+  old days once, adds the day that leaves the window the next day without re-reading older
+  days, and rebuilds the archive when the clock goes back;
+- firebase `firestore.test.ts`: a player can list their own `users/{uid}/stats` (Google and
+  guest), not another player's, and a visitor cannot;
+- full run: shared 116, web 239, themes 16, adapter 30, firebase 234 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass;
+- Playwright on `next dev` against the Auth and Firestore emulators (a seeded `rankings/catalog`,
+  a guest with play stats), the studio's real card art routed from local files: Minimal light
+  and dark, Cartoon and Arcade, 1366×900 and 390×844, English and Turkish; the three tabs, the
+  ten-slide spotlight (portrait and landscape slides, the "New on Ayvago" fill, the progress bar
+  and thumbnails, reduced motion), the ticker quotes (and a long one at 920 px, ellipsized with
+  the attribution kept and the top bar on one line), keyboard tabs (←/→/Home/End update
+  `?tab=`), auto-advance (slide 3 after 13 s), the `/recent` redirect, and after merging slice
+  5.26 the phone drawer and the tablet rail with the new item.
+
+Owner steps: deploy the functions (the usual workflow on merge). See the
+[setup doc](../setup/phase-5.md#527-most-played-a-bigger-spotlight-and-thinkers-quotes).
+
+Still open:
+- "This week" and "All time" stay empty until `recomputeRankings` has run once with the new code
+  (up to an hour after the functions deploy), and the page reads the document with the
+  one-hour cache.
+- Online matches are not in the platform-wide counts (see Deviations).

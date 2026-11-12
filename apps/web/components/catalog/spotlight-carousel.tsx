@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '../icons';
 import catalog from './catalog.module.css';
+import type { SpotlightReason } from '@/lib/catalog/spotlight';
 import { CoverArt } from './cover-art';
 import styles from './spotlight-carousel.module.css';
 
@@ -18,14 +19,17 @@ export type SpotlightSlide = {
   description: string;
   category: GameCategory;
   cover: string | null;
+  /** Card art (640×360 and 1280×720), shown instead of the cover like on the tiles. */
+  card: string | null;
+  card2x: string | null;
   categoryLabels: string[];
-  /** "#1 Trending today", "Popular this week" or "Featured", already localized. */
+  /** "#1 Trending today", "Popular this week", "Featured" or "New on Ayvago", localized. */
   badge: string;
-  reason: 'today' | 'week' | 'featured';
+  reason: SpotlightReason;
 };
 
-/** Time each slide stays before the carousel moves on by itself. */
-const ADVANCE_MS = 5000;
+/** Time each slide stays before the carousel moves on by itself (the progress bar's fill). */
+const ADVANCE_MS = 6000;
 /** After a swipe, touch, wheel or click the carousel waits this long before moving again. */
 const HOLD_MS = 8000;
 
@@ -33,11 +37,16 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-// The home spotlight (slice 5.17): a native scroll-snap track, so touch swipes, trackpads and
-// shift+wheel move it without any script; buttons, dots and arrow keys move it too. It advances
-// by itself every few seconds, except while the pointer is over it, while it has keyboard focus,
-// for a while after the player touches it, while the tab is hidden, when the player stopped it,
-// or when the system asks for reduced motion.
+// The spotlight's art is about 60% of the content width beside the text, full width when stacked.
+const SLIDE_SIZES = '(max-width: 719px) 100vw, 640px';
+
+// The home spotlight (slices 5.17 and 5.27): a native scroll-snap track, so touch swipes,
+// trackpads and shift+wheel move it without any script; buttons, thumbnails and arrow keys move
+// it too. A slim progress bar shows where the carousel is and fills while a slide waits; when the
+// fill ends it moves on. It stops while the pointer is over it, while it has keyboard focus, for a
+// while after the player touches it, while the tab is hidden, when the player stopped it, and
+// never moves by itself when the system asks for reduced motion. Only the first slide's art loads
+// eagerly; the others are lazy.
 export function SpotlightCarousel({
   slides,
   labelledBy,
@@ -122,13 +131,6 @@ export function SpotlightCarousel({
   const canAdvance = count > 1 && !reduced;
   const running = canAdvance && !stopped && !hovered && !focused && !held && !hidden;
 
-  useEffect(() => {
-    if (!running) return;
-    // Restarts whenever the slide changes, so every slide gets its full time.
-    const timer = window.setTimeout(() => goTo(index + 1), ADVANCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [running, index, goTo]);
-
   function onKeyDown(event: React.KeyboardEvent) {
     const keys: Record<string, number> = {
       ArrowLeft: index - 1,
@@ -139,12 +141,13 @@ export function SpotlightCarousel({
     const target = keys[event.key];
     if (target === undefined || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
-    // A focused slide hands focus to the new slide; a focused button or dot keeps it.
+    // A focused slide hands focus to the new slide; a focused button or thumbnail keeps it.
     const onSlide = (event.target as HTMLElement).closest('[data-slide]') !== null;
     goTo(target, onSlide);
   }
 
-  // Only keyboard focus pauses: a mouse click on a dot focuses it too, and that is a short hold.
+  // Only keyboard focus pauses: a mouse click on a thumbnail focuses it too, and that is a short
+  // hold.
   function onFocus(event: React.FocusEvent) {
     const target = event.target as HTMLElement;
     let keyboard = true;
@@ -201,6 +204,10 @@ export function SpotlightCarousel({
                     category={slide.category}
                     size="hero"
                     image={slide.cover}
+                    card={slide.card}
+                    card2x={slide.card2x}
+                    sizes={SLIDE_SIZES}
+                    loading={i === 0 ? 'eager' : 'lazy'}
                   />
                   <span className={styles.badge} data-reason={slide.reason}>
                     {slide.badge}
@@ -250,29 +257,76 @@ export function SpotlightCarousel({
       </div>
       {count > 1 ? (
         <div className={styles.controls}>
-          <div className={styles.dots}>
+          {/* One segment per slide: the ones seen are full, the current one fills while it
+              waits (CSS animation; its end moves the carousel on), the rest are empty. */}
+          <div className={styles.progress} aria-hidden="true">
             {slides.map((slide, i) => (
-              <button
+              <span
                 key={slide.slug}
-                type="button"
-                className={styles.dot}
-                aria-label={t('goTo', { index: i + 1, total: count, title: slide.title })}
-                aria-current={i === index ? 'true' : undefined}
-                onClick={() => goTo(i)}
-              />
+                className={styles.segment}
+                data-state={i < index ? 'done' : i === index ? 'current' : undefined}
+              >
+                {i === index ? (
+                  <span
+                    // A new key restarts the fill whenever the slide changes.
+                    key={index}
+                    className={styles.fill}
+                    data-auto={canAdvance ? '' : undefined}
+                    data-paused={running ? undefined : ''}
+                    style={{ animationDuration: `${ADVANCE_MS}ms` }}
+                    onAnimationEnd={() => {
+                      if (running) goTo(index + 1);
+                    }}
+                  />
+                ) : null}
+              </span>
             ))}
           </div>
+          <span className={styles.counter} aria-hidden="true">
+            {t('counter', { index: index + 1, total: count })}
+          </span>
           <button
             type="button"
             className={styles.toggle}
             aria-label={stopped ? t('resume') : t('pause')}
             // Reduced motion never advances, so there is nothing to stop; the space stays
-            // reserved so the dots do not move when the preference is read after hydration.
+            // reserved so the bar does not move when the preference is read after hydration.
             hidden={!canAdvance}
             onClick={() => setStopped((value) => !value)}
           >
             {stopped ? <PlayIcon size={14} /> : <PauseIcon size={14} />}
           </button>
+        </div>
+      ) : null}
+      {count > 1 ? (
+        <div className={styles.thumbs} role="group" aria-label={t('thumbnails')}>
+          {slides.map((slide, i) => {
+            const art = slide.card ?? slide.cover;
+            return (
+              <button
+                key={slide.slug}
+                type="button"
+                className={styles.thumb}
+                aria-label={t('goTo', { index: i + 1, total: count, title: slide.title })}
+                aria-current={i === index ? 'true' : undefined}
+                onClick={() => goTo(i)}
+              >
+                {art ? (
+                  <img
+                    src={art}
+                    alt=""
+                    width={640}
+                    height={360}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                ) : (
+                  <span className={styles.thumbTitle}>{slide.title}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       ) : null}
     </section>

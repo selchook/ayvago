@@ -36,6 +36,8 @@ export function CoverArt({
   image = null,
   card = null,
   card2x = null,
+  sizes,
+  loading,
   children,
 }: {
   id: string;
@@ -51,6 +53,10 @@ export function CoverArt({
   // never loaded).
   card?: string | null;
   card2x?: string | null;
+  // Overrides the card's `sizes` (the home spotlight, whose art is narrower than the player's).
+  sizes?: string;
+  // Overrides the images' loading: the spotlight loads its first slide eagerly, the rest lazily.
+  loading?: 'eager' | 'lazy';
   // Decorative layers drawn over the image (the tile's play button).
   children?: ReactNode;
 }) {
@@ -74,11 +80,11 @@ export function CoverArt({
             data-card=""
             src={card}
             srcSet={card2x ? `${card} 640w, ${card2x} 1280w` : undefined}
-            sizes={card2x ? (size === 'hero' ? HERO_CARD_SIZES : CARD_SIZES) : undefined}
+            sizes={card2x ? (sizes ?? (size === 'hero' ? HERO_CARD_SIZES : CARD_SIZES)) : undefined}
             width={640}
             height={360}
             alt=""
-            loading="lazy"
+            loading={loading ?? 'lazy'}
             decoding="async"
           />
         </span>
@@ -93,7 +99,7 @@ export function CoverArt({
           className={styles.coverImage}
           src={image}
           alt=""
-          loading={size === 'hero' ? 'eager' : 'lazy'}
+          loading={loading ?? (size === 'hero' ? 'eager' : 'lazy')}
           decoding="async"
         />
       ) : null}

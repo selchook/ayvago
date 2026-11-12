@@ -1,6 +1,6 @@
 # Spec — UI Components and Theme System
 
-- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24; phone drawer and tablet rail: slice 5.26)
+- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24; phone drawer and tablet rail: slice 5.26; Most played page, ten-slide spotlight, ticker quotes: slice 5.27)
 - Related: [Roadmap §3–4](../plan/roadmap.md), [ADR 0005](../adr/0005-internationalization.md), [Accounts](accounts.md), [Leaderboards](leaderboards.md), [Voting](voting.md)
 
 ## 1. Goals
@@ -17,13 +17,13 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 | Region | Desktop (≥ 1024 px) | Tablet | Phone |
 |---|---|---|---|
 | **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Menu button (☰), logo, search icon (opens `/search`), theme, language, avatar |
-| **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon rail (640–1023 px) with a toggle that expands it to icons and text, remembered | A drawer from the left behind the top bar's ☰ (below 640 px), with the same menu |
+| **SideNav** | Collapsible rail: Home, New, Most played (slice 5.27; was Recently played), Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon rail (640–1023 px) with a toggle that expands it to icons and text, remembered | A drawer from the left behind the top bar's ☰ (below 640 px), with the same menu |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
 | **Footer** | End of the content column: copyright left; Privacy · Cookie preferences · Contact right | Same | Stacked and centred |
 
 **Footer** (slice 5.23). A `<footer>` landmark at the end of the content column on every page, game pages included; never fixed. Left: "© 2026 Ayvago Games. All rights reserved.", a range from the launch year in later years ("© 2026–2027"). Right, in a labelled `<nav>`: Privacy (`/privacy`), Cookie preferences (`/privacy#ads`) and Contact (`mailto:` the privacy contact), separated by middots. Small `--text-muted` text with a `--border` divider; 44 px link targets; stacked and centred below 640 px. It is the only privacy link: the side menu ends with "Install the app".
 
-**Navigation by width** (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md)). *Implementation status:* the phone bottom bar (BottomNav) is retired. One `NavMenu` component renders the menu (Home, New, Recently played, Favorites, the categories, Multiplayer, Install the app) for all three shapes, so they cannot drift apart:
+**Navigation by width** (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md)). *Implementation status:* the phone bottom bar (BottomNav) is retired. One `NavMenu` component renders the menu (Home, New, Most played, Favorites, the categories, Multiplayer, Install the app) for all three shapes, so they cannot drift apart:
 - **Desktop (≥ 1024 px):** the full 232 px side menu, unchanged.
 - **Tablet (640–1023 px):** a 72 px icon rail. Each icon has its label as `aria-label` and as a tip on hover and keyboard focus. A toggle at the top expands it to the full menu, pushing the content over; Esc collapses it while focus is in the menu. The choice is stored in `localStorage` (`ayvago-rail`) and applied before the first paint by an inline head script.
 - **Phone (< 640 px):**
@@ -52,7 +52,16 @@ All navigation labels are message keys; layout uses logical CSS properties (`mar
    It advances every 5 s and loops, pausing on hover, keyboard focus, for 8 s after a touch,
    while the tab is hidden and when stopped with its stop button; never under reduced motion.
    No preview video yet.
-2. **Continue playing** — personal (hidden when empty).
+   *Since slice 5.27 ([plan](../plan/phase-5.md#527-most-played-a-bigger-spotlight-and-thinkers-quotes--code)):*
+   ten slides: up to 3 trending today, up to 3 popular this week, the featured games, then the
+   newest games ("New on Ayvago"), never twice. The slide shows the game's 16:9 card art
+   (`srcset` 640/1280, falling back to the cover) in every theme, Arcade included; only the first
+   slide's art loads eagerly. The dots became a slim segmented progress bar (the current segment
+   fills over the slide's 6 s and its end advances the carousel; pausing freezes it), a "3 / 10"
+   position and a strip of card-art thumbnails to jump to a slide where the carousel is at least
+   600 px wide (phones keep swipe and the bar). Slide labels read "3 of 10".
+2. **Continue playing** — personal (hidden when empty). *Its "See all" opens the Yours tab of
+   Most played (slice 5.27; the Recently played page was retired).*
 3. **New** — games younger than 14 days.
 4. **Popular this week** — by `trendScore`.
 5. **One shelf per category** — by `qualityScore`.
@@ -60,6 +69,17 @@ All navigation labels are message keys; layout uses logical CSS properties (`mar
 
 ### 3.2 Category / list pages
 Grid of `GameTile`s with sort (Popular, New, Top rated) and tag filters; infinite scroll with a real "Load more" fallback; SEO-friendly paginated URLs.
+
+### 3.2b Most played
+*Implemented (slice 5.27, [plan](../plan/phase-5.md#527-most-played-a-bigger-spotlight-and-thinkers-quotes--code)),
+replacing the Recently played page (`/recent` redirects to `/most-played?tab=mine`):*
+`/most-played` with three accessible tabs kept in the URL (`?tab=week|all|mine`; arrows, Home,
+End): **This week** (`plays7d`) and **All time** (`playsTotal`) from the public
+`rankings/catalog` document, and **Yours** from the player's own `users/{uid}/stats` merged with
+the browser's recently played list (plays, then last played). A ranked grid of game tiles with a
+rank chip on each (gold, silver and bronze for the top three) and a compact play count
+("1.2K plays" / "1,2 B oynanma"); a friendly empty state per tab. The side-menu item is
+"Most played" with the trophy icon.
 
 ### 3.3 Game page
 ```
@@ -140,6 +160,7 @@ Optional layers that never change layout:
 - Arcade: scanline overlay (`body::after`).
 - Cartoon: spring hover on tiles, confetti on personal bests.
 - Arcade: the logo's word and mark are pixelated by an SVG filter (3 px blocks); top-bar slogans step in like a marquee.
+- Top-bar ticker (slice 5.27): after every two slogans (4 s each) a short thinker's quote (6 s), in italics with "— Author" in a muted style; long lines end in an ellipsis and keep the attribution, the bar never wraps. Fifteen quotes, each checked against its primary source (list in [the plan](../plan/phase-5.md#527-most-played-a-bigger-spotlight-and-thinkers-quotes--code) and in `apps/web/lib/shell/ticker.ts`).
 - All effects are disabled under `prefers-reduced-motion`.
 
 ### 5.5 Persistence without flashing

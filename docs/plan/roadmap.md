@@ -209,7 +209,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `abandonSession` ✅ | Callable (App Check like `startSession`) | A run left without `GHA_END` (new run, another page, tab closed with a `keepalive` request): closes the session as `abandoned` and adds `min(visible time, server time, 3 h)` to `abandonedSeconds`, never a play; one transaction, so a run is finished or abandoned once (slice 5.22, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) |
 | `syncLeaderboardProfile` ✅ | Callable | Copies name/avatar into the player's board rows |
 | `castVote` ✅ | Callable | Votes with eligibility, rate limit and feedback; updates the counters (replaces the planned `onVoteWritten` trigger) |
-| `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore` and the trending-today `todayScore` (finished runs in about the last 24 hours, lightly weighted by votes; slice 5.17), `rankings/catalog` |
+| `recomputeRankings` ✅ | Scheduled (hourly) | Wilson rating, engagement, `qualityScore`, `trendScore` and the trending-today `todayScore` (finished runs in about the last 24 hours, lightly weighted by votes; slice 5.17), the Most played counts `plays7d` and `playsTotal` (all time: the 10-day window plus `games/{gameId}.playsArchive`, the finished runs of older days added once each; slice 5.27), `rankings/catalog` |
 | `deleteMyData` ✅ | Callable | Account deletion, server part: username, board rows, votes, the player's entries in other players' recent players (slice 5.21), then `users/{uid}` recursively (profile, library, progress, stats, recent players, every subcollection) |
 | `reserveUsername` ✅ | Callable | Unique usernames, profanity filter |
 | `getIceServers` → `GET /api/ice-servers` ✅ | Next.js route (ID token + rate limit) | Short-lived TURN credentials from Cloudflare (§10); a web route instead of a function ([ADR 0010](../adr/0010-online-matches.md)) |
@@ -552,6 +552,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card per game (optional `assets.card` 640×360 and `card2x` 1280×720 WebP in `ayvago.json`) with a play button on hover, falling back to the cover; Arcade unchanged (slice 5.24, [ADR 0024](../adr/0024-game-card-art.md))
 - [x] Sortable admin report tables: the "Players and plays" per-game and per-player tables and the Games tab sort by a click on a column heading (locale-aware text, nulls last, kept for the browser session); the CSV downloads follow the order shown (slice 5.25)
 - [x] Mobile menu drawer: a ☰ button and a slide-in drawer with the full side menu (every category) replace the bottom tab bar on phones; tablets get a collapsible icon rail that remembers its state; desktop unchanged (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md))
+- [x] Most played page (This week, All time and Yours tabs; `plays7d` and the all-time `playsTotal` in `rankings/catalog` from the hourly `recomputeRankings`) instead of Recently played; a ten-slide home spotlight with in-game card art, a progress bar and thumbnails; sourced thinkers' quotes in the top-bar ticker (slice 5.27)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

@@ -9,7 +9,7 @@
     "main": "Ana menü",
     "home": "Ana sayfa",
     "new": "Yeni",
-    "recent": "Son oynananlar",
+    "mostPlayed": "En çok oynananlar",
     "favorites": "Favoriler",
     "multiplayer": "Çok oyunculu",
     "categories": "Kategoriler",
@@ -66,7 +66,8 @@
     "popularShelf": "Bu hafta popüler",
     "spotlightToday": "#{rank} Bugün trend",
     "spotlightWeek": "Bu hafta popüler",
-    "spotlightFeatured": "Öne çıkan"
+    "spotlightFeatured": "Öne çıkan",
+    "spotlightNew": "Ayvago'da yeni"
   },
   "shelf": {
     "previous": "Sola kaydır",
@@ -77,6 +78,8 @@
     "slideRoleDescription": "slayt",
     "slide": "{index} / {total}",
     "goTo": "{total} oyundan {index}. oyunu göster: {title}",
+    "counter": "{index} / {total}",
+    "thumbnails": "Bir oyun seç",
     "previous": "Önceki oyun",
     "next": "Sonraki oyun",
     "pause": "Otomatik geçişi durdur",
@@ -192,12 +195,25 @@
     "frameTitle": "{title} oyunu"
   },
   "library": {
-    "recentTitle": "Son oynananlar",
-    "recentEmpty": "Oynadığın oyunlar burada görünecek.",
     "favoritesTitle": "Favoriler",
     "favoritesEmpty": "Bir oyunu burada tutmak için kalbe dokun.",
     "browse": "Oyunlara göz at",
     "syncNote": "Hesabınla eşitlenir. Misafirsen, her cihazda görmek için Google ile giriş yap."
+  },
+  "mostPlayed": {
+    "title": "En çok oynananlar",
+    "intro": "Oyuncuların tekrar tekrar döndüğü oyunlar: bu hafta ve tüm zamanlar.",
+    "tabsLabel": "En çok oynanan listeleri",
+    "tabWeek": "Bu hafta",
+    "tabAll": "Tüm zamanlar",
+    "tabMine": "Senin oyunların",
+    "rank": "{rank}. sıra",
+    "plays": "{plays} oynanma",
+    "weekEmpty": "Bu hafta henüz bitirilen oyun sayılmadı. İlk sen ol!",
+    "allEmpty": "Henüz bitirilen oyun sayılmadı.",
+    "mineEmpty": "Oynadığın oyunlar burada görünecek; en çok oynadıkların en başta.",
+    "loading": "Oyunların yükleniyor…",
+    "note": "Tüm oyuncuların bitirdiği oyunlar, her saat güncellenir."
   },
   "notFound": {
     "title": "Sayfa bulunamadı",
@@ -600,6 +616,69 @@
     "genres": "Arcade, aksiyon, bulmaca ve daha fazlası",
     "leaderboard": "Haftalık sıralamada zirveye tırman",
     "oneMore": "Bir el daha?"
+  },
+  "quotes": {
+    "attribution": "— {name}",
+    "laozi": {
+      "text": "Bin millik yolculuk tek bir adımla başlar.",
+      "by": "Lao Tzu"
+    },
+    "epictetusGreat": {
+      "text": "Hiçbir büyük şey birden yaratılmaz.",
+      "by": "Epiktetos"
+    },
+    "marcus": {
+      "text": "Yolu tıkayan şey, yolun kendisi olur.",
+      "by": "Marcus Aurelius"
+    },
+    "platoBeginning": {
+      "text": "Her işin en önemli kısmı başlangıçtır.",
+      "by": "Platon"
+    },
+    "periander": {
+      "text": "Pratik her şeydir.",
+      "by": "Periandros"
+    },
+    "heraclitusRiver": {
+      "text": "Aynı nehirde iki kez yıkanılmaz.",
+      "by": "Herakleitos"
+    },
+    "senecaPostpone": {
+      "text": "Biz ertelerken hayat hızla akıp gider.",
+      "by": "Seneca"
+    },
+    "publiliusPractice": {
+      "text": "Alıştırma, öğretmenlerin en iyisidir.",
+      "by": "Publilius Syrus"
+    },
+    "publiliusHelm": {
+      "text": "Deniz durgunken dümeni herkes tutabilir.",
+      "by": "Publilius Syrus"
+    },
+    "aristotle": {
+      "text": "Bir kırlangıçla yaz gelmez.",
+      "by": "Aristoteles"
+    },
+    "senecaTeach": {
+      "text": "İnsan öğretirken öğrenir.",
+      "by": "Seneca"
+    },
+    "heraclitusPlay": {
+      "text": "Ömür, oyun oynayıp taşlarını süren bir çocuktur.",
+      "by": "Herakleitos"
+    },
+    "epictetusReader": {
+      "text": "İyi bir okur olmak istiyorsan, oku.",
+      "by": "Epiktetos"
+    },
+    "democritus": {
+      "text": "İnsanların çoğu doğuştan değil, alıştırmayla iyi olur.",
+      "by": "Demokritos"
+    },
+    "socrates": {
+      "text": "Sorgulanmamış bir hayat yaşanmaya değmez.",
+      "by": "Sokrates"
+    }
   },
   "online": {
     "title": "{title} · Arkadaşınla",

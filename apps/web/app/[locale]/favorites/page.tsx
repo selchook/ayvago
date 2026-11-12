@@ -29,7 +29,6 @@ export default async function FavoritesPage({ params }: Props) {
         <h1>{t('favoritesTitle')}</h1>
       </header>
       <LibraryList
-        kind="favorites"
         tiles={tiles}
         labels={labels}
         emptyText={t('favoritesEmpty')}

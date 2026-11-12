@@ -363,6 +363,24 @@ at the left of the top bar. The menu slides in from the left with every category
 the backdrop or ✕ to close it. On a tablet (or a computer window about 800 px wide) the left rail
 shows icons; the ☰ at its top expands it, and the choice stays after a reload.
 
+## 5.27 Most played, a bigger spotlight and thinkers' quotes
+Nothing to set up by hand: no secrets, env vars, rules, indexes or studio changes. Merging deploys
+the web app, and the usual **"Deploy Cloud Functions"** workflow publishes the updated
+`recomputeRankings` (same schedule, no new function, no IAM change).
+
+- After the deploy, the first hourly run reads each game's older daily counters once to build the
+  all-time count (a one-time read of games × days played); later runs add one small read per game
+  a day. Until that run, the **Bu hafta** and **Tüm zamanlar** tabs of "En çok oynananlar" show
+  their empty message.
+- ⏳ **Optional check after the deploy (wait an hour for the ranking run):**
+  1. Open ayvago.com → **En çok oynananlar** in the side menu. **Bu hafta** and **Tüm zamanlar**
+     list games with rank chips and "… oynanma" counts; **Senin oyunların** lists the games you
+     played. The old `/tr/recent` address opens the third tab.
+  2. On the home page the Öne çıkanlar carousel has ten slides with in-game art, a thin progress
+     bar and thumbnails under it.
+  3. On a computer, the slogan next to the logo shows a quote with its author (for example
+     "Pratik her şeydir. — Periandros") after every two slogans.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

@@ -1,0 +1,190 @@
+/* The Most played page (slice 5.27): tabs over a ranked grid of game tiles. */
+
+.tabs {
+  display: inline-flex;
+  max-width: 100%;
+  margin-bottom: 20px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab + .tab {
+  border-inline-start: var(--border-width) solid var(--border);
+}
+
+.tab:hover {
+  background: var(--surface-raised);
+}
+
+.tab[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* An inset ring: the tab strip clips outlines, and the selected tab's accent can match the ring. */
+.tab:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--focus-ring);
+}
+
+.tab[aria-selected='true']:focus-visible {
+  box-shadow:
+    inset 0 0 0 3px var(--accent),
+    inset 0 0 0 5px var(--accent-contrast);
+}
+
+/* Phones: the three tabs share the width. */
+@media (max-width: 639px) {
+  .tabs {
+    display: flex;
+  }
+
+  /* A long label ("Senin oyunların" in the pixel font) takes a second line instead of being
+     cut off. */
+  .tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 8px;
+    white-space: normal;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+}
+
+.panel:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* Room for the rank chips, which stick out over the tiles' top corners. */
+.grid {
+  padding-top: 10px;
+  row-gap: 26px;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.item > a {
+  flex: 1 1 auto;
+}
+
+/* The rank, over the tile's top end corner. Fixed colors like the tile badges: it sits on card
+   art, which has its own colors in every theme. The top three get a subtle medal. */
+.rank {
+  --rank-bg: rgb(0 0 0 / 0.78);
+  --rank-fg: #fff;
+  --rank-ring: rgb(255 255 255 / 0.85);
+  position: absolute;
+  top: -10px;
+  inset-inline-end: -8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 2px solid var(--rank-ring);
+  background: var(--rank-bg);
+  color: var(--rank-fg);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+.item[data-medal='gold'] .rank {
+  --rank-bg: linear-gradient(145deg, #ffe58a, #e0a91b);
+  --rank-fg: #3d2a00;
+  --rank-ring: #fff3c4;
+}
+
+.item[data-medal='silver'] .rank {
+  --rank-bg: linear-gradient(145deg, #f3f6f9, #a9b4c0);
+  --rank-fg: #262c33;
+  --rank-ring: #ffffff;
+}
+
+.item[data-medal='bronze'] .rank {
+  --rank-bg: linear-gradient(145deg, #f2b98a, #b46a35);
+  --rank-fg: #2e1503;
+  --rank-ring: #ffe2cc;
+}
+
+.plays {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.3em;
+  padding-inline: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='arcade'] .tabs,
+[data-theme='arcade'] .rank {
+  border-radius: 0;
+}
+
+[data-theme='arcade'] .tabs {
+  border: 3px solid #000;
+  box-shadow: 0 4px 0 #000;
+}
+
+[data-theme='arcade'] .tab {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+[data-theme='arcade'] .tab + .tab {
+  border-inline-start: 3px solid #000;
+}
+
+[data-theme='arcade'] .rank {
+  border: 3px solid #000;
+  box-shadow: 0 3px 0 #000;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Clear of the tile's hard shadow. */
+[data-theme='arcade'] .plays {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+[data-theme='cartoon'] .rank {
+  border-color: var(--border);
+}
