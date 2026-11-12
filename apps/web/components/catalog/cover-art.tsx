@@ -36,7 +36,6 @@ export function CoverArt({
   image = null,
   card = null,
   card2x = null,
-  eager = size === 'hero',
   children,
 }: {
   id: string;
@@ -52,8 +51,6 @@ export function CoverArt({
   // never loaded).
   card?: string | null;
   card2x?: string | null;
-  // Load the cover at once (the hero default); false where a theme may hide this cover.
-  eager?: boolean;
   // Decorative layers drawn over the image (the tile's play button).
   children?: ReactNode;
 }) {
@@ -86,17 +83,17 @@ export function CoverArt({
           />
         </span>
       ) : null}
-      {image && card ? (
+      {image && card && size !== 'hero' ? (
         // Behind the card: only the Arcade theme shows the cover of a game with card art.
         <span className={styles.coverFrame}>
           <img className={styles.coverImage} src={image} alt="" loading="lazy" decoding="async" />
         </span>
-      ) : image ? (
+      ) : image && !card ? (
         <img
           className={styles.coverImage}
           src={image}
           alt=""
-          loading={eager ? 'eager' : 'lazy'}
+          loading={size === 'hero' ? 'eager' : 'lazy'}
           decoding="async"
         />
       ) : null}

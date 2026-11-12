@@ -84,9 +84,9 @@
 }
 
 /* With card art the scrim darkens the middle, where the title and Play button sit, and leaves
-   the edges of the art bright. The Arcade theme hides the card and keeps the dimmed cover. */
-html:not([data-theme='arcade']) .overlay:has(img[data-card]) .overlayContent,
-html:not([data-theme='arcade']) .overlay:has(.playerArtModern) .overlayContent {
+   the edges of the art bright, in every theme. */
+.overlay:has(img[data-card]) .overlayContent,
+.overlay:has(.playerArt) .overlayContent {
   background: radial-gradient(
     ellipse at center,
     rgb(0 0 0 / 0.6) 0%,
@@ -990,36 +990,12 @@ html:not([data-theme='arcade']) .overlay:has(.playerArtModern) .overlayContent {
 
 /* Portrait games (PlayerCover): the stage is tall or square, so instead of cropping the 16:9 card
    to its middle (and losing its logo) the art is composed here from the in-game screenshot: a
-   blurred backdrop, the sharp frame in the middle, the game's name as a logo bottom-left. The
-   Arcade theme keeps the dimmed cover. */
+   blurred backdrop, the sharp frame in the middle, the game's name as a logo bottom-left. */
 .playerArt {
   position: relative;
   overflow: hidden;
   container-type: size;
   background: #000;
-}
-
-.playerArtArcade,
-.playerArtModern {
-  position: absolute;
-  inset: 0;
-}
-
-.playerArtArcade {
-  display: none;
-}
-
-.playerArtArcade > * {
-  height: 100%;
-  aspect-ratio: auto;
-}
-
-[data-theme='arcade'] .playerArtArcade {
-  display: block;
-}
-
-[data-theme='arcade'] .playerArtModern {
-  display: none;
 }
 
 .overlay .playerArtBlur {
@@ -1052,7 +1028,7 @@ html:not([data-theme='arcade']) .overlay:has(.playerArtModern) .overlayContent {
 }
 
 /* A scrim rising from the bottom edge keeps the logo readable over the frame's own text. */
-.playerArtModern::after {
+.playerArt::after {
   content: '';
   position: absolute;
   inset: auto 0 0;
