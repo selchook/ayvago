@@ -320,6 +320,11 @@
     "loadFailed": "Could not load this list. Check the Firestore indexes and try again.",
     "actionFailed": "The action failed. Try again.",
     "guest": "guest",
+    "sort": {
+      "ascending": "Sort by {column}, ascending",
+      "descending": "Sort by {column}, descending",
+      "default": "{column}: back to the default order"
+    },
     "tabs": {
       "flags": "Flagged scores",
       "games": "Games",

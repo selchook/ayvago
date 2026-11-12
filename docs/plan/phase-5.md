@@ -49,6 +49,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.22 | The "Players and plays" report counts started runs per player, online matches (tables and rooms, never ranked) and the play time of runs left without finishing (`abandonSession`, keepalive on tab close) (owner request, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) | ✅ code |
 | 5.23 | Site footer: a copyright line and the Privacy, Cookie preferences and Contact links at the end of every page; the side-menu and phone privacy links move into it (owner request) | ✅ code |
 | 5.24 | Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card image per game (optional `assets.card` / `card2x` in `ayvago.json`) instead of the store cover, with a play button on hover; Arcade unchanged (owner request, [ADR 0024](../adr/0024-game-card-art.md)) | ✅ code · ⏳ merge before the card sync |
+| 5.25 | Sortable admin report tables: the "Players and plays" per-game and per-player tables and the admin Games table sort by a click on a column heading, remembered for the browser session; the CSV downloads follow the order shown (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -1762,3 +1763,99 @@ Owner steps: merge order (this change before the catalog sync that adds the card
 Still open:
 - Real card art comes with the studio change; the screenshots used placeholders.
 - The Phase 6 developer docs should list `assets.card` / `card2x` with their sizes.
+
+## 5.25 Sortable admin report tables ✅ code
+
+The owner asked to sort the admin panel's report tables by their column headings ("paneldeki
+rapor başlıklarına göre sıralamayı etkinleştir").
+
+What shipped:
+- **Logic** (`apps/web/lib/admin/table-sort.ts`, pure):
+  - `sortRows(rows, accessor, kind, direction, collator)` returns a sorted copy. Kinds are
+    `number`, `duration` (seconds), `date` (a time or a `Date`) and `text`.
+  - Text compares with an `Intl.Collator` for the UI locale (`numeric: true`), so Turkish
+    ç ğ ı İ ö ş ü sort in Turkish order on `/tr` (Cuma before Çamur, ı before i, I before İ).
+  - A missing value (null, undefined, NaN) always goes last, in both directions.
+  - Ties keep the incoming order, which is the table's default order, so sorting is stable.
+  - `nextSort` is the click rule; `parseSort` and `sortStorageKey` read and name the stored
+    choice.
+- **Hook and heading** (`components/admin/use-table-sort.ts`, `components/admin/sortable-th.tsx`):
+  - `useTableSort(table, rows, columns)` keeps one table's sort and returns its sorted rows and
+    the heading props.
+  - **Click rule.** A first click sorts numbers, durations and dates descending (biggest or most
+    recent first) and text ascending. A second click on the same heading flips the direction,
+    and a third click restores the table's default order (owner follow-up).
+  - **Repeated column names.** Where a column's own name repeats (the two "Starts" columns of
+    the per-game table), the sort button's accessible name adds the column group, for example
+    "Sort by Starts (Since 4 Nov 2026), descending". Every leaf column under a group heading gets
+    its group the same way (`group` prop).
+  - **Default order.** Until a heading is clicked, the rows keep the order they arrive in, exactly
+    as before. No heading is marked then, because none matches that order exactly (see the
+    tables below).
+  - **Session memory.** The choice is kept in `sessionStorage` under
+    `ayvago.admin.sort.<table>` (wrapped in try/catch). Re-running the report, switching tabs or
+    reloading keeps it; a new browser session starts from the default order. A stored column that
+    no longer exists is ignored.
+  - **Heading markup.** `SortableTh` renders `<th scope="col">` with a `<button>` inside.
+    `aria-sort="ascending" | "descending"` is set on the active heading only.
+  - **Accessible name.** The button's name says what a click does: "Sort by Plays, descending" /
+    "Oynanma sütununa göre azalan sırala" (`admin.sort.ascending` / `descending`). It contains
+    the visible column name.
+  - **Look.** The active column shows a single ▲ or ▼ triangle in `--accent`. Inactive headings
+    show a faint ↕ (`--text-muted`) on hover and keyboard focus, with a `--bg` hover background.
+    Keyboard focus shows the `--focus-ring` outline. In numeric columns the arrow sits before
+    the label, so the labels stay aligned with the right-aligned numbers.
+  - **Styles.** `admin.module.css` (`.sortButton`, `.sortArrow`), theme tokens only.
+- **Tables made sortable:**
+
+  | Table | Sortable columns | Default order (unchanged) |
+  |---|---|---|
+  | Players and plays → **Per game** | Game (text); all-time Finished runs and Starts; since-date Starts, Finished, Online matches, Play time (duration); players per kind (Google, Registered, Guest, Unknown) | Server order: all-time finished runs plus online matches, then plays, then id |
+  | Players and plays → **Per player** | Player (text; "(no profile)" rows last), Kind (text, the localized kind name), Starts, Plays, Online, Play time (duration), Last played (date, never-played rows last) | Server order: plays plus online matches, then starts, then last played |
+  | **Games** tab | Game (text), Plays (7 days), Votes (likes plus dislikes), Quality, Trend (games without a score last) | Catalog order |
+
+  - The two-row group headings (`colgroup`, `colSpan`) stay as they were and are not sortable;
+    only the leaf headings are. The per-game Game heading, which spans both rows, is sortable.
+  - The per-player "#" column keeps numbering 1..n in the order shown. The Games column is not
+    sortable.
+  - The "Summary by player kind" table stays in its fixed kind order with its total row: it has
+    four rows and is not sortable. The other admin tabs show lists, not tables.
+- **CSV:** the per-game and per-player downloads export the rows in the order on screen, and the
+  per-player rank in the file follows that order. `gameCsvRows` and `playerCsvRows` now take the
+  rows to export instead of the whole report.
+- **Admin Games tab:** the table moved into its own `GamesTable` component, so the sort hook runs
+  only once the numbers have loaded.
+
+Deviations: none. No dependency was added.
+
+Tests:
+- web `lib/admin/table-sort.test.ts` (15):
+  - numbers both ways, and missing numbers last;
+  - durations compared as seconds;
+  - dates (times and `Date`s) with null and undefined last in both directions;
+  - Turkish collation: "Cadı, Cuma, Çamur" in Turkish against "Cadı, Çamur, Cuma" in English;
+    ı before i and I before İ, plus ğ, ö and ş;
+  - numbers inside text ("Level 2" before "Level 10");
+  - stable ties for numbers and text in both directions, and the input left unchanged;
+  - the click rule: the first direction per kind, flipping on the same heading, starting afresh
+    on another one;
+  - the stored sort: a valid entry is read; nothing stored, an unknown column, a bad direction
+    and a damaged entry are ignored; one key per table;
+- web `lib/admin/play-report.test.ts`: updated for the new CSV helper signatures;
+- the message test checks the two `admin.sort` keys in both locales;
+- full run: shared 116, web 216, themes 16, adapter 30, firebase 232 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass;
+- Playwright on `next dev`, with a temporary harness route that rendered the report and the Games
+  table from made-up data (removed before the change; nothing ships):
+  - Minimal light and dark, Cartoon and Arcade, at 1366×900 and 390×844, English and Turkish;
+  - a sorted Games table, per-game table and per-player table; keyboard focus on a heading; the
+    hover arrow;
+  - the phone tables scroll horizontally inside their frame, with no page overflow;
+  - `aria-sort` sits on the active headings only, and the button names are correct in both
+    languages;
+  - the sort survives a reload;
+  - the CSV downloads follow the order on screen, in Turkish collation on `/tr`.
+
+Owner steps: none. See the [setup doc](../setup/phase-5.md#525-sortable-admin-report-tables).
+
+Still open: nothing.

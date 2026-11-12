@@ -345,6 +345,15 @@ order:
   on a computer zooms the image and shows a round play button. In the Arcade theme the tiles look
   as before.
 
+## 5.25 Sortable admin report tables
+**Nothing to set up:** no secrets, env vars, functions, rules or roles. Merging deploys the web
+app.
+
+Optional check after the deploy: open `/admin` → **Players and plays** ("Oyuncular ve oynanma"),
+run the report and click a column heading (for example **Oynanma**). The rows sort by it and an
+arrow marks the column; a second click reverses the order. **Download CSV** ("CSV indir") then saves the rows
+in the order shown. The choice stays until the browser is closed.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

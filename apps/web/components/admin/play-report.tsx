@@ -1,17 +1,27 @@
 'use client';
 
-import { PLAYER_KINDS, type PlayerGame, type PlayerKind, type PlayReport } from '@ayvago/shared';
+import {
+  PLAYER_KINDS,
+  type GameReport,
+  type PlayerGame,
+  type PlayerKind,
+  type PlayerReport,
+  type PlayReport,
+} from '@ayvago/shared';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { downloadCsv } from '@/lib/admin/csv';
 import { gameCsvRows, playerCsvRows, splitDuration } from '@/lib/admin/play-report';
 import { playReport } from '@/lib/admin/queries';
 import styles from './admin.module.css';
+import { SortableTh } from './sortable-th';
+import { useTableSort, type SortColumn } from './use-table-sort';
 
 /**
  * "Players and plays" (slices 5.16 and 5.22): who played, by player kind, and which games how
  * often: runs started, finished and left, online matches and play time.
- * Built by the getPlayReport function only when the admin asks for it.
+ * Built by the getPlayReport function only when the admin asks for it. The per-game and per-player
+ * tables sort by a click on a column heading (slice 5.25).
  */
 export function PlayReportPanel({ titles }: { titles: Record<string, string> }) {
   const t = useTranslations('admin.report');
@@ -103,7 +113,46 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
       started: g.plays === 0 && g.onlinePlays === 0 ? g.starts : 0,
     });
 
+  // Without a chosen sort the tables keep the server's order: games by all-time finished runs and
+  // online matches, players by plays and online matches (buildPlayReport).
+  const games = useTableSort('report.games', report.games, {
+    game: { kind: 'text', value: (g) => title(g.gameId) },
+    allTimeFinished: { kind: 'number', value: (g) => g.allTime.finished },
+    allTimeStarted: { kind: 'number', value: (g) => g.allTime.started },
+    starts: { kind: 'number', value: (g) => g.window.started },
+    finished: { kind: 'number', value: (g) => g.window.finished },
+    online: { kind: 'number', value: (g) => g.window.onlineStarted },
+    time: {
+      kind: 'duration',
+      value: (g) => g.window.playSeconds + g.window.abandonedSeconds,
+    },
+    ...(Object.fromEntries(
+      PLAYER_KINDS.map((k) => [
+        `players.${k}`,
+        { kind: 'number', value: (g: GameReport) => g.playersByKind[k] },
+      ]),
+    ) as Record<`players.${PlayerKind}`, SortColumn<GameReport>>),
+  });
+  const players = useTableSort('report.players', report.players, {
+    // players without a profile have no name and come last
+    player: { kind: 'text', value: (p: PlayerReport) => p.username },
+    kind: { kind: 'text', value: (p: PlayerReport) => kind(p.kind) },
+    starts: { kind: 'number', value: (p: PlayerReport) => p.starts },
+    plays: { kind: 'number', value: (p: PlayerReport) => p.plays },
+    online: { kind: 'number', value: (p: PlayerReport) => p.onlinePlays },
+    time: { kind: 'duration', value: (p: PlayerReport) => p.totalSeconds },
+    lastPlayed: { kind: 'date', value: (p: PlayerReport) => p.lastPlayedAt },
+  });
+  // React keys that follow a player when the rows move (tags alone may repeat)
+  const playerKeys = new Map(report.players.map((p, i) => [p, `${p.tag}-${i}`]));
+
   const since = day(report.statsSince);
+  // Column groups, added to the sort buttons' names where a column's own name repeats.
+  const allTimeGroup = t('games.allTime', {
+    allTime: day(report.allTimeSince ?? report.statsSince),
+  });
+  const sinceGroup = t('games.sinceGroup', { since });
+  const playersGroup = t('games.playersGroup', { since });
   const extended = day(report.extendedSince);
   // Columns counted only from slice 5.22 on carry this mark; the note below the ranges explains it.
   const later = (label: string) => (
@@ -132,7 +181,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
   function downloadGames() {
     downloadCsv(
       `ayvago-games-${report.statsSince}-${fileStamp(report.generatedAt)}.csv`,
-      gameCsvRows(report, title, {
+      gameCsvRows(games.rows, title, {
         game: t('games.game'),
         gameId: t('csv.gameId'),
         allTimeFinished: t('csv.allTimeFinished'),
@@ -156,7 +205,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
   function downloadPlayers() {
     downloadCsv(
       `ayvago-players-${report.statsSince}-${fileStamp(report.generatedAt)}.csv`,
-      playerCsvRows(report, gameLine, kind, t('players.noName'), {
+      playerCsvRows(players.rows, gameLine, kind, t('players.noName'), {
         rank: t('players.rank'),
         player: t('players.player'),
         tag: t('csv.tag'),
@@ -263,9 +312,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col" rowSpan={2}>
-                  {t('games.game')}
-                </th>
+                <SortableTh label={t('games.game')} rowSpan={2} {...games.heading('game')} />
                 <th scope="colgroup" colSpan={2} className={styles.group}>
                   {t('games.allTime', { allTime: day(report.allTimeSince ?? report.statsSince) })}
                 </th>
@@ -277,33 +324,57 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 </th>
               </tr>
               <tr>
-                <th scope="col" className={styles.num}>
-                  {t('games.allTimeRuns')}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('games.allTimeStarts')}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('games.starts')}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('games.finished')}
-                </th>
-                <th scope="col" className={styles.num}>
+                <SortableTh
+                  label={t('games.allTimeRuns')}
+                  className={styles.num}
+                  group={allTimeGroup}
+                  {...games.heading('allTimeFinished')}
+                />
+                <SortableTh
+                  label={t('games.allTimeStarts')}
+                  className={styles.num}
+                  group={allTimeGroup}
+                  {...games.heading('allTimeStarted')}
+                />
+                <SortableTh
+                  label={t('games.starts')}
+                  className={styles.num}
+                  group={sinceGroup}
+                  {...games.heading('starts')}
+                />
+                <SortableTh
+                  label={t('games.finished')}
+                  className={styles.num}
+                  group={sinceGroup}
+                  {...games.heading('finished')}
+                />
+                <SortableTh
+                  label={t('games.online')}
+                  className={styles.num}
+                  group={sinceGroup}
+                  {...games.heading('online')}
+                >
                   {later(t('games.online'))}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('games.time')}
-                </th>
+                </SortableTh>
+                <SortableTh
+                  label={t('games.time')}
+                  className={styles.num}
+                  group={sinceGroup}
+                  {...games.heading('time')}
+                />
                 {PLAYER_KINDS.map((k) => (
-                  <th key={k} scope="col" className={styles.num}>
-                    {kind(k)}
-                  </th>
+                  <SortableTh
+                    key={k}
+                    label={kind(k)}
+                    className={styles.num}
+                    group={playersGroup}
+                    {...games.heading(`players.${k}`)}
+                  />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {report.games.map((g) => (
+              {games.rows.map((g) => (
                 <tr key={g.gameId}>
                   <th scope="row">{title(g.gameId)}</th>
                   <td className={styles.num}>{n(g.allTime.finished)}</td>
@@ -352,27 +423,39 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 <th scope="col" className={styles.num}>
                   {t('players.rank')}
                 </th>
-                <th scope="col">{t('players.player')}</th>
-                <th scope="col">{t('players.kind')}</th>
-                <th scope="col" className={styles.num}>
+                <SortableTh label={t('players.player')} {...players.heading('player')} />
+                <SortableTh label={t('players.kind')} {...players.heading('kind')} />
+                <SortableTh
+                  label={t('players.starts')}
+                  className={styles.num}
+                  {...players.heading('starts')}
+                >
                   {later(t('players.starts'))}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('players.plays')}
-                </th>
-                <th scope="col" className={styles.num}>
+                </SortableTh>
+                <SortableTh
+                  label={t('players.plays')}
+                  className={styles.num}
+                  {...players.heading('plays')}
+                />
+                <SortableTh
+                  label={t('players.online')}
+                  className={styles.num}
+                  {...players.heading('online')}
+                >
                   {later(t('players.online'))}
-                </th>
-                <th scope="col" className={styles.num}>
-                  {t('players.time')}
-                </th>
-                <th scope="col">{t('players.lastPlayed')}</th>
+                </SortableTh>
+                <SortableTh
+                  label={t('players.time')}
+                  className={styles.num}
+                  {...players.heading('time')}
+                />
+                <SortableTh label={t('players.lastPlayed')} {...players.heading('lastPlayed')} />
                 <th scope="col">{t('players.games')}</th>
               </tr>
             </thead>
             <tbody>
-              {report.players.map((p, i) => (
-                <tr key={`${i}-${p.tag}`}>
+              {players.rows.map((p, i) => (
+                <tr key={playerKeys.get(p)}>
                   <td className={styles.num}>{n(i + 1)}</td>
                   <th scope="row">
                     {p.username ?? t('players.noName')} <span className={styles.tag}>#{p.tag}</span>

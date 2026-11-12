@@ -2,7 +2,7 @@
 
 import { NEGATIVE_REASONS, likePercent } from '@ayvago/shared';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   appCheckStatus,
   findPlayers,
@@ -23,6 +23,8 @@ import { formatScore, type ScoreFormat } from '@/lib/format';
 import { AdsPanel } from './ads-panel';
 import styles from './admin.module.css';
 import { PlayReportPanel } from './play-report';
+import { SortableTh } from './sortable-th';
+import { useTableSort } from './use-table-sort';
 
 export type AdminGame = { gameId: string; title: string; scoreFormat: ScoreFormat };
 
@@ -226,49 +228,79 @@ function Flags({ games }: { games: AdminGame[] }) {
 
 function Games({ games }: { games: AdminGame[] }) {
   const t = useTranslations('admin');
-  const format = useFormatter();
   const load = useCallback(() => gameNumbers(games.map((g) => g.gameId)), [games]);
   const { data, error } = useLoad(load);
   if (error) return <p className={styles.note}>{t('loadFailed')}</p>;
   if (!data) return <p role="status">{t('loading')}</p>;
-  const score = (value: number | null) =>
-    value === null ? '–' : format.number(value, { maximumFractionDigits: 3 });
   return (
     <section className={styles.card} aria-labelledby="games-heading">
       <h2 id="games-heading">{t('games.title')}</h2>
       <p className={styles.note}>{t('games.intro')}</p>
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th scope="col">{t('games.game')}</th>
-              <th scope="col">{t('games.plays7d')}</th>
-              <th scope="col">{t('games.votes')}</th>
-              <th scope="col">{t('games.quality')}</th>
-              <th scope="col">{t('games.trend')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {games.map((g) => {
-              const n: GameNumbers | undefined = data[g.gameId];
-              const percent = n ? likePercent(n.likes, n.dislikes) : null;
-              return (
-                <tr key={g.gameId}>
-                  <th scope="row">{g.title}</th>
-                  <td>{format.number(n?.plays7d ?? 0)}</td>
-                  <td>
-                    👍 {format.number(n?.likes ?? 0)} · 👎 {format.number(n?.dislikes ?? 0)}
-                    {percent !== null ? ` (${percent}%)` : ''}
-                  </td>
-                  <td>{score(n?.qualityScore ?? null)}</td>
-                  <td>{score(n?.trendScore ?? null)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <GamesTable games={games} data={data} />
     </section>
+  );
+}
+
+type GameRow = { game: AdminGame; numbers: GameNumbers | undefined };
+
+/** The games and their numbers, in catalog order until a column heading is clicked (slice 5.25). */
+function GamesTable({
+  games,
+  data,
+}: {
+  games: AdminGame[];
+  data: Record<string, GameNumbers | undefined>;
+}) {
+  const t = useTranslations('admin');
+  const format = useFormatter();
+  const rows = useMemo<GameRow[]>(
+    () => games.map((game) => ({ game, numbers: data[game.gameId] })),
+    [games, data],
+  );
+  const sort = useTableSort('games', rows, {
+    game: { kind: 'text', value: (r) => r.game.title },
+    plays7d: { kind: 'number', value: (r) => r.numbers?.plays7d ?? 0 },
+    // all votes cast, likes and dislikes together
+    votes: {
+      kind: 'number',
+      value: (r) => (r.numbers?.likes ?? 0) + (r.numbers?.dislikes ?? 0),
+    },
+    quality: { kind: 'number', value: (r) => r.numbers?.qualityScore ?? null },
+    trend: { kind: 'number', value: (r) => r.numbers?.trendScore ?? null },
+  });
+  const score = (value: number | null) =>
+    value === null ? '–' : format.number(value, { maximumFractionDigits: 3 });
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <SortableTh label={t('games.game')} {...sort.heading('game')} />
+            <SortableTh label={t('games.plays7d')} {...sort.heading('plays7d')} />
+            <SortableTh label={t('games.votes')} {...sort.heading('votes')} />
+            <SortableTh label={t('games.quality')} {...sort.heading('quality')} />
+            <SortableTh label={t('games.trend')} {...sort.heading('trend')} />
+          </tr>
+        </thead>
+        <tbody>
+          {sort.rows.map(({ game: g, numbers: n }) => {
+            const percent = n ? likePercent(n.likes, n.dislikes) : null;
+            return (
+              <tr key={g.gameId}>
+                <th scope="row">{g.title}</th>
+                <td>{format.number(n?.plays7d ?? 0)}</td>
+                <td>
+                  👍 {format.number(n?.likes ?? 0)} · 👎 {format.number(n?.dislikes ?? 0)}
+                  {percent !== null ? ` (${percent}%)` : ''}
+                </td>
+                <td>{score(n?.qualityScore ?? null)}</td>
+                <td>{score(n?.trendScore ?? null)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
