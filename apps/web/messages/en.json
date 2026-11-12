@@ -14,8 +14,14 @@
     "multiplayer": "Multiplayer",
     "categories": "Categories",
     "skipToContent": "Skip to content",
-    "search": "Search",
-    "privacy": "Privacy"
+    "search": "Search"
+  },
+  "footer": {
+    "label": "Legal and contact",
+    "copyright": "<sign>©</sign> {years} Ayvago Games. All rights reserved.",
+    "privacy": "Privacy",
+    "cookies": "Cookie preferences",
+    "contact": "Contact"
   },
   "categories": {
     "arcade": "Arcade",

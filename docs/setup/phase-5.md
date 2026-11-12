@@ -316,6 +316,15 @@ No secrets, env vars or studio changes.
      online match and some play time. The Progress report workflow lists the left run as
      `abandoned`.
 
+## 5.23 Site footer
+**Nothing to set up.** Merging deploys the web app. There are no new secrets, env vars, functions,
+rules or studio changes. The footer's Contact link uses the same privacy address as the privacy
+page (`NEXT_PUBLIC_PRIVACY_CONTACT`, default `ayvagogames@gmail.com`).
+
+Optional check after the deploy: scroll to the end of any page on ayvago.com. The footer shows
+"© 2026 Ayvago Games. Tüm hakları saklıdır." with **Gizlilik · Çerez tercihleri · İletişim** on
+the right (stacked under it on a phone), and the side menu no longer lists Gizlilik.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

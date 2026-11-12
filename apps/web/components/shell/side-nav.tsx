@@ -1,14 +1,10 @@
-import { getTranslations } from 'next-intl/server';
 import { InstallLink } from '../pwa/install-link';
 import styles from './shell.module.css';
 import { NavLink } from './nav-link';
 import { getNavItems } from './nav-items';
 
 export async function SideNav() {
-  const [{ primary, categories, categoriesLabel, mainLabel }, t] = await Promise.all([
-    getNavItems(),
-    getTranslations('nav'),
-  ]);
+  const { primary, categories, categoriesLabel, mainLabel } = await getNavItems();
   return (
     <nav className={styles.sideNav} aria-label={mainLabel}>
       <ul className={styles.navList}>
@@ -32,15 +28,10 @@ export async function SideNav() {
           </li>
         ))}
       </ul>
-      <div className={styles.navFooter}>
-        <InstallLink
-          className={`${styles.navItem} ${styles.installItem}`}
-          labelClassName={styles.navLabel}
-        />
-        <NavLink href="/privacy" className={styles.legalLink}>
-          {t('privacy')}
-        </NavLink>
-      </div>
+      <InstallLink
+        className={`${styles.navItem} ${styles.installItem}`}
+        labelClassName={styles.navLabel}
+      />
     </nav>
   );
 }
