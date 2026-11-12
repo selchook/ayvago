@@ -16,6 +16,11 @@ export type LoadOptions = {
   testMode: boolean;
   /** Least time between interstitials, passed on as the provider's own frequency hint. */
   gapSeconds: number;
+  /**
+   * The provider's tag itself has loaded. That is all a display banner needs; the rewarded and
+   * interstitial API may become ready later or never (H5 Games Ads needs its own approval).
+   */
+  onTag?: () => void;
 };
 
 export type BreakOptions = {
@@ -27,7 +32,10 @@ export type BreakOptions = {
 
 export interface AdProvider {
   readonly id: string;
-  /** Loads the provider's script once; resolves false when it is blocked or fails. */
+  /**
+   * Loads the provider's script once; resolves true when rewarded and interstitial ads can be
+   * requested, false when the script is blocked, fails or that API never gets ready.
+   */
   load(options: LoadOptions): Promise<boolean>;
   /** `next`: between rounds (game over → play again); `browse`: the player leaves a game. */
   interstitial(kind: 'next' | 'browse', options: BreakOptions): Promise<AdOutcome>;
@@ -104,7 +112,7 @@ function runBreak(config: AdBreakConfig, outcome: () => AdOutcome): Promise<AdOu
 export const h5GamesAds: AdProvider = {
   id: 'h5-games-ads',
 
-  load({ clientId, testMode, gapSeconds }) {
+  load({ clientId, testMode, gapSeconds, onTag }) {
     if (loading) return loading;
     loading = new Promise<boolean>((resolve) => {
       const w = adsWindow();
@@ -121,6 +129,9 @@ export const h5GamesAds: AdProvider = {
       script.dataset.adFrequencyHint = `${gapSeconds}s`;
       if (testMode) script.dataset.adbreakTest = 'on';
       const timer = window.setTimeout(() => resolve(false), LOAD_TIMEOUT_MS);
+      // The tag loading is enough for the AdSense banner unit, whether or not the Ad Placement
+      // API below ever calls onReady (it does not until the account is approved for H5 Games).
+      script.onload = () => onTag?.();
       script.onerror = () => {
         window.clearTimeout(timer);
         resolve(false);

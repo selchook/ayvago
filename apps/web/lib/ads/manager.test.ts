@@ -11,6 +11,8 @@ function setup(
   options: {
     clientId?: string;
     loads?: boolean;
+    /** The tag itself loads (default true, even when the placement API never gets ready). */
+    tag?: boolean;
     rewarded?: AdOutcome;
     interstitial?: AdOutcome;
     begin?: () => Promise<{ ticket: string }>;
@@ -22,7 +24,10 @@ function setup(
   const events: AdEvent['event'][] = [];
   const provider: AdProvider = {
     id: 'fake',
-    load: vi.fn(async () => options.loads ?? true),
+    load: vi.fn(async ({ onTag }) => {
+      if (options.tag ?? true) onTag?.();
+      return options.loads ?? true;
+    }),
     interstitial: vi.fn(async (_kind, hooks) => {
       hooks.beforeAd();
       hooks.afterAd();
@@ -110,11 +115,13 @@ describe('ad manager when on', () => {
     live(manager);
     await expect(manager.startAdsEnabled(false)).resolves.toBe(true);
     expect(deps.consentDefaults).toHaveBeenCalledOnce();
-    expect(provider.load).toHaveBeenCalledWith({
-      clientId: 'ca-pub-1234567890123456',
-      testMode: true,
-      gapSeconds: 180,
-    });
+    expect(provider.load).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: 'ca-pub-1234567890123456',
+        testMode: true,
+        gapSeconds: 180,
+      }),
+    );
   });
 
   it('waits for the entitlement before loading, and never loads for remove_ads', async () => {
@@ -285,5 +292,33 @@ describe('interstitials', () => {
     await expect(manager.request(interstitialRequest)).resolves.toMatchObject({ shown: true });
     advance(10 * 60_000);
     await expect(manager.request(interstitialRequest)).resolves.toEqual(NOT_SHOWN);
+  });
+});
+
+describe('desktop banner', () => {
+  it('fills once the tag has loaded, even if the rewarded and interstitial API never gets ready', async () => {
+    const { manager, provider } = setup({ loads: false });
+    live(manager);
+    await expect(manager.startAdsEnabled(false)).resolves.toBe(false);
+    expect(manager.getState()).toMatchObject({ script: 'failed', tag: true });
+    manager.fillBanner();
+    expect(provider.fillBanner).toHaveBeenCalledOnce();
+  });
+
+  it('does not fill while the tag is blocked', async () => {
+    const { manager, provider } = setup({ loads: false, tag: false });
+    live(manager);
+    await manager.startAdsEnabled(false);
+    expect(manager.getState().tag).toBe(false);
+    manager.fillBanner();
+    expect(provider.fillBanner).not.toHaveBeenCalled();
+  });
+
+  it('does not fill for remove_ads owners', async () => {
+    const { manager, provider } = setup();
+    live(manager, ON, true);
+    await manager.startAdsEnabled(false);
+    manager.fillBanner();
+    expect(provider.fillBanner).not.toHaveBeenCalled();
   });
 });

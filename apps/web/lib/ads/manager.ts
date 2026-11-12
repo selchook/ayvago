@@ -25,6 +25,11 @@ export type AdState = {
   /** The player's remove_ads is known (signed out, or the entitlement was read). */
   entitlementKnown: boolean;
   script: ScriptState;
+  /**
+   * The provider's tag has loaded, which is all the display banner needs. `script` turns
+   * `ready` only once rewarded and interstitial ads can be requested as well.
+   */
+  tag: boolean;
   /** An ad is being requested or shown; one at a time. */
   busy: boolean;
 };
@@ -78,6 +83,7 @@ const INITIAL: AdState = {
   removeAds: false,
   entitlementKnown: false,
   script: 'idle',
+  tag: false,
   busy: false,
 };
 
@@ -123,6 +129,7 @@ export function createAdManager(deps: AdDeps) {
           clientId: deps.clientId,
           testMode: state.settings.testMode,
           gapSeconds: state.settings.interstitialGapSeconds,
+          onTag: () => set({ tag: true }),
         });
       } catch {
         ok = false;
@@ -287,7 +294,7 @@ export function createAdManager(deps: AdDeps) {
 
     /** Fills the desktop banner slot the page rendered (only while banners are allowed). */
     fillBanner() {
-      if (plan().banner && state.script === 'ready') deps.provider.fillBanner();
+      if (plan().banner && state.tag) deps.provider.fillBanner();
     },
 
     /** The platform's own transition: the player leaves a game page after finishing a run. */
