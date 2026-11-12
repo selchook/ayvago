@@ -23,6 +23,9 @@ function hues(seed: string): [number, number] {
 // Rendered width of a tile: 72% of the screen in phone shelves (half of it in phone grids), at
 // most ~320 px in desktop shelves and grids. The browser picks the 640 or 1280 px card from it.
 const CARD_SIZES = '(max-width: 639px) 72vw, 320px';
+// The player overlay (size "hero") is as wide as the game frame: full width on phones, at most
+// ~960 px on desktop, so dense screens get the 1280 px card.
+const HERO_CARD_SIZES = '(max-width: 960px) 100vw, 960px';
 
 export function CoverArt({
   id,
@@ -43,8 +46,9 @@ export function CoverArt({
   image?: string | null;
   // Background only, for places that draw their own text on top (the player overlay).
   plain?: boolean;
-  // Card art for tiles (640×360, optional 1280×720): the Minimal and Cartoon tiles show it
-  // instead of the cover; the Arcade theme keeps the cover (hidden images are never loaded).
+  // Card art (640×360, optional 1280×720): the Minimal and Cartoon themes show it instead of the
+  // cover, on tiles and in the player overlay; the Arcade theme keeps the cover (hidden images are
+  // never loaded).
   card?: string | null;
   card2x?: string | null;
   // Decorative layers drawn over the image (the tile's play button).
@@ -67,9 +71,10 @@ export function CoverArt({
         <span className={styles.cardFrame}>
           <img
             className={styles.cardImage}
+            data-card=""
             src={card}
             srcSet={card2x ? `${card} 640w, ${card2x} 1280w` : undefined}
-            sizes={card2x ? CARD_SIZES : undefined}
+            sizes={card2x ? (size === 'hero' ? HERO_CARD_SIZES : CARD_SIZES) : undefined}
             width={640}
             height={360}
             alt=""
