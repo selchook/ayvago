@@ -1,12 +1,12 @@
 /* Ads (Phase 3). Nothing here renders while ads are off. */
 
-/* Consent notice for visitors outside Google's TCF regions (KVKK): bottom of the screen, above
-   the phone bottom bar, like the install banner. */
+/* Consent notice for visitors outside Google's TCF regions (KVKK): bottom of the screen, clear
+   of the home indicator, like the install banner. */
 .notice {
   position: fixed;
   z-index: 45;
   inset-inline: 16px;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   max-width: 520px;
   margin-inline: auto;
   display: grid;
@@ -72,12 +72,6 @@
 [data-theme='arcade'] .notice {
   border: 3px solid #000;
   box-shadow: 0 6px 0 #000;
-}
-
-@media (max-width: 639px) {
-  .notice {
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 /* Desktop side-column banner: a labelled 300×250 slot, never on phones or over the game. */

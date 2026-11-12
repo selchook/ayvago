@@ -1,6 +1,6 @@
 # Spec — UI Components and Theme System
 
-- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24)
+- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24; phone drawer and tablet rail: slice 5.26)
 - Related: [Roadmap §3–4](../plan/roadmap.md), [ADR 0005](../adr/0005-internationalization.md), [Accounts](accounts.md), [Leaderboards](leaderboards.md), [Voting](voting.md)
 
 ## 1. Goals
@@ -16,13 +16,24 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 
 | Region | Desktop (≥ 1024 px) | Tablet | Phone |
 |---|---|---|---|
-| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Logo, search icon (opens `/search`), theme, language, avatar |
-| **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon-only rail | Hidden |
-| **BottomNav** | — | — | Home, New, Recent, Favorites |
+| **TopBar** | Logo (the Ayvago Games lockup from the boot intro), rotating slogans (≥ 900 px), search with suggestions, theme switch, language, coins (later), avatar menu | Same, without slogans | Menu button (☰), logo, search icon (opens `/search`), theme, language, avatar |
+| **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon rail (640–1023 px) with a toggle that expands it to icons and text, remembered | A drawer from the left behind the top bar's ☰ (below 640 px), with the same menu |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
-| **Footer** | End of the content column: copyright left; Privacy · Cookie preferences · Contact right | Same | Stacked and centred, above the bottom bar |
+| **Footer** | End of the content column: copyright left; Privacy · Cookie preferences · Contact right | Same | Stacked and centred |
 
 **Footer** (slice 5.23). A `<footer>` landmark at the end of the content column on every page, game pages included; never fixed. Left: "© 2026 Ayvago Games. All rights reserved.", a range from the launch year in later years ("© 2026–2027"). Right, in a labelled `<nav>`: Privacy (`/privacy`), Cookie preferences (`/privacy#ads`) and Contact (`mailto:` the privacy contact), separated by middots. Small `--text-muted` text with a `--border` divider; 44 px link targets; stacked and centred below 640 px. It is the only privacy link: the side menu ends with "Install the app".
+
+**Navigation by width** (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md)). *Implementation status:* the phone bottom bar (BottomNav) is retired. One `NavMenu` component renders the menu (Home, New, Recently played, Favorites, the categories, Multiplayer, Install the app) for all three shapes, so they cannot drift apart:
+- **Desktop (≥ 1024 px):** the full 232 px side menu, unchanged.
+- **Tablet (640–1023 px):** a 72 px icon rail. Each icon has its label as `aria-label` and as a tip on hover and keyboard focus. A toggle at the top expands it to the full menu, pushing the content over; Esc collapses it while focus is in the menu. The choice is stored in `localStorage` (`ayvago-rail`) and applied before the first paint by an inline head script.
+- **Phone (< 640 px):**
+  - **Button.** A 44 px ☰ at the left of the top bar ("Open menu", `aria-expanded`, `aria-controls`).
+  - **Drawer.** It opens a modal `<dialog>` drawer from the left (300 px, at most 85vw) over a dimmed backdrop, with the lockup and a ✕ close button at the top. Only semantic tokens; Arcade adds its outline, red rule and scanlines.
+  - **Closing.** It closes on the backdrop, ✕, Esc, any link, a left swipe, a route change and the screen growing past phone width.
+  - **Accessibility.** Focus moves to ✕ on open, Tab wraps inside, and focus returns to ☰ on close. The page scroll is locked while it is open, and `prefers-reduced-motion` replaces the slide with an instant fade.
+  - **Game pages.** The rest of the page, a running game's iframe included, is inert while it is open; nothing listens while it is closed.
+  - **Top bar.** The phone lockup is 26 px tall and shrinks (down to 64 px wide) when the actions need the room.
+  - **Bottom of the page.** Pages reserve only the bottom safe area. The install banner, the ad consent notice and the toasts sit 16 px above the bottom edge plus the safe area.
 
 The theme, language and account popovers close each other, and close on an outside click or tap and on Escape.
 
@@ -77,7 +88,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 | **Catalog** | `GameTile`, `Shelf` (horizontal scroll with snap, arrow buttons on desktop), `GameGrid`, `HeroCarousel`, `CategoryNav`, `SearchBox` |
 | **Player** | `GamePlayer` (iframe host + SDK bridge), `PlayerToolbar`, `VoteButtons`, `FavoriteButton`, `ShareButton` |
 | **Engagement** | `LeaderboardPanel`, `LeaderboardTable`, `EndOfRunPanel`, `VoteReasonSheet`, `SignUpPrompt`, `RewardedAdDialog` (countdown, "watch an ad to continue"), `SeasonCountdown` |
-| **Shell** | `TopBar`, `SideNav`, `BottomNav`, `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
+| **Shell** | `TopBar`, `SideNav` (with `RailToggle` on tablets), `MobileMenu` (the phone drawer), `NavMenu` (their shared content), `ThemeSwitcher`, `LocaleSwitcher`, `AccountMenu` |
 
 ### `GameTile` behavior
 - 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The arcade theme shows the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows. In every theme the cards of one list have the same height (slice 5.6): the card is a flex column that stretches to its row, the cover keeps its aspect ratio, the title takes a fixed area (one line with an ellipsis, two lines on cards 230 px wide or less) and the tag footer is always two rows high, pinned to the bottom of the card.
@@ -153,7 +164,8 @@ Optional layers that never change layout:
 - **Service worker.** `public/sw.js` handles page navigations only, network first, with an
   offline page, and is served with `no-store`. Nothing else is cached, and games (cross-origin
   iframes) are untouched.
-- **Install banner.** `InstallPrompt` sits above the phone bottom bar.
+- **Install banner.** `InstallPrompt` sits at the bottom of the screen, 16 px above the edge plus
+  the safe area (above the phone bottom bar until slice 5.26 retired it).
   - Chromium shows our "Install" button, which opens the browser's own prompt.
   - iOS shows a Share → Add to Home Screen hint.
   - It shows on the first visit. An inline script keeps an early `beforeinstallprompt` for it.
@@ -163,9 +175,10 @@ Optional layers that never change layout:
   active theme's bar color. An inline head script creates both tags before the first paint
   (Next metadata would reset them on navigation), and the page retargets the manifest link to
   `/manifest.webmanifest?theme=&mode=`. The installed app's status and navigation bars then match
-  the top and bottom bars.
-- **Install link.** "Install the app" sits at the bottom of the side menu, and at the end of
-  every page on phones. It shows until the app is installed.
+  the top bar.
+- **Install link.** "Install the app" sits at the bottom of the side menu, and so at the bottom
+  of the phone drawer (until slice 5.26 phones had it at the end of every page instead). It shows
+  until the app is installed.
   - It opens the browser's prompt when there is one.
   - Otherwise it opens the banner with the iOS hint, or with manual steps for other browsers.
   - Edge on Android gets a hint: some launchers need its "Home screen shortcuts" permission

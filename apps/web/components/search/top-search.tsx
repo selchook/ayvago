@@ -11,7 +11,7 @@ export type SearchEntry = { slug: string; title: string; categories: string; sea
 
 const MAX_SUGGESTIONS = 6;
 
-// Top-bar search (tablet and desktop; phones use the Search tab of the bottom bar). Suggests
+// Top-bar search (tablet and desktop; phones use the search icon in the top bar). Suggests
 // games while typing; Enter opens the search page with every result. Works without JS as a
 // plain GET form.
 export function TopSearch({ games }: { games: SearchEntry[] }) {

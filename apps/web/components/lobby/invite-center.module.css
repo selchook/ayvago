@@ -29,7 +29,7 @@
   font-size: 0.9rem;
 }
 
-/* Toast stack: above the phone bottom bar and the install banner's spot. */
+/* Toast stack: bottom corner, clear of the home indicator (phones: full width). */
 .stack {
   position: fixed;
   z-index: 60;
@@ -44,7 +44,6 @@
   .stack {
     inset-inline: 12px;
     width: auto;
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 }
 

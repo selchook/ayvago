@@ -28,5 +28,5 @@ export async function getNavItems() {
   if (getMultiplayerGames().length > 0) {
     categories.push({ href: '/multiplayer', label: t('nav.multiplayer'), icon: <UsersIcon /> });
   }
-  return { primary, categories, categoriesLabel: t('nav.categories'), mainLabel: t('nav.main') };
+  return { primary, categories, categoriesLabel: t('nav.categories') };
 }
