@@ -9,10 +9,13 @@ import type { SortHeading } from './use-table-sort';
  * A sortable column heading (slice 5.25): the heading's content is a button, the active column
  * carries `aria-sort` and an arrow, the others show a faint double arrow on hover and focus.
  * `label` is the plain column name for the button's accessible name ("Sort by Plays, descending",
- * what a click does); `children` is what the heading shows, `label` when omitted.
+ * what a click does; the third click restores the default order); `group` adds the column group to
+ * that name where a column's own name repeats; `children` is what the heading shows, `label` when
+ * omitted.
  */
 export function SortableTh({
   label,
+  group,
   children,
   className,
   rowSpan,
@@ -21,6 +24,8 @@ export function SortableTh({
   onSort,
 }: SortHeading & {
   label: string;
+  /** The column group's heading, for columns whose own name repeats (screen readers only). */
+  group?: string;
   children?: ReactNode;
   className?: string;
   rowSpan?: number;
@@ -32,7 +37,7 @@ export function SortableTh({
         type="button"
         className={styles.sortButton}
         data-active={direction ? 'true' : undefined}
-        aria-label={t(next, { column: label })}
+        aria-label={t(next, { column: group ? `${label} (${group})` : label })}
         onClick={onSort}
       >
         <span>{children ?? label}</span>

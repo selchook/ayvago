@@ -19,8 +19,8 @@ export type SortColumn<T> = { kind: SortKind; value: (row: T) => SortValue };
 export type SortHeading = {
   /** The column's direction while it is the active one, else null. */
   direction: SortDirection | null;
-  /** The direction a click on the heading sorts by. */
-  next: SortDirection;
+  /** What a click on the heading does: sort in that direction, or go back to the default order. */
+  next: SortDirection | 'default';
   onSort: () => void;
 };
 
@@ -35,7 +35,8 @@ function readStored(table: string, keys: readonly string[]): SortState {
 
 function store(table: string, sort: SortState) {
   try {
-    window.sessionStorage.setItem(sortStorageKey(table), JSON.stringify(sort));
+    if (sort) window.sessionStorage.setItem(sortStorageKey(table), JSON.stringify(sort));
+    else window.sessionStorage.removeItem(sortStorageKey(table));
   } catch {
     // storage blocked or full: the sort still applies until the page is left
   }
@@ -67,7 +68,7 @@ export function useTableSort<T, K extends string>(
     const direction = sort?.key === key ? sort.direction : null;
     return {
       direction,
-      next: nextSort(sort, key, kind).direction,
+      next: nextSort(sort, key, kind)?.direction ?? 'default',
       onSort: () => {
         const next = nextSort(sort, key, kind);
         setSort(next);

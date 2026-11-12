@@ -1783,7 +1783,12 @@ What shipped:
   - `useTableSort(table, rows, columns)` keeps one table's sort and returns its sorted rows and
     the heading props.
   - **Click rule.** A first click sorts numbers, durations and dates descending (biggest or most
-    recent first) and text ascending. A second click on the same heading flips the direction.
+    recent first) and text ascending. A second click on the same heading flips the direction,
+    and a third click restores the table's default order (owner follow-up).
+  - **Repeated column names.** Where a column's own name repeats (the two "Starts" columns of
+    the per-game table), the sort button's accessible name adds the column group, for example
+    "Sort by Starts (Since 4 Nov 2026), descending". Every leaf column under a group heading gets
+    its group the same way (`group` prop).
   - **Default order.** Until a heading is clicked, the rows keep the order they arrive in, exactly
     as before. No heading is marked then, because none matches that order exactly (see the
     tables below).
@@ -1853,5 +1858,4 @@ Tests:
 
 Owner steps: none. See the [setup doc](../setup/phase-5.md#525-sortable-admin-report-tables).
 
-Still open: nothing. A third click does not return a table to its default order. Re-opening the
-browser does, and so does a column that is no longer in the table.
+Still open: nothing.

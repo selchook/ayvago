@@ -322,7 +322,8 @@
     "guest": "guest",
     "sort": {
       "ascending": "Sort by {column}, ascending",
-      "descending": "Sort by {column}, descending"
+      "descending": "Sort by {column}, descending",
+      "default": "{column}: back to the default order"
     },
     "tabs": {
       "flags": "Flagged scores",

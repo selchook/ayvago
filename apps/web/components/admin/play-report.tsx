@@ -147,6 +147,12 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
   const playerKeys = new Map(report.players.map((p, i) => [p, `${p.tag}-${i}`]));
 
   const since = day(report.statsSince);
+  // Column groups, added to the sort buttons' names where a column's own name repeats.
+  const allTimeGroup = t('games.allTime', {
+    allTime: day(report.allTimeSince ?? report.statsSince),
+  });
+  const sinceGroup = t('games.sinceGroup', { since });
+  const playersGroup = t('games.playersGroup', { since });
   const extended = day(report.extendedSince);
   // Columns counted only from slice 5.22 on carry this mark; the note below the ranges explains it.
   const later = (label: string) => (
@@ -321,26 +327,31 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 <SortableTh
                   label={t('games.allTimeRuns')}
                   className={styles.num}
+                  group={allTimeGroup}
                   {...games.heading('allTimeFinished')}
                 />
                 <SortableTh
                   label={t('games.allTimeStarts')}
                   className={styles.num}
+                  group={allTimeGroup}
                   {...games.heading('allTimeStarted')}
                 />
                 <SortableTh
                   label={t('games.starts')}
                   className={styles.num}
+                  group={sinceGroup}
                   {...games.heading('starts')}
                 />
                 <SortableTh
                   label={t('games.finished')}
                   className={styles.num}
+                  group={sinceGroup}
                   {...games.heading('finished')}
                 />
                 <SortableTh
                   label={t('games.online')}
                   className={styles.num}
+                  group={sinceGroup}
                   {...games.heading('online')}
                 >
                   {later(t('games.online'))}
@@ -348,6 +359,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                 <SortableTh
                   label={t('games.time')}
                   className={styles.num}
+                  group={sinceGroup}
                   {...games.heading('time')}
                 />
                 {PLAYER_KINDS.map((k) => (
@@ -355,6 +367,7 @@ function Report({ report, titles }: { report: PlayReport; titles: Record<string,
                     key={k}
                     label={kind(k)}
                     className={styles.num}
+                    group={playersGroup}
                     {...games.heading(`players.${k}`)}
                   />
                 ))}

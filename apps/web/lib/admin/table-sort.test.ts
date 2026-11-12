@@ -118,11 +118,16 @@ describe('nextSort', () => {
     expect(nextSort(null, 'player', 'text')).toEqual({ key: 'player', direction: 'ascending' });
   });
 
-  it('flips the direction on a second click of the same heading', () => {
+  it('flips on the second click and restores the default order on the third', () => {
     const first = nextSort(null, 'plays', 'number');
     const second = nextSort(first, 'plays', 'number');
     expect(second).toEqual({ key: 'plays', direction: 'ascending' });
-    expect(nextSort(second, 'plays', 'number')).toEqual({ key: 'plays', direction: 'descending' });
+    expect(nextSort(second, 'plays', 'number')).toBeNull();
+    const text = nextSort(nextSort(null, 'player', 'text'), 'player', 'text');
+    expect(text).toEqual({ key: 'player', direction: 'descending' });
+    expect(nextSort(text, 'player', 'text')).toBeNull();
+    // a fourth click starts the cycle again
+    expect(nextSort(null, 'plays', 'number')).toEqual(first);
   });
 
   it('starts afresh on another heading', () => {

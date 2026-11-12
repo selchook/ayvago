@@ -322,7 +322,8 @@
     "guest": "misafir",
     "sort": {
       "ascending": "{column} sütununa göre artan sırala",
-      "descending": "{column} sütununa göre azalan sırala"
+      "descending": "{column} sütununa göre azalan sırala",
+      "default": "{column}: varsayılan sıraya dön"
     },
     "tabs": {
       "flags": "İşaretli skorlar",

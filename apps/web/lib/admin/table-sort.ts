@@ -15,12 +15,16 @@ export type SortValue = number | string | Date | null | undefined;
 export const firstDirection = (kind: SortKind): SortDirection =>
   kind === 'text' ? 'ascending' : 'descending';
 
-/** A click on a heading: the same column flips its direction, another one starts afresh. */
-export function nextSort(current: SortState, key: string, kind: SortKind): ActiveSort {
-  if (current?.key === key) {
+/**
+ * A click on a heading cycles its column: first direction → the other direction → back to the
+ * table's default order (null). A click on another column starts that one afresh.
+ */
+export function nextSort(current: SortState, key: string, kind: SortKind): SortState {
+  if (current?.key !== key) return { key, direction: firstDirection(kind) };
+  if (current.direction === firstDirection(kind)) {
     return { key, direction: current.direction === 'ascending' ? 'descending' : 'ascending' };
   }
-  return { key, direction: firstDirection(kind) };
+  return null;
 }
 
 const isMissing = (value: SortValue): value is null | undefined =>
