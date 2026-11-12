@@ -36,6 +36,7 @@ export function CoverArt({
   image = null,
   card = null,
   card2x = null,
+  eager = size === 'hero',
   children,
 }: {
   id: string;
@@ -51,6 +52,8 @@ export function CoverArt({
   // never loaded).
   card?: string | null;
   card2x?: string | null;
+  // Load the cover at once (the hero default); false where a theme may hide this cover.
+  eager?: boolean;
   // Decorative layers drawn over the image (the tile's play button).
   children?: ReactNode;
 }) {
@@ -93,7 +96,7 @@ export function CoverArt({
           className={styles.coverImage}
           src={image}
           alt=""
-          loading={size === 'hero' ? 'eager' : 'lazy'}
+          loading={eager ? 'eager' : 'lazy'}
           decoding="async"
         />
       ) : null}

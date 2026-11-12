@@ -2,7 +2,7 @@ import type { Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CoverArt } from '@/components/catalog/cover-art';
+import { PlayerCover } from '@/components/game/player-cover';
 import { gamePath, gameTitle, getGameBySlug, isTableGame } from '@/lib/catalog';
 import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
 import { TableView } from './table-view';
@@ -50,18 +50,7 @@ export function TablePage({
       orientation={manifest.orientation}
       scoreOrder={manifest.scoring.order}
       scoreFormat={manifest.scoring.format}
-      cover={
-        <CoverArt
-          id={manifest.id}
-          title={title}
-          category={manifest.category}
-          size="hero"
-          plain
-          image={game.coverUrl}
-          card={game.cardUrl}
-          card2x={game.card2xUrl}
-        />
-      }
+      cover={<PlayerCover game={game} title={title} />}
     />
   );
 }

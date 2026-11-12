@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AdBanner } from '@/components/ads/ad-banner';
-import { CoverArt } from '@/components/catalog/cover-art';
+import { PlayerCover } from '@/components/game/player-cover';
 import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
 import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
@@ -111,18 +111,7 @@ export default async function GamePage({ params }: Props) {
             orientation={manifest.orientation}
             scoreOrder={manifest.scoring.order}
             scoreFormat={manifest.scoring.format}
-            cover={
-              <CoverArt
-                id={manifest.id}
-                title={title}
-                category={manifest.category}
-                size="hero"
-                plain
-                image={game.coverUrl}
-                card={game.cardUrl}
-                card2x={game.card2xUrl}
-              />
-            }
+            cover={<PlayerCover game={game} title={title} />}
           />
 
           <div className={styles.details}>

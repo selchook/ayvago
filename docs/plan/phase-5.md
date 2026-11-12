@@ -1715,6 +1715,17 @@ What shipped:
 
     The cover was blurred and darkened because it carries a menu screenshot and text; the card
     art does not. Arcade keeps the dimmed cover there.
+  - **Portrait games (owner follow-up).** A portrait game's stage is tall or square, so its 16:9
+    card was cropped to the middle and its logo cut off. For portrait games `PlayerCover`
+    (`components/game/player-cover.tsx`) composes the overlay art from the in-game screenshot
+    instead, in Minimal and Cartoon:
+    - a blurred backdrop, with the sharp frame in the middle at 94 % of the stage height;
+    - the game's localized name as a logo bottom-left over a bottom scrim, in Fredoka (pixel
+      font for retro games, with square framed corners);
+    - on a phone the logo runs along the bottom.
+
+    Only the screenshot loads (about 50 KB). Arcade keeps the dimmed cover, which is lazy there
+    and never fetched in the other themes.
 - **Only shown images load.** Each image that a theme may hide sits in a wrapper the theme hides.
   The cover behind a card is only shown in Arcade, and the card is hidden there. Lazy images
   under a hidden parent are never fetched.
