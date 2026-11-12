@@ -1,4 +1,12 @@
+'use client';
+
+// A client component on purpose, although it has no state. Server components put a preload hint
+// for every eager image into their RSC payload. The game page shows its 1920×1080 cover eagerly,
+// so Next's viewport prefetch of every catalog tile's game page made the browser download that
+// game's cover even where the tile shows card art. Rendered here, the image only gets the HTML
+// preload of a real visit to the page.
 import type { GameCategory } from '@ayvago/shared';
+import type { ReactNode } from 'react';
 import { CategoryIcon } from '../category-icon';
 import styles from './catalog.module.css';
 
@@ -12,6 +20,10 @@ function hues(seed: string): [number, number] {
   return [a, (a + 40 + (hash % 80)) % 360];
 }
 
+// Rendered width of a tile: 72% of the screen in phone shelves (half of it in phone grids), at
+// most ~320 px in desktop shelves and grids. The browser picks the 640 or 1280 px card from it.
+const CARD_SIZES = '(max-width: 639px) 72vw, 320px';
+
 export function CoverArt({
   id,
   title,
@@ -19,6 +31,9 @@ export function CoverArt({
   size = 'tile',
   plain = false,
   image = null,
+  card = null,
+  card2x = null,
+  children,
 }: {
   id: string;
   title: string;
@@ -28,8 +43,15 @@ export function CoverArt({
   image?: string | null;
   // Background only, for places that draw their own text on top (the player overlay).
   plain?: boolean;
+  // Card art for tiles (640×360, optional 1280×720): the Minimal and Cartoon tiles show it
+  // instead of the cover; the Arcade theme keeps the cover (hidden images are never loaded).
+  card?: string | null;
+  card2x?: string | null;
+  // Decorative layers drawn over the image (the tile's play button).
+  children?: ReactNode;
 }) {
   const [h1, h2] = hues(id);
+  const showsImage = Boolean(image || card);
   return (
     <div
       className={styles.cover}
@@ -37,9 +59,31 @@ export function CoverArt({
       style={{ '--h1': h1, '--h2': h2 } as React.CSSProperties}
       aria-hidden="true"
     >
-      {image ? (
-        // Cover images live on each game's own origin; next/image would need every game host
-        // allow-listed and adds little for pre-sized 1920x1080 JPEGs.
+      {card ? (
+        // Card and cover images live on each game's own origin; next/image would need every game
+        // host allow-listed and adds little for pre-sized images. Each image a theme may hide sits
+        // in a wrapper that the theme hides: browsers skip lazy images under a hidden parent, but
+        // still fetch a lazy image that is hidden itself.
+        <span className={styles.cardFrame}>
+          <img
+            className={styles.cardImage}
+            src={card}
+            srcSet={card2x ? `${card} 640w, ${card2x} 1280w` : undefined}
+            sizes={card2x ? CARD_SIZES : undefined}
+            width={640}
+            height={360}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+      ) : null}
+      {image && card ? (
+        // Behind the card: only the Arcade theme shows the cover of a game with card art.
+        <span className={styles.coverFrame}>
+          <img className={styles.coverImage} src={image} alt="" loading="lazy" decoding="async" />
+        </span>
+      ) : image ? (
         <img
           className={styles.coverImage}
           src={image}
@@ -47,7 +91,8 @@ export function CoverArt({
           loading={size === 'hero' ? 'eager' : 'lazy'}
           decoding="async"
         />
-      ) : plain ? null : (
+      ) : null}
+      {showsImage || plain ? null : (
         <>
           <span className={styles.coverIcon}>
             <CategoryIcon category={category} size={size === 'hero' ? 56 : 32} />
@@ -55,6 +100,7 @@ export function CoverArt({
           <span className={styles.coverTitle}>{title}</span>
         </>
       )}
+      {children}
     </div>
   );
 }

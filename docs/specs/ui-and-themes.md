@@ -1,6 +1,6 @@
 # Spec — UI Components and Theme System
 
-- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23)
+- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24)
 - Related: [Roadmap §3–4](../plan/roadmap.md), [ADR 0005](../adr/0005-internationalization.md), [Accounts](accounts.md), [Leaderboards](leaderboards.md), [Voting](voting.md)
 
 ## 1. Goals
@@ -81,6 +81,7 @@ Profile and settings per the [accounts spec](accounts.md); full leaderboard page
 
 ### `GameTile` behavior
 - 16:9 cover (AVIF/WebP with blur placeholder), title, up to three category tags (primary first), like percentage, badges (**New**, **Hot**, **Multiplayer**, **Updated**). The arcade theme shows the manifest's in-game `screenshot` instead of the cover, in the games portal's card style. That includes the home spotlight, where the lead game keeps its cover as a portal card. All these cards have the same height: the image is always 9:12, with landscape screenshots fitted on a blurred copy of themselves, the title takes two lines and the tags take two rows. In every theme the cards of one list have the same height (slice 5.6): the card is a flex column that stretches to its row, the cover keeps its aspect ratio, the title takes a fixed area (one line with an ellipsis, two lines on cards 230 px wide or less) and the tag footer is always two rows high, pinned to the bottom of the card.
+- *Implementation status (slice 5.24, [ADR 0024](../adr/0024-game-card-art.md)):* the Minimal and Cartoon tiles show the game's **card art** instead of its store cover. The card is a 16:9 image made from in-game frames with a small logo and no text block: `assets.card` (640×360 WebP) and the optional `assets.card2x` (1280×720 WebP, only used with `card`) in `ayvago.json`. It fills the tile's media area through `srcset` (640w / 1280w), lazy, with the generated gradient underneath as the loading and failure background. Games without a card show the cover, then the generated placeholder. On hover (pointer devices) and keyboard focus the image zooms slightly under a light scrim and a decorative round play button appears in its centre. Coming-soon tiles get none, and `prefers-reduced-motion` keeps the image still. The "New" and "Coming soon" badges sit over the image with a shadow. Arcade tiles are unchanged, and the spotlight and the game page keep the full cover. The 300 ms preview video below and the blur placeholder are not built yet.
 - Desktop hover (after 300 ms) plays the muted `preview.mp4` from the manifest; stops on leave; disabled when `prefers-reduced-motion` or Save-Data is on.
 - Fully keyboard accessible (focus shows the same state as hover, without autoplay).
 
