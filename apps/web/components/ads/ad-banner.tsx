@@ -23,7 +23,9 @@ function LiveAdBanner() {
   const state = useAdState();
   const [desktop, setDesktop] = useState(false);
   const slotRef = useRef<HTMLModElement>(null);
-  const show = desktop && state.script === 'ready' && adManager.plan().banner;
+  // The AdSense tag alone is enough for this display unit; it does not wait for the rewarded and
+  // interstitial API, which stays unready until the account is approved for H5 Games Ads.
+  const show = desktop && state.tag && adManager.plan().banner;
 
   useEffect(() => {
     const query = window.matchMedia(DESKTOP);

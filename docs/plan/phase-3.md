@@ -115,6 +115,10 @@ Players see no change except the new privacy page and its link at the bottom of 
     `data-adbreak-test="on"` in test mode;
   - `adConfig({ preloadAdBreaks: 'on' })`, then `adBreak` with `reward`, `next` or `browse`;
   - every break resolves within 80 s, before the adapter's own 90 s timeout.
+  - the desktop banner waits only for the tag itself to load (`onTag`, the manager's `tag`
+    state), not for the Ad Placement API's `onReady`. That callback does not come until the
+    AdSense account is approved for H5 Games Ads, and waiting for it kept the banner from ever
+    rendering.
 - `consent.ts`: Consent Mode v2 defaults, the stored choice, and a check whether Google's TCF CMP
   covers the visitor.
 - `client.ts`: the page's manager:
