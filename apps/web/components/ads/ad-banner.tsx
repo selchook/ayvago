@@ -53,6 +53,9 @@ function LiveAdBanner() {
         className={`adsbygoogle ${styles.bannerSlot}`}
         data-ad-client={ADSENSE_CLIENT}
         data-ad-slot={ADSENSE_BANNER_SLOT}
+        // Test mode serves AdSense test ads in the banner too, so testing never counts as real
+        // impressions or clicks (the interstitials and rewarded ads use data-adbreak-test).
+        data-adtest={state.settings.testMode ? 'on' : undefined}
       />
     </aside>
   );
