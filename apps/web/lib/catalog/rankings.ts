@@ -29,6 +29,9 @@ export function parseRankings(fields: RestFields | undefined): CatalogRankings {
       trendScore: num(f.trendScore),
       // Documents written before slice 5.17 have no todayScore; num() reads that as 0.
       todayScore: num(f.todayScore),
+      // Play counts arrived with slice 5.27 (the "Most played" page); older documents read 0.
+      plays7d: num(f.plays7d),
+      playsTotal: num(f.playsTotal),
     };
   }
   return { games };

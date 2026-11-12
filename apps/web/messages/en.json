@@ -9,7 +9,7 @@
     "main": "Main navigation",
     "home": "Home",
     "new": "New",
-    "recent": "Recently played",
+    "mostPlayed": "Most played",
     "favorites": "Favorites",
     "multiplayer": "Multiplayer",
     "categories": "Categories",
@@ -66,7 +66,8 @@
     "popularShelf": "Popular this week",
     "spotlightToday": "#{rank} Trending today",
     "spotlightWeek": "Popular this week",
-    "spotlightFeatured": "Featured"
+    "spotlightFeatured": "Featured",
+    "spotlightNew": "New on Ayvago"
   },
   "shelf": {
     "previous": "Scroll left",
@@ -75,8 +76,10 @@
   "carousel": {
     "roleDescription": "carousel",
     "slideRoleDescription": "slide",
-    "slide": "{index} / {total}",
+    "slide": "{index} of {total}",
     "goTo": "Show {index} of {total}: {title}",
+    "counter": "{index} / {total}",
+    "thumbnails": "Choose a game",
     "previous": "Previous game",
     "next": "Next game",
     "pause": "Stop the slideshow",
@@ -192,12 +195,25 @@
     "frameTitle": "{title} game"
   },
   "library": {
-    "recentTitle": "Recently played",
-    "recentEmpty": "Games you play will show up here.",
     "favoritesTitle": "Favorites",
     "favoritesEmpty": "Tap the heart on a game to keep it here.",
     "browse": "Browse games",
     "syncNote": "Synced with your account. Guests: sign in with Google to see them on every device."
+  },
+  "mostPlayed": {
+    "title": "Most played",
+    "intro": "The games players keep coming back to, this week and of all time.",
+    "tabsLabel": "Most played lists",
+    "tabWeek": "This week",
+    "tabAll": "All time",
+    "tabMine": "Yours",
+    "rank": "Rank {rank}",
+    "plays": "{count, plural, one {{plays} play} other {{plays} plays}}",
+    "weekEmpty": "No finished games counted this week yet. Yours could be the first!",
+    "allEmpty": "No finished games counted yet.",
+    "mineEmpty": "Games you play will show up here, the ones you play most first.",
+    "loading": "Loading your games…",
+    "note": "Finished games by all players, updated every hour."
   },
   "notFound": {
     "title": "Page not found",
@@ -600,6 +616,69 @@
     "genres": "Arcade, action, puzzle and more",
     "leaderboard": "Climb the weekly leaderboard",
     "oneMore": "One more round?"
+  },
+  "quotes": {
+    "attribution": "— {name}",
+    "laozi": {
+      "text": "A journey of a thousand miles begins with a single step.",
+      "by": "Laozi"
+    },
+    "epictetusGreat": {
+      "text": "No great thing is created suddenly.",
+      "by": "Epictetus"
+    },
+    "marcus": {
+      "text": "What stands in the way becomes the way.",
+      "by": "Marcus Aurelius"
+    },
+    "platoBeginning": {
+      "text": "The beginning is the most important part of any work.",
+      "by": "Plato"
+    },
+    "periander": {
+      "text": "Practice is everything.",
+      "by": "Periander"
+    },
+    "heraclitusRiver": {
+      "text": "You cannot step twice into the same river.",
+      "by": "Heraclitus"
+    },
+    "senecaPostpone": {
+      "text": "While we are postponing, life speeds by.",
+      "by": "Seneca"
+    },
+    "publiliusPractice": {
+      "text": "Practice is the best of all instructors.",
+      "by": "Publilius Syrus"
+    },
+    "publiliusHelm": {
+      "text": "Anyone can hold the helm when the sea is calm.",
+      "by": "Publilius Syrus"
+    },
+    "aristotle": {
+      "text": "One swallow does not make a summer.",
+      "by": "Aristotle"
+    },
+    "senecaTeach": {
+      "text": "Men learn while they teach.",
+      "by": "Seneca"
+    },
+    "heraclitusPlay": {
+      "text": "Lifetime is a child at play, moving pieces in a game.",
+      "by": "Heraclitus"
+    },
+    "epictetusReader": {
+      "text": "If you would be a good reader, read.",
+      "by": "Epictetus"
+    },
+    "democritus": {
+      "text": "More men become good through practice than by nature.",
+      "by": "Democritus"
+    },
+    "socrates": {
+      "text": "The unexamined life is not worth living.",
+      "by": "Socrates"
+    }
   },
   "online": {
     "title": "{title} with a friend",

@@ -1,4 +1,4 @@
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import {
   NEW_GAME_DAYS,
   computeScores,
@@ -15,6 +15,48 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 type Daily = { started?: number; finished?: number; playSeconds?: number };
 
+/** Days of daily counters each run reads (the ranking window). */
+const WINDOW_DAYS = 10;
+
+/**
+ * Finished runs of every day up to and including `through` (a day key older than the window),
+ * kept on games/{gameId} so the all-time count never re-reads old days (slice 5.27).
+ */
+export type PlaysArchive = { through: string; finished: number };
+
+function readArchive(value: unknown): PlaysArchive | null {
+  const archive = value as Partial<PlaysArchive> | undefined;
+  return typeof archive?.through === 'string' &&
+    typeof archive.finished === 'number' &&
+    Number.isFinite(archive.finished)
+    ? { through: archive.through, finished: archive.finished }
+    : null;
+}
+
+/**
+ * Brings a game's archive up to `cutoff`, the newest day outside the window. Daily documents
+ * that old are never written again (runs count on the current UTC day), so each day is added
+ * once. Cost: nothing while the archive is current, one query a day afterwards (one read, or
+ * the documents it returns), and a single read of every older day the first time (backfill).
+ * An archive ahead of the cutoff (a clock set back) is rebuilt.
+ */
+async function updateArchive(
+  gameId: string,
+  archive: PlaysArchive | null,
+  cutoff: string,
+): Promise<PlaysArchive> {
+  if (archive && archive.through === cutoff) return archive;
+  const from = archive && archive.through < cutoff ? archive : null;
+  let query = db().collection(`games/${gameId}/daily`).where(FieldPath.documentId(), '<=', cutoff);
+  if (from) query = query.where(FieldPath.documentId(), '>', from.through);
+  const snapshot = await query.get();
+  const added = snapshot.docs.reduce((total, doc) => {
+    const finished = doc.get('finished');
+    return total + (typeof finished === 'number' && finished > 0 ? finished : 0);
+  }, 0);
+  return { through: cutoff, finished: (from?.finished ?? 0) + added };
+}
+
 function addedAt(gameId: string): number {
   const seed = [FIXTURE_GAME, ...SEED_GAMES].find((game) => game.manifest.id === gameId);
   return seed ? Date.parse(seed.addedAt) : 0;
@@ -24,12 +66,19 @@ function addedAt(gameId: string): number {
  * Recomputes the ranking scores of every live game from its votes and the last 10 days of play
  * (docs/specs/voting.md §4) and writes them to games/{gameId} and to rankings/catalog, the single
  * document the web app reads for shelves, like percentages and the home spotlight ("trending
- * today", `todayScore` from today's and yesterday's daily counters). Returns the number of games.
+ * today", `todayScore` from today's and yesterday's daily counters) and the "Most played" page
+ * (`plays7d`, and `playsTotal`: the window plus the archive of older days). Returns the number
+ * of games.
  */
 export async function recomputeGameScores(now = Date.now()): Promise<number> {
   const games = leaderboardGames();
-  const days = Array.from({ length: 10 }, (_, i) => dayKey(now - i * DAY_MS));
-  const inputs: (EngagementInput & { todayScore: number })[] = await Promise.all(
+  const days = Array.from({ length: WINDOW_DAYS }, (_, i) => dayKey(now - i * DAY_MS));
+  const cutoff = dayKey(now - WINDOW_DAYS * DAY_MS);
+  const inputs: (EngagementInput & {
+    todayScore: number;
+    archive: PlaysArchive;
+    playsTotal: number;
+  })[] = await Promise.all(
     games.map(async ({ gameId }) => {
       const [game, ...daily] = await db().getAll(
         db().doc(`games/${gameId}`),
@@ -42,6 +91,7 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
       const started7d = sum(0, 7, 'started');
       const likes = (game!.get('likes') as number | undefined) ?? 0;
       const dislikes = (game!.get('dislikes') as number | undefined) ?? 0;
+      const archive = await updateArchive(gameId, readArchive(game!.get('playsArchive')), cutoff);
       return {
         gameId,
         likes,
@@ -61,6 +111,8 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
           },
           now,
         ),
+        archive,
+        playsTotal: archive.finished + sum(0, WINDOW_DAYS, 'finished'),
       };
     }),
   );
@@ -76,6 +128,8 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
         ...score,
         todayScore: input.todayScore,
         plays7d: input.plays7d,
+        playsTotal: input.playsTotal,
+        playsArchive: input.archive,
         scoresUpdatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -86,6 +140,8 @@ export async function recomputeGameScores(now = Date.now()): Promise<number> {
       qualityScore: score.qualityScore,
       trendScore: score.trendScore,
       todayScore: input.todayScore,
+      plays7d: input.plays7d,
+      playsTotal: input.playsTotal,
     };
   }
   batch.set(db().doc('rankings/catalog'), {

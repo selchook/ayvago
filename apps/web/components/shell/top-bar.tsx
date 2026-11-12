@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { gameTitle, getAllGames, getTableGames } from '@/lib/catalog';
 import { gameSearchText } from '@/lib/catalog/tiles';
+import { getTickerContent } from './ticker-items';
 import { AccountMenu } from '../account/account-menu';
 import { InviteCenter } from '../lobby/invite-center';
 import { LocaleSwitcher } from '../locale-switcher';
@@ -17,27 +18,15 @@ import { NavMenu } from './nav-menu';
 import { SloganTicker } from './slogan-ticker';
 import styles from './shell.module.css';
 
-// Slogans next to the logo (messages: slogans.*).
-const SLOGAN_KEYS = [
-  'count',
-  'instant',
-  'noDownload',
-  'highScore',
-  'genres',
-  'leaderboard',
-  'oneMore',
-] as const;
-
 export async function TopBar() {
-  const [t, tn, ts, tc, locale] = await Promise.all([
+  const games = getAllGames();
+  const [t, tn, ticker, tc, locale] = await Promise.all([
     getTranslations('metadata'),
     getTranslations('nav'),
-    getTranslations('slogans'),
+    getTickerContent(games.length),
     getTranslations('categories'),
     getLocale() as Promise<Locale>,
   ]);
-  const games = getAllGames();
-  const slogans = SLOGAN_KEYS.map((key) => ts(key, { count: games.length }));
   const searchEntries: SearchEntry[] = games.map((game) => {
     const categories = gameCategories(game.manifest).map((category) => tc(category));
     return {
@@ -70,7 +59,7 @@ export async function TopBar() {
         <BrandLogo />
         <span className="visually-hidden">{t('title')}</span>
       </Link>
-      <SloganTicker slogans={slogans} />
+      <SloganTicker {...ticker} />
       <TopSearch games={searchEntries} />
       <div className={styles.topActions}>
         {/* Phones: search sits here as an icon (the field above is hidden below 640 px). */}

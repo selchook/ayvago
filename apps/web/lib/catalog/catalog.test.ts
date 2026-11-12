@@ -266,7 +266,7 @@ describe('rankings', () => {
     expect(rankGames(games, null, 'qualityScore')).toEqual(games);
   });
 
-  it('reads todayScore, and 0 from documents written before it existed', async () => {
+  it('reads todayScore and the play counts, and 0 from documents written before them', async () => {
     const { parseRankings } = await import('./rankings');
     const entry = (fields: Record<string, { integerValue?: string; doubleValue?: number }>) => ({
       mapValue: { fields },
@@ -276,20 +276,26 @@ describe('rankings', () => {
         mapValue: {
           fields: {
             fresh: entry({ trendScore: { doubleValue: 0.2 }, todayScore: { doubleValue: 7.5 } }),
-            whole: entry({ todayScore: { integerValue: '3' } }),
+            whole: entry({
+              todayScore: { integerValue: '3' },
+              plays7d: { integerValue: '42' },
+              playsTotal: { integerValue: '1250' },
+            }),
             old: entry({ likes: { integerValue: '4' }, trendScore: { doubleValue: 0.3 } }),
           },
         },
       },
     });
     expect(rankings.games.fresh).toMatchObject({ trendScore: 0.2, todayScore: 7.5 });
-    expect(rankings.games.whole!.todayScore).toBe(3);
+    expect(rankings.games.whole).toMatchObject({ todayScore: 3, plays7d: 42, playsTotal: 1250 });
     expect(rankings.games.old).toEqual({
       likes: 4,
       dislikes: 0,
       qualityScore: 0,
       trendScore: 0.3,
       todayScore: 0,
+      plays7d: 0,
+      playsTotal: 0,
     });
     expect(parseRankings(undefined)).toEqual({ games: {} });
   });

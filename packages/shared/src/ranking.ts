@@ -158,6 +158,12 @@ export type CatalogRankings = {
       trendScore: number;
       /** Trending today (`todayScore`); 0 in documents written before slice 5.17. */
       todayScore: number;
+      /**
+       * Finished runs in the last 7 days and since the game's first day (the "Most played" page,
+       * slice 5.27); 0 in documents written before it.
+       */
+      plays7d: number;
+      playsTotal: number;
     }
   >;
 };

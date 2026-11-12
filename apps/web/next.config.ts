@@ -60,7 +60,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Category URLs from before the categories matched the Ayvago Arcade genres (ADR 0009).
+  // Category URLs from before the categories matched the Ayvago Arcade genres (ADR 0009), and
+  // retired pages.
   async redirects() {
     return [
       {
@@ -69,6 +70,12 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: '/:locale(en|tr)/c/board', destination: '/:locale/c/strategy', permanent: true },
+      // "Recently played" became the "Yours" tab of Most played (slice 5.27).
+      {
+        source: '/:locale(en|tr)/recent',
+        destination: '/:locale/most-played?tab=mine',
+        permanent: true,
+      },
     ];
   },
 };

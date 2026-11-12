@@ -26,7 +26,8 @@ export function ContinueShelf({
     <section className={styles.shelf} aria-labelledby="shelf-continue">
       <div className={styles.shelfHeader}>
         <h2 id="shelf-continue">{title}</h2>
-        <Link href="/recent" className={styles.seeAll}>
+        {/* The player's own games, most played first (slice 5.27 replaced "Recently played"). */}
+        <Link href={{ pathname: '/most-played', query: { tab: 'mine' } }} className={styles.seeAll}>
           {seeAllLabel}
         </Link>
       </div>

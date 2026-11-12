@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '',
     '/new',
+    '/most-played',
     '/privacy',
     ...(getMultiplayerGames().length > 0 ? ['/multiplayer'] : []),
     ...GAME_CATEGORIES.filter((category) => getGamesByCategory(category).length > 0).map(

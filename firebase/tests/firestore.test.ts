@@ -6,10 +6,12 @@ import {
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  collection,
   deleteDoc,
   deleteField,
   doc,
   getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -610,6 +612,18 @@ describe('votes and rankings', () => {
     const other = google('u2');
     await assertFails(getDoc(doc(other, 'games/orbsurge/votes/u1')));
     await assertFails(getDoc(doc(other, 'users/u1/stats/orbsurge')));
+  });
+
+  it("lists a player's own stats for the Most played page, never another player's", async () => {
+    // The "Yours" tab (slice 5.27) reads the whole users/{uid}/stats collection.
+    const mine = await assertSucceeds(getDocs(collection(google('u1'), 'users/u1/stats')));
+    expect(mine.size).toBe(1);
+    await assertSucceeds(getDocs(collection(guest('u1'), 'users/u1/stats')));
+    await assertFails(getDocs(collection(google('u2'), 'users/u1/stats')));
+    await assertFails(getDocs(collection(guest('u2'), 'users/u1/stats')));
+    await assertFails(
+      getDocs(collection(env.unauthenticatedContext().firestore(), 'users/u1/stats')),
+    );
   });
 
   it('keeps votes, stats and counters server-written and feedback private', async () => {
