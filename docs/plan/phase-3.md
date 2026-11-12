@@ -171,7 +171,8 @@ Players see no change except the new privacy page and its link at the bottom of 
 - Contact: `ayvagogames@gmail.com` as a mailto link (owner's address);
   `NEXT_PUBLIC_PRIVACY_CONTACT` can override it.
 - It is linked at the bottom of the side menu and on phones at the end of the page, and listed in
-  the sitemap.
+  the sitemap. Since slice 5.23 the link sits in the site footer of every page instead
+  ([Phase 5 plan](phase-5.md#523-site-footer)).
 
 ### Deviations from the plan
 - **Remote Config → Firestore `config/ads`** for the switch and caps

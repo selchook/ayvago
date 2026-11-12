@@ -82,6 +82,8 @@ button {
   position: absolute;
   width: 1px;
   height: 1px;
+  /* A paragraph keeps no margins: below the shell they would add a band under the page. */
+  margin: -1px;
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;

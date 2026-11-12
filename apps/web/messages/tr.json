@@ -14,8 +14,14 @@
     "multiplayer": "Çok oyunculu",
     "categories": "Kategoriler",
     "skipToContent": "İçeriğe geç",
-    "search": "Ara",
-    "privacy": "Gizlilik"
+    "search": "Ara"
+  },
+  "footer": {
+    "label": "Yasal bilgiler ve iletişim",
+    "copyright": "<sign>©</sign> {years} Ayvago Games. Tüm hakları saklıdır.",
+    "privacy": "Gizlilik",
+    "cookies": "Çerez tercihleri",
+    "contact": "İletişim"
   },
   "categories": {
     "arcade": "Arcade",

@@ -46,6 +46,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.20 | "Leave table" button: a confirmed leave frees the seat at a waiting table, keeps it during a game (a bot plays it), closes a table its host leaves alone, and hands a host's table over at once (owner request) | ✅ code |
 | 5.21 | Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, the people you played a table or room with on the lobby and the profile, invites to anyone online (owner request, [ADR 0021](../adr/0021-site-presence-recent-players.md)) | ✅ code · ⏳ deploy check |
 | 5.22 | The "Players and plays" report counts started runs per player, online matches (tables and rooms, never ranked) and the play time of runs left without finishing (`abandonSession`, keepalive on tab close) (owner request, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) | ✅ code |
+| 5.23 | Site footer: a copyright line and the Privacy, Cookie preferences and Contact links at the end of every page; the side-menu and phone privacy links move into it (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -1590,3 +1591,66 @@ Still open:
   the tab closed, end as `expired` without time.
 - A page restored from the back/forward cache after `pagehide` keeps playing a run the server has
   closed; its finish is then refused (`closed`) and the toolbar falls back to the browser's best.
+
+## 5.23 Site footer ✅
+
+The owner asked for a copyright notice ("All Rights Reserved Ayvago Games ©2026") in the footer
+of the site, with the Privacy link on its right.
+
+What shipped (`components/shell/site-footer.tsx`, `copyright-notice.tsx`, `shell.module.css`,
+`lib/copyright.ts`):
+- A slim `<footer>` (contentinfo landmark) as the last thing in the content column of every page,
+  inside the app shell. It is not fixed or sticky. On tablet and desktop it sits in the content
+  column, never under the side menu. On phones it sits above the bottom bar, kept clear by the
+  page's usual bottom padding. On game pages it follows the game, its panels and the related
+  games.
+- Left: "© 2026 Ayvago Games. All rights reserved." / "© 2026 Ayvago Games. Tüm hakları
+  saklıdır." (`footer.copyright`).
+- Right, in a `<nav aria-label>` ("Legal and contact" / "Yasal bilgiler ve iletişim"), separated
+  by middots that screen readers skip:
+  - **Privacy / Gizlilik** → `/privacy` (marked as the current page there);
+  - **Cookie preferences / Çerez tercihleri** → `/privacy#ads`, where the ad choice sits;
+  - **Contact / İletişim** → `mailto:` the privacy contact (`PRIVACY_CONTACT`,
+    `ayvagogames@gmail.com` unless `NEXT_PUBLIC_PRIVACY_CONTACT` overrides it).
+- **Year:** a range from the launch year: "© 2026" in 2026, "© 2026–2027" from 2027
+  (`copyrightYears`, en dash). The server renders the current UTC year. Pages are prerendered,
+  so after hydration the visitor's clock decides (`useSyncExternalStore`, no hydration mismatch,
+  no effect). The year never goes before 2026, even with a wrong device clock.
+- **Look:** small text in `--text-muted` on the page background, a `--border` divider and room
+  around it. The links turn `--text` and underline on hover. Keyboard focus shows the
+  `--focus-ring` outline. The links are 44 px tall touch targets. On phones (below 640 px) the two
+  sides stack, centred: the copyright on one line, the links on the next. Arcade keeps its body
+  pixel font (Pixelify Sans). Its © is a small raised mark, so the sign alone is drawn in the
+  display pixel font.
+- **Short pages:** the content column is a flex column and the page grows, so on a short page
+  (an empty Favorites list, Not found) the footer ends the screen instead of floating mid-page.
+- **Old links removed:** the Privacy link at the bottom of the side menu and the phones' privacy
+  link at the end of the page are gone. "Install the app" stays at the bottom of the side menu and
+  at the end of the page on phones, above the footer. `styles.legalLink`, `styles.navFooter` and
+  the `nav.privacy` message key were removed; the text moved to `footer.privacy`.
+- **Fix on the way:** the invite center's screen-reader announcer (a `visually-hidden` paragraph
+  placed in `<body>`) kept its default margins and added a 17 px band below the shell, which
+  showed under the side menu once the footer ended the page. `.visually-hidden` now has
+  `margin: -1px`, the usual pattern.
+
+Deviations: none.
+
+Tests:
+- web `lib/copyright.test.ts` (4): the launch year alone, the range in later years, a clock
+  before the launch year, another launch year; the message test checks the five `footer` keys in
+  both locales;
+- contrast: the footer uses `textMuted` on `bg`, which the themes contrast test already checks
+  at 4.5:1 in every theme and mode;
+- full run: shared 114, web 192, themes 16, adapter 30, firebase 232 passed and 3 skipped (the
+  opt-in live-trigger tests); `pnpm format:check`, `pnpm typecheck` and
+  `pnpm --filter @ayvago/web build` pass;
+- Playwright on `next start`: the home page bottom in minimal, cartoon and arcade, light and dark,
+  English and Turkish, at 1366×900 and on a Pixel 7 (24 shots), at 360×780 in minimal light and
+  arcade dark, a game page on desktop and phones, the side menu, an 800 px tablet page and the
+  privacy page. Every shot: no horizontal overflow, one privacy link on the page (the footer's),
+  the footer ends 44 px above the bottom bar on phones. Keyboard focus on a footer link shows the
+  ring in minimal and arcade dark.
+
+Owner steps: none. See the [setup doc](../setup/phase-5.md#523-site-footer).
+
+Still open: nothing.

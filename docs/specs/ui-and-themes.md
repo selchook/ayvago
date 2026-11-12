@@ -1,6 +1,6 @@
 # Spec — UI Components and Theme System
 
-- Status: Draft (2026-10-18)
+- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23)
 - Related: [Roadmap §3–4](../plan/roadmap.md), [ADR 0005](../adr/0005-internationalization.md), [Accounts](accounts.md), [Leaderboards](leaderboards.md), [Voting](voting.md)
 
 ## 1. Goals
@@ -20,6 +20,9 @@ CrazyGames uses a persistent **left navigation** (home, recently played, new, tr
 | **SideNav** | Collapsible rail: Home, Recently played, New, Popular, Favorites, divider, the categories (the Ayvago Arcade genres: Arcade, Action, Casual, Puzzle, Retro, Sports, Strategy, Card, Word; empty ones hidden), Multiplayer (hidden while empty) | Icon-only rail | Hidden |
 | **BottomNav** | — | — | Home, New, Recent, Favorites |
 | **Content** | Max width 1440 px, fluid grid | Fluid | Single column, shelves scroll horizontally |
+| **Footer** | End of the content column: copyright left; Privacy · Cookie preferences · Contact right | Same | Stacked and centred, above the bottom bar |
+
+**Footer** (slice 5.23). A `<footer>` landmark at the end of the content column on every page, game pages included; never fixed. Left: "© 2026 Ayvago Games. All rights reserved.", a range from the launch year in later years ("© 2026–2027"). Right, in a labelled `<nav>`: Privacy (`/privacy`), Cookie preferences (`/privacy#ads`) and Contact (`mailto:` the privacy contact), separated by middots. Small `--text-muted` text with a `--border` divider; 44 px link targets; stacked and centred below 640 px. It is the only privacy link: the side menu ends with "Install the app".
 
 The theme, language and account popovers close each other, and close on an outside click or tap and on Escape.
 
