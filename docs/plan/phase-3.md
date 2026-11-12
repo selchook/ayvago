@@ -88,10 +88,19 @@ Players see no change except the new privacy page and its link at the bottom of 
   - blockers: the AdSense client ID is not set, the consent message is not confirmed, every
     format is off;
   - warnings: Firebase is off (no rewarded ads), there is no banner ad unit, test mode is on,
-    there is no privacy contact.
+    there is no privacy contact;
+  - a config line shows the AdSense client ID and the banner ad unit the live build was made
+    with. Both come from Vercel and change only after a redeploy, so the owner can see whether
+    a new value has reached the site;
+  - while the banner format is on, a note says where the banner appears: game pages only, in the
+    side column of screens at least 1100 px wide, only while ads are on. It also says that a new
+    ad unit can take up to an hour to fill and may stay blank until AdSense approves the site.
 - **The settings:** the three formats, the five numbers with their ranges, test mode and the
   consent confirmation, under "Save settings" (disabled until something changed and every number
-  is valid) and "Discard changes".
+  is valid; it then says "No unsaved changes") and "Discard changes". Only a button that is
+  actually saving (`aria-busy`) shows the progress cursor and reads "Saving…"; a merely disabled
+  one shows the not-allowed cursor. Before this, the disabled button looked as if it were loading
+  forever.
 - **Changes:** "Last changed by {name} on {time}" and the last five changes. Before the first
   save the section says ads are off by default and the first save creates the settings.
 

@@ -135,6 +135,15 @@
 .plain:disabled,
 .danger:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Only a button that is actually working shows the progress cursor; a merely disabled one
+   (nothing to save yet) must not look as if it were loading. */
+.button[aria-busy='true'],
+.plain[aria-busy='true'],
+.danger[aria-busy='true'],
+.switch[aria-busy='true'] {
   cursor: progress;
 }
 
@@ -337,7 +346,7 @@
 
 .switch:disabled {
   opacity: 0.6;
-  cursor: progress;
+  cursor: not-allowed;
 }
 
 .switch:focus-visible {
@@ -357,6 +366,17 @@
 .status[data-live='true'] {
   border-inline-start-color: var(--success);
   background: color-mix(in srgb, var(--success) 10%, transparent);
+}
+
+.config {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.config code {
+  font-size: 0.8125rem;
 }
 
 .statusList {

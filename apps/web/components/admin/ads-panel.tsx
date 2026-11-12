@@ -123,6 +123,7 @@ export function AdsPanel() {
           aria-label={t('switchLabel')}
           className={styles.switch}
           disabled={busy}
+          aria-busy={busy}
           data-testid="ads-switch"
           onClick={() =>
             on ? save({ ...saved, enabled: false }, t('turnedOff')) : setConfirmOn(true)
@@ -157,6 +158,18 @@ export function AdsPanel() {
             ) : null}
           </>
         )}
+        <p className={styles.config} data-testid="ads-config">
+          {t.rich('status.config', {
+            client: ADSENSE_CLIENT || t('status.notSet'),
+            slot: ADSENSE_BANNER_SLOT || t('status.notSet'),
+            code: (chunks) => <code>{chunks}</code>,
+          })}
+        </p>
+        {saved.banner ? (
+          <p className={styles.config} data-testid="ads-banner-where">
+            {t('status.bannerWhere')}
+          </p>
+        ) : null}
         {status.warnings.length > 0 ? (
           <ul className={styles.statusList}>
             {status.warnings.map((warning) => (
@@ -238,9 +251,16 @@ export function AdsPanel() {
         </fieldset>
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.button} disabled={busy || !dirty || invalid}>
-            {t('save')}
+          <button
+            type="submit"
+            className={styles.button}
+            disabled={busy || !dirty || invalid}
+            aria-busy={busy}
+            data-testid="ads-save"
+          >
+            {busy ? t('saving') : t('save')}
           </button>
+          {!dirty && !busy ? <span className={styles.note}>{t('noChanges')}</span> : null}
           {dirty ? (
             <button
               type="button"

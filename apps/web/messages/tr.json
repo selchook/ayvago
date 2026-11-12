@@ -500,6 +500,8 @@
       "turnedOff": "Reklamlar kapatıldı.",
       "saved": "Ayarlar kaydedildi.",
       "save": "Ayarları kaydet",
+      "saving": "Kaydediliyor…",
+      "noChanges": "Kaydedilmemiş değişiklik yok.",
       "discard": "Değişiklikleri geri al",
       "invalid": "Sayıları kontrol edin: her biri kendi aralığında bir tam sayı olmalı.",
       "status": {
@@ -517,7 +519,10 @@
           "no-banner-slot": "Banner reklam birimi yok (NEXT_PUBLIC_ADSENSE_BANNER_SLOT): masaüstü banner'ı kapalı kalır.",
           "test-mode": "Test modu açık: yalnızca Google'ın test reklamları gösterilir ve bunlar gelir getirmez.",
           "no-privacy-contact": "Gizlilik iletişim adresi yok (NEXT_PUBLIC_PRIVACY_CONTACT): gizlilik sayfasında KVKK başvuruları için adres yer almaz."
-        }
+        },
+        "config": "Yayındaki sürüm: AdSense istemcisi <code>{client}</code> · banner reklam birimi <code>{slot}</code>. Bu değerler Vercel’den gelir ve yalnızca yeniden yayınlamadan sonra değişir.",
+        "notSet": "ayarlanmadı",
+        "bannerWhere": "Banner yalnızca oyun sayfalarında, en az 1100 px genişliğindeki ekranların yan sütununda ve reklamlar açıkken görünür. Yeni bir reklam biriminin dolması bir saati bulabilir; AdSense siteyi onaylayana kadar alan boş kalabilir."
       },
       "formats": {
         "title": "Biçimler",
