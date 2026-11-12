@@ -41,6 +41,8 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
       multiplayer: game.multiplayer,
       cover: game.coverUrl,
       screenshot: game.screenshotUrl,
+      card: game.cardUrl,
+      card2x: game.card2xUrl,
       landscape: game.manifest.orientation === 'landscape',
       likePercent: gameLikePercent(game, rankings),
       search: gameSearchText(game, categoryLabels),

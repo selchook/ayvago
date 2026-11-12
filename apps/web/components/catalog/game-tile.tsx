@@ -1,6 +1,6 @@
 import type { GameCategory } from '@ayvago/shared';
 import { Link } from '@/i18n/navigation';
-import { ThumbUpIcon } from '../icons';
+import { PlayIcon, ThumbUpIcon } from '../icons';
 import { CoverArt } from './cover-art';
 import styles from './catalog.module.css';
 
@@ -19,6 +19,9 @@ export type TileData = {
   cover: string | null;
   /** In-game screenshot; the pixel themes show it instead of the cover. */
   screenshot: string | null;
+  /** Card art (640×360 and 1280×720); the Minimal and Cartoon themes show it instead of the cover. */
+  card: string | null;
+  card2x: string | null;
   landscape: boolean;
   /** Shown from 20 votes (docs/specs/voting.md §2). */
   likePercent: number | null;
@@ -30,8 +33,9 @@ export type TileData = {
 export type TileLabels = { comingSoon: string; new: string; multiplayer: string; likes: string };
 
 /**
- * The Arcade theme show the game's screenshot in its own orientation instead
- * of the cover, like the Ayvago Arcade games portal.
+ * The Minimal and Cartoon themes show the game's card art (falling back to the cover) with a play
+ * button on hover and focus. The Arcade theme shows the game's screenshot in its own orientation
+ * instead, like the Ayvago Arcade games portal.
  */
 export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels }) {
   const shot = tile.screenshot;
@@ -41,7 +45,21 @@ export function GameTile({ tile, labels }: { tile: TileData; labels: TileLabels 
       className={styles.tile}
       data-shot={shot ? (tile.landscape ? 'landscape' : 'portrait') : undefined}
     >
-      <CoverArt id={tile.id} title={tile.title} category={tile.category} image={tile.cover} />
+      <CoverArt
+        id={tile.id}
+        title={tile.title}
+        category={tile.category}
+        image={tile.cover}
+        card={tile.card}
+        card2x={tile.card2x}
+      >
+        {/* Decorative: the whole tile is the link, named by the title. */}
+        {tile.comingSoon ? null : (
+          <span className={styles.play}>
+            <PlayIcon size={26} />
+          </span>
+        )}
+      </CoverArt>
       {shot ? (
         <span
           className={styles.shot}

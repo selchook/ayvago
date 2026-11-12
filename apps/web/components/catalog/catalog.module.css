@@ -26,6 +26,28 @@
   object-fit: cover;
 }
 
+/* Card art (slice 5.24): the Minimal and Cartoon tiles show the game's 16:9 card instead of its
+   cover. The Arcade theme keeps the cover (or its screenshot card). Images that are hidden here
+   are lazy, so the browser never loads them. */
+.cardImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The wrappers lay out their image as if it were a direct child of the cover. */
+.cardFrame,
+[data-theme='arcade'] .coverFrame {
+  display: contents;
+}
+
+.coverFrame,
+[data-theme='arcade'] .cardFrame {
+  display: none;
+}
+
 /* Retro covers: hard-edged stripes and a pixel grid instead of soft gradients. */
 [data-theme='arcade'] .cover {
   background:
@@ -208,6 +230,106 @@
   transform: translateY(-4px) rotate(-1deg);
 }
 
+/* Hover and keyboard focus (Minimal, Cartoon): the image zooms in a little under a light scrim
+   and a round play button appears in its centre. Decorative: the tile is the link. */
+.tile > .cover img {
+  transition: transform var(--motion-slow) var(--easing);
+}
+
+.tile > .cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0);
+  transition: background-color var(--motion-base) var(--easing);
+  pointer-events: none;
+}
+
+.play {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.35);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  transition:
+    opacity var(--motion-fast) var(--easing),
+    transform var(--motion-base) var(--easing);
+  pointer-events: none;
+}
+
+/* The triangle's visual centre sits left of its box. */
+.play > svg {
+  margin-inline-start: 3px;
+}
+
+[data-theme='cartoon'] .play {
+  border: var(--border-width) solid var(--border);
+  box-shadow: 0 4px 0 var(--border);
+}
+
+@media (hover: hover) {
+  .tile:hover > .cover img {
+    transform: scale(1.06);
+  }
+
+  .tile:hover > .cover::after {
+    background: rgb(0 0 0 / 0.18);
+  }
+
+  .tile:hover .play {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.tile:focus-visible > .cover img {
+  transform: scale(1.06);
+}
+
+.tile:focus-visible > .cover::after {
+  background: rgb(0 0 0 / 0.18);
+}
+
+.tile:focus-visible .play {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile > .cover img,
+  .tile:hover > .cover img,
+  .tile:focus-visible > .cover img {
+    transform: none;
+    transition: none;
+  }
+
+  .play,
+  .tile:hover .play,
+  .tile:focus-visible .play {
+    transform: translate(-50%, -50%);
+    transition: none;
+  }
+}
+
+/* Arcade tiles keep the games portal's card exactly: no zoom, scrim or play button. */
+[data-theme='arcade'] .tile > .cover img {
+  transform: none;
+}
+
+[data-theme='arcade'] .tile > .cover::after,
+[data-theme='arcade'] .play {
+  display: none;
+}
+
 .badges {
   position: absolute;
   inset: 8px 8px auto;
@@ -223,8 +345,10 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  background: rgb(0 0 0 / 0.55);
+  /* Dark enough for white text over any card art, light or dark. */
+  background: rgb(0 0 0 / 0.72);
   color: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
 }
 
 .badge[data-kind='new'] {
@@ -234,6 +358,12 @@
 
 [data-theme='arcade'] .badge {
   border-radius: 0;
+  box-shadow: none;
+}
+
+/* Arcade keeps its badges as they were (they sit on screenshots, not card art). */
+[data-theme='arcade'] .badge[data-kind='soon'] {
+  background: rgb(0 0 0 / 0.55);
 }
 
 /* min-height: 0 keeps the aspect ratio: a flex item otherwise grows to fit a taller image. */

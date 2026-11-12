@@ -549,6 +549,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, recent table and room partners on the lobby and the profile, invites to anyone online with the notification on every page (`recordRoomPlayers`, slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md))
 - [x] The "Players and plays" report counts started runs per player, online matches (never ranked) and the play time of runs left without finishing (`abandonSession`, slice 5.22, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md))
 - [x] Site footer: a copyright line ("© 2026 Ayvago Games. All rights reserved.", a year range in later years) and Privacy, Cookie preferences and Contact links at the end of every page; the side-menu privacy link moved into it (slice 5.23)
+- [x] Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card per game (optional `assets.card` 640×360 and `card2x` 1280×720 WebP in `ayvago.json`) with a play button on hover, falling back to the cover; Arcade unchanged (slice 5.24, [ADR 0024](../adr/0024-game-card-art.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

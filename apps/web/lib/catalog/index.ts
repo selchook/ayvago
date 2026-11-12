@@ -31,7 +31,35 @@ export type CatalogGame = {
   coverUrl: string | null;
   // Absolute URL of an in-game screenshot (Arcade theme tiles); null falls back to the cover.
   screenshotUrl: string | null;
+  // Absolute URLs of the card art (Minimal and Cartoon tiles, 640×360 and 1280×720); a null
+  // cardUrl falls back to the cover, and card2xUrl is only set together with cardUrl.
+  cardUrl: string | null;
+  card2xUrl: string | null;
 };
+
+export type GameArt = Pick<CatalogGame, 'coverUrl' | 'screenshotUrl' | 'cardUrl' | 'card2xUrl'>;
+
+/**
+ * Resolves a game's images against its entry URL. `ownAssets` is false for games that are not
+ * deployed with their assets yet (coming soon, generated covers): every URL is then null and the
+ * tiles draw the generated placeholder.
+ */
+export function resolveGameArt(
+  manifest: Pick<GameManifest, 'entry' | 'assets'>,
+  ownAssets: boolean,
+): GameArt {
+  if (!ownAssets) return { coverUrl: null, screenshotUrl: null, cardUrl: null, card2xUrl: null };
+  const { cover, screenshot, card, card2x } = manifest.assets;
+  const resolve = (ref: string | undefined) => (ref ? resolveAssetUrl(manifest, ref) : null);
+  const cardUrl = resolve(card);
+  return {
+    coverUrl: resolve(cover),
+    screenshotUrl: resolve(screenshot),
+    cardUrl,
+    // The 2x art is only a sharper copy of the card: without the card there is nothing to sharpen.
+    card2xUrl: cardUrl ? resolve(card2x) : null,
+  };
+}
 
 function toCatalogGame(seed: SeedGame): CatalogGame {
   const parsed = parseGameManifest(seed.manifest);
@@ -40,7 +68,6 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     throw new Error(`Invalid manifest for ${seed.slug}: ${issues}`);
   }
   const ownAssets = seed.status === 'live' && !seed.generatedCover;
-  const { cover, screenshot } = parsed.manifest.assets;
   return {
     slug: seed.slug,
     repo: seed.repo,
@@ -50,8 +77,7 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     manifest: parsed.manifest,
     multiplayer: parsed.manifest.players.max > 1,
     // Coming-soon games are not deployed with their assets yet, so their asset URLs would 404.
-    coverUrl: ownAssets ? resolveAssetUrl(parsed.manifest, cover) : null,
-    screenshotUrl: ownAssets && screenshot ? resolveAssetUrl(parsed.manifest, screenshot) : null,
+    ...resolveGameArt(parsed.manifest, ownAssets),
   };
 }
 

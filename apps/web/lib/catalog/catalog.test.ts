@@ -164,6 +164,76 @@ describe('seed catalog', () => {
   });
 });
 
+describe('resolveGameArt', () => {
+  const entry = 'https://games.example.com/games/orb-surge/';
+  const assets = {
+    icon: '/games/orb-surge/ayvago/icon-512.png',
+    cover: '/games/orb-surge/ayvago/cover-1920x1080.jpg',
+  };
+  const card = '/games/orb-surge/ayvago/card-640x360.webp';
+  const card2x = '/games/orb-surge/ayvago/card-1280x720.webp';
+
+  it('resolves the card art like the cover', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    expect(resolveGameArt({ entry, assets: { ...assets, card, card2x } }, true)).toEqual({
+      coverUrl: 'https://games.example.com/games/orb-surge/ayvago/cover-1920x1080.jpg',
+      screenshotUrl: null,
+      cardUrl: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp',
+      card2xUrl: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp',
+    });
+    // Absolute https refs stay where they point.
+    const cdn = 'https://cdn.example.com/card.webp';
+    expect(resolveGameArt({ entry, assets: { ...assets, card: cdn } }, true).cardUrl).toBe(cdn);
+  });
+
+  it('keeps the cover when a game has no card art', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    const art = resolveGameArt({ entry, assets }, true);
+    expect(art.cardUrl).toBeNull();
+    expect(art.card2xUrl).toBeNull();
+    expect(art.coverUrl).toBe(new URL(assets.cover, entry).toString());
+  });
+
+  it('ignores card2x without card', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    const art = resolveGameArt({ entry, assets: { ...assets, card2x } }, true);
+    expect(art).toMatchObject({ cardUrl: null, card2xUrl: null });
+    expect(art.coverUrl).not.toBeNull();
+  });
+
+  it('uses a card without card2x on its own', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    expect(resolveGameArt({ entry, assets: { ...assets, card } }, true)).toMatchObject({
+      cardUrl: new URL(card, entry).toString(),
+      card2xUrl: null,
+    });
+  });
+
+  it('resolves nothing for games without their own assets', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    expect(resolveGameArt({ entry, assets: { ...assets, card, card2x } }, false)).toEqual({
+      coverUrl: null,
+      screenshotUrl: null,
+      cardUrl: null,
+      card2xUrl: null,
+    });
+  });
+
+  it('passes the card art of every catalog game through to its tile data', async () => {
+    const { getAllGames } = await loadCatalog();
+    for (const game of getAllGames()) {
+      const { card, card2x } = game.manifest.assets;
+      const live = game.coverUrl !== null;
+      expect(game.cardUrl, game.slug).toBe(
+        live && card ? resolveAssetUrl(game.manifest, card) : null,
+      );
+      expect(game.card2xUrl, game.slug).toBe(
+        live && card && card2x ? resolveAssetUrl(game.manifest, card2x) : null,
+      );
+    }
+  });
+});
+
 describe('rankings', () => {
   it('orders live games by score and keeps coming-soon games last', async () => {
     const { getAllGames } = await loadCatalog();

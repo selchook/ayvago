@@ -90,6 +90,33 @@ describe('parseGameManifest', () => {
     ).toContain('assets.screenshot');
   });
 
+  it('accepts optional card art at 1x and 2x', () => {
+    const card = '/ayvago/card-640x360.webp';
+    const card2x = 'https://cdn.example.com/orb-surge/card-1280x720.webp';
+    const result = parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, card, card2x } });
+    expect(result.ok && result.manifest.assets).toMatchObject({ card, card2x });
+    // Both stay optional: the cover alone is still a valid manifest.
+    expect(parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, card } }).ok).toBe(true);
+    // card2x without card is valid; the platform ignores it.
+    expect(parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, card2x } }).ok).toBe(
+      true,
+    );
+  });
+
+  it('rejects card art refs that are not paths or https URLs', () => {
+    const assets = orbSurge.assets;
+    expect(issuePaths({ ...orbSurge, assets: { ...assets, card: 'card.webp' } })).toContain(
+      'assets.card',
+    );
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, card: 'http://example.com/card.webp' } }),
+    ).toContain('assets.card');
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, card2x: 'javascript:alert(1)' } }),
+    ).toContain('assets.card2x');
+    expect(issuePaths({ ...orbSurge, assets: { ...assets, card: '' } })).toContain('assets.card');
+  });
+
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');

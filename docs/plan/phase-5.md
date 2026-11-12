@@ -10,7 +10,8 @@
   [ADR 0017](../adr/0017-server-best-and-fresh-start.md),
   [ADR 0018](../adr/0018-difficulty-easy-is-practice.md),
   [ADR 0019](../adr/0019-table-lobby-presence-invites.md),
-  [ADR 0020](../adr/0020-quick-play-settings-host-handover.md)
+  [ADR 0020](../adr/0020-quick-play-settings-host-handover.md),
+  [ADR 0024](../adr/0024-game-card-art.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -47,6 +48,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.21 | Site-wide online status and "Recent players": presence on every page with a "Show me as online" switch, the people you played a table or room with on the lobby and the profile, invites to anyone online (owner request, [ADR 0021](../adr/0021-site-presence-recent-players.md)) | ✅ code · ⏳ deploy check |
 | 5.22 | The "Players and plays" report counts started runs per player, online matches (tables and rooms, never ranked) and the play time of runs left without finishing (`abandonSession`, keepalive on tab close) (owner request, [ADR 0022](../adr/0022-started-abandoned-and-online-play.md)) | ✅ code |
 | 5.23 | Site footer: a copyright line and the Privacy, Cookie preferences and Contact links at the end of every page; the side-menu and phone privacy links move into it (owner request) | ✅ code |
+| 5.24 | Game card art: Minimal and Cartoon tiles show a dedicated 16:9 card image per game (optional `assets.card` / `card2x` in `ayvago.json`) instead of the store cover, with a play button on hover; Arcade unchanged (owner request, [ADR 0024](../adr/0024-game-card-art.md)) | ✅ code · ⏳ merge before the card sync |
 
 ## 5.1 Player characters ✅
 
@@ -1654,3 +1656,99 @@ Tests:
 Owner steps: none. See the [setup doc](../setup/phase-5.md#523-site-footer).
 
 Still open: nothing.
+
+## 5.24 Game card art ✅ code
+
+In the Minimal and Cartoon themes the tiles did not make the games stand out. They showed the
+game's 1920×1080 store cover, a branded banner with the title, a paragraph of text and two small
+phone mock-ups. At tile size the text was unreadable and the game tiny, and each cover is about
+200 KB. The owner chose a dedicated card image per game: in-game frames, no text block, a small
+game logo in a corner. The studio (`selchook/ayvago-games`) generates the images in a parallel
+change. Contract and reasons: [ADR 0024](../adr/0024-game-card-art.md).
+
+What shipped:
+- **Manifest** (`packages/shared/src/manifest.ts`): two optional asset refs, validated like the
+  others (a path or an https URL):
+  - `assets.card`: card art, 640×360 WebP;
+  - `assets.card2x`: the same art at 1280×720 WebP, only used together with `card`.
+  - Studio paths: `/games/<slug>/ayvago/card-640x360.webp` and `card-1280x720.webp`. The
+    change stays inside `manifest.ts`, so the studio can vendor the file verbatim. The `SeedGame`
+    type reads the manifest input type, so the next catalog sync with `card` and `card2x` in
+    `arcadeGame()` typechecks (tried with a local edit of `arcade-catalog.ts`, then reverted).
+- **Catalog** (`apps/web/lib/catalog`):
+  - `resolveGameArt(manifest, ownAssets)` resolves `coverUrl`, `screenshotUrl`, `cardUrl` and
+    `card2xUrl` against the entry URL, with the same own-assets rule as the cover (coming-soon
+    games and generated covers get none);
+  - `card2xUrl` is null without a `cardUrl`;
+  - `toTiles` passes them on as `TileData.card` / `card2x`.
+- **Tiles** (`components/catalog/game-tile.tsx`, `cover-art.tsx`, `catalog.module.css`):
+  - **Minimal and Cartoon.** The tile's 16:9 media area shows the card full-bleed:
+    `<img src=card srcset="card 640w, card2x 1280w" sizes="(max-width: 639px) 72vw, 320px">`,
+    with `width`/`height` 640×360, lazy and async, in the existing `aspect-ratio: 16 / 9` box, so
+    nothing shifts. The browser picks the 640 card on desktops (also at 2×) and the 1280 card on
+    3× phones.
+  - **Fallbacks.** A game without `card` shows the cover as before; without a cover, the
+    generated placeholder. The generated gradient stays underneath every image as the loading
+    and failure background.
+  - **Hover and keyboard focus.** The image zooms to 106 % under a light scrim, and a round
+    52 px play button (`PlayIcon` on `--accent` / `--accent-contrast`; Cartoon adds its dark
+    outline and hard shadow) fades in at the centre. The zoom and the scrim only follow the
+    pointer on devices that can hover. `:focus-visible` shows the same state.
+    `prefers-reduced-motion` turns off the zoom and the motion; the button still appears.
+  - **The play button** is decorative: it sits in the `aria-hidden` media area, and the tile
+    link's accessible name stays the game title. It has no visible label, so there are no new
+    message keys. Coming-soon tiles get no play button.
+  - **Badges.** The "Coming soon" badge background is now 72 % black (was 55 %), and both badges
+    get a soft shadow so they stand out on any card art, light or dark. The "New" badge keeps
+    `--accent` / `--accent-contrast`.
+  - **Arcade is unchanged.** It shows the screenshot, or the cover for games without one; no
+    zoom, scrim or play button, and its badges look as before.
+  - **Covers elsewhere.** The home spotlight and the game page keep the full cover; only tiles
+    (shelves, grids, related games, search, recent and favorites) switch to card art.
+- **Only shown images load.** Each image that a theme may hide sits in a wrapper the theme hides.
+  The cover behind a card is only shown in Arcade, and the card is hidden there. Lazy images
+  under a hidden parent are never fetched.
+
+**Fix on the way: prefetching no longer downloads game covers.** While measuring, the catalog
+pages still downloaded the full cover of nearly every visible tile, even where the tile showed
+card art or a screenshot (Arcade). The cause:
+- Next prefetches the game page of every tile link in the viewport.
+- The game page shows its cover eagerly. As a server-component `<img>`, React put a preload hint
+  for it into the page's RSC payload (`:HL[…cover-1920x1080.jpg,"image"]`).
+- The prefetch applied that hint.
+
+`CoverArt` is now a client component, so the hint is no longer in the RSC payload. A real visit to
+a game page still preloads its cover from the HTML. Measured on `next start` at 1366×900 with the
+placeholder cards below, cover downloads went from 15 to 1 on the Sports page (the one tile
+without a card), from 13 to 5 on the home page (the spotlight and the tiles without a card) and
+from 8 to 3 on the Arcade home page. This also cuts the image weight of today's catalog, before
+any card art exists.
+
+Deviations: none. The tile `sizes` assume the current tile widths; update them if the shelves or
+grids change.
+
+Tests:
+- shared `manifest.test.ts` (+2): `card` and `card2x` are optional and kept; `card2x` alone is
+  valid; relative names, http (non-localhost), `javascript:` and empty refs are rejected;
+- web `lib/catalog/catalog.test.ts` (+6): card and 2x resolved like the cover (absolute https
+  refs kept); no card → cover only; `card2x` without `card` ignored; `card` without `card2x`;
+  nothing resolved without own assets; every catalog game's tile data matches its manifest;
+- full run: shared 116, web 201, themes 16, adapter 30, firebase 232 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass;
+- Playwright on `next start`:
+  - setup: the catalog temporarily pointed every studio game except Neon Pong and Connect Four at
+    placeholder cards, made from each game's screenshot (16:9 on a blurred copy, icon as the
+    logo), and the studio origin was routed to local files;
+  - pages: home (top, shelves), the Sports grid, Recently played, Favorites and a game page,
+    in Minimal light and dark, Cartoon light and dark and Arcade, at 1366×900 and 390×844;
+  - hover in Minimal light and dark, Cartoon and Arcade; keyboard focus in Minimal dark; hover
+    with reduced motion;
+  - every shot: no horizontal overflow; Arcade loads no card art; the srcset picks 640 at 1× and
+    2× desktop and 1280 on a 3× phone.
+
+Owner steps: merge order (this change before the catalog sync that adds the cards). See the
+[setup doc](../setup/phase-5.md#524-game-card-art).
+
+Still open:
+- Real card art comes with the studio change; the screenshots used placeholders.
+- The Phase 6 developer docs should list `assets.card` / `card2x` with their sizes.

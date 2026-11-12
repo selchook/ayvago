@@ -325,6 +325,26 @@ Optional check after the deploy: scroll to the end of any page on ayvago.com. Th
 "© 2026 Ayvago Games. Tüm hakları saklıdır." with **Gizlilik · Çerez tercihleri · İletişim** on
 the right (stacked under it on a phone), and the side menu no longer lists Gizlilik.
 
+## 5.24 Game card art
+Nothing to configure: no secrets, env vars, functions or rules. Merging deploys the web app. Until
+the studio's card art arrives, every tile looks as it does today. The one owner step is the merge
+order:
+
+- ⏳ **Merge this platform PR before the catalog sync that adds the cards.** The studio's change
+  adds `card` and `card2x` to every game in `arcade-catalog.ts`. The manifest schema is strict, so
+  a platform without this change rejects those manifests: that "Sync arcade catalog" PR would
+  fail CI. Order:
+  1. Merge this PR.
+  2. Merge the studio PR. Its CI checks the manifests against its vendored copy of
+     `packages/shared/src/manifest.ts`, so the studio copies the new file into
+     `scripts/vendor/manifest.ts` (verbatim) in the same PR.
+  3. Run **Actions → Sync arcade catalog → Run workflow** (or wait for the hourly run), then
+     merge the PR it opens.
+- ⏳ **Optional check after the sync is deployed:** open ayvago.com in the Minimal or Cartoon
+  theme. The tiles show in-game art with a small logo instead of the cover banner. Hovering a tile
+  on a computer zooms the image and shows a round play button. In the Arcade theme the tiles look
+  as before.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,
