@@ -116,7 +116,10 @@ export default async function GamePage({ params }: Props) {
 
           <div className={styles.details}>
             <div className={styles.titleRow}>
-              <h1>{title}</h1>
+              {/* The art above the player already shows the game's name as a logo, so the page
+                  heading is for screen readers and search only (owner request). Games without
+                  art keep the visible heading. */}
+              <h1 className={game.cardUrl ? 'visually-hidden' : undefined}>{title}</h1>
               <p className={styles.meta}>
                 <Link href={categoryPath(manifest.category)}>{categoryLabel}</Link>
                 <span>{t('game.players', { count: manifest.players.max })}</span>

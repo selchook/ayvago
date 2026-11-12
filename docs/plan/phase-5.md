@@ -1725,8 +1725,14 @@ What shipped:
       font for retro games, with square framed corners);
     - on a phone the logo runs along the bottom.
 
-    Only the screenshot loads (about 50 KB). Arcade keeps the dimmed cover, which is lazy there
-    and never fetched in the other themes.
+    Only the screenshot loads (about 50 KB).
+  - **Arcade too (owner follow-up).** The player overlay shows the same in-game art in the Arcade
+    theme: the card for landscape games, the composed art for portrait games. Arcade tiles keep
+    the screenshot or cover.
+  - **The page heading.** Under the player, the game's name is no longer shown as a visible
+    heading when the game has card art, because the art above already shows it as a logo. The
+    `<h1>` stays for screen readers and search (`visually-hidden`). Games without art keep the
+    visible heading.
 - **Only shown images load.** Each image that a theme may hide sits in a wrapper the theme hides.
   The cover behind a card is only shown in Arcade, and the card is hidden there. Lazy images
   under a hidden parent are never fetched.

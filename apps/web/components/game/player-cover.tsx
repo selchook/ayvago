@@ -9,8 +9,8 @@ import styles from './game.module.css';
  * A portrait game's stage is tall or square, so its card would be cropped to the middle and lose
  * the logo; there the Minimal and Cartoon themes compose the art from the in-game screenshot
  * instead (blurred backdrop, the sharp frame in the middle) and draw the game's name as a logo in
- * the game's own display font (Fredoka, or the pixel font for retro games). The Arcade theme keeps
- * the dimmed cover everywhere. Images in a theme-hidden wrapper are lazy, so they never load.
+ * the game's own display font (Fredoka, or the pixel font for retro games). Every theme shows it,
+ * Arcade included.
  */
 export function PlayerCover({ game, title }: { game: CatalogGame; title: string }) {
   const { manifest } = game;
@@ -32,31 +32,18 @@ export function PlayerCover({ game, title }: { game: CatalogGame; title: string 
   const retro = (manifest.categories ?? [manifest.category]).includes('retro');
   return (
     <div className={styles.playerArt} aria-hidden="true">
-      <div className={styles.playerArtArcade}>
-        <CoverArt
-          id={manifest.id}
-          title={title}
-          category={manifest.category}
-          size="hero"
-          plain
-          image={game.coverUrl}
-          eager={false}
-        />
-      </div>
-      <div className={styles.playerArtModern}>
-        <img className={styles.playerArtBlur} src={shot} alt="" loading="lazy" decoding="async" />
-        <img
-          className={styles.playerArtShot}
-          data-retro={retro || undefined}
-          src={shot}
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-        <span className={styles.playerArtLogo} data-retro={retro || undefined}>
-          {title}
-        </span>
-      </div>
+      <img className={styles.playerArtBlur} src={shot} alt="" loading="lazy" decoding="async" />
+      <img
+        className={styles.playerArtShot}
+        data-retro={retro || undefined}
+        src={shot}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+      <span className={styles.playerArtLogo} data-retro={retro || undefined}>
+        {title}
+      </span>
     </div>
   );
 }
