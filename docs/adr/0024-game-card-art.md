@@ -49,7 +49,7 @@ path on the game's origin or an https URL; plain http only for localhost):
   without a cover the generated gradient placeholder, as before. The gradient stays underneath
   as the loading and failure background.
 - Arcade tiles are unchanged: the screenshot, or the cover when a game has no screenshot.
-- The home spotlight and the game page keep the full cover.
+- The home spotlight keeps the full cover. The player overlay on the game, room and table pages shows the card art in Minimal and Cartoon (follow-up), and Arcade keeps the cover there.
 
 ## Consequences
 - **Merge order.** This change must reach `main` before the first "Sync arcade catalog" PR whose

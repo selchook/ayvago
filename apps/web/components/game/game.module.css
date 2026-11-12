@@ -75,6 +75,25 @@
   transform: scale(1.04);
 }
 
+/* Card art (slice 5.24) is in-game art with no buttons or text block: keep it sharp and only
+   lightly dimmed, so the game itself shows behind the Play button (the overlay adds its own
+   scrim). */
+.overlay img[data-card] {
+  filter: brightness(0.85);
+  transform: none;
+}
+
+/* With card art the scrim darkens the middle, where the title and Play button sit, and leaves
+   the edges of the art bright. The Arcade theme hides the card and keeps the dimmed cover. */
+html:not([data-theme='arcade']) .overlay:has(img[data-card]) .overlayContent {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(0 0 0 / 0.6) 0%,
+    rgb(0 0 0 / 0.42) 45%,
+    rgb(0 0 0 / 0.15) 100%
+  );
+}
+
 .overlayContent {
   grid-area: 1 / 1;
   z-index: 1;

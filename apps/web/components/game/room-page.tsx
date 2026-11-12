@@ -56,6 +56,8 @@ export function RoomPage({
           size="hero"
           plain
           image={game.coverUrl}
+          card={game.cardUrl}
+          card2x={game.card2xUrl}
         />
       }
     />
