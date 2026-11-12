@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AdBanner } from '@/components/ads/ad-banner';
-import { CoverArt } from '@/components/catalog/cover-art';
+import { PlayerCover } from '@/components/game/player-cover';
 import { GameTile } from '@/components/catalog/game-tile';
 import { GamePlayer } from '@/components/game/game-player';
 import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
@@ -111,23 +111,15 @@ export default async function GamePage({ params }: Props) {
             orientation={manifest.orientation}
             scoreOrder={manifest.scoring.order}
             scoreFormat={manifest.scoring.format}
-            cover={
-              <CoverArt
-                id={manifest.id}
-                title={title}
-                category={manifest.category}
-                size="hero"
-                plain
-                image={game.coverUrl}
-                card={game.cardUrl}
-                card2x={game.card2xUrl}
-              />
-            }
+            cover={<PlayerCover game={game} title={title} />}
           />
 
           <div className={styles.details}>
             <div className={styles.titleRow}>
-              <h1>{title}</h1>
+              {/* The art above the player already shows the game's name as a logo, so the page
+                  heading is for screen readers and search only (owner request). Games without
+                  art keep the visible heading. */}
+              <h1 className={game.cardUrl ? 'visually-hidden' : undefined}>{title}</h1>
               <p className={styles.meta}>
                 <Link href={categoryPath(manifest.category)}>{categoryLabel}</Link>
                 <span>{t('game.players', { count: manifest.players.max })}</span>

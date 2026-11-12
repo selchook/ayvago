@@ -1,9 +1,16 @@
-import { PLAYER_KINDS, type PlayerGame, type PlayerKind, type PlayReport } from '@ayvago/shared';
+import {
+  PLAYER_KINDS,
+  type GameReport,
+  type PlayerGame,
+  type PlayerKind,
+  type PlayerReport,
+} from '@ayvago/shared';
 import type { CsvValue } from './csv';
 
 // Table rows of the "Players and plays" report (slices 5.16 and 5.22) for the CSV downloads. The
 // labels (headers, kind names, game lines) come from the caller, so the files follow the UI
-// language.
+// language. The rows come in the order the table shows them (slice 5.25: a sorted table exports
+// sorted rows, and the player rank follows that order).
 
 /** Whole hours and the remaining minutes (rounded) of a play time in seconds. */
 export function splitDuration(seconds: number): { hours: number; minutes: number } {
@@ -36,7 +43,7 @@ export type GameCsvHeaders = {
 };
 
 export function gameCsvRows(
-  report: PlayReport,
+  games: readonly GameReport[],
   title: (gameId: string) => string,
   h: GameCsvHeaders,
 ): CsvValue[][] {
@@ -59,7 +66,7 @@ export function gameCsvRows(
       ...PLAYER_KINDS.map((kind) => h.playsByKind[kind]),
       ...PLAYER_KINDS.map((kind) => h.playersByKind[kind]),
     ],
-    ...report.games.map((g) => [
+    ...games.map((g) => [
       title(g.gameId),
       g.gameId,
       g.allTime.finished,
@@ -96,7 +103,7 @@ export type PlayerCsvHeaders = {
 };
 
 export function playerCsvRows(
-  report: PlayReport,
+  players: readonly PlayerReport[],
   gameLine: (game: PlayerGame) => string,
   kind: (kind: PlayerKind) => string,
   noName: string,
@@ -117,7 +124,7 @@ export function playerCsvRows(
       h.lastPlayed,
       h.games,
     ],
-    ...report.players.map((p, i) => [
+    ...players.map((p, i) => [
       i + 1,
       p.username ?? noName,
       p.tag,

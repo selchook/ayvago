@@ -83,12 +83,12 @@ export function CoverArt({
           />
         </span>
       ) : null}
-      {image && card ? (
+      {image && card && size !== 'hero' ? (
         // Behind the card: only the Arcade theme shows the cover of a game with card art.
         <span className={styles.coverFrame}>
           <img className={styles.coverImage} src={image} alt="" loading="lazy" decoding="async" />
         </span>
-      ) : image ? (
+      ) : image && !card ? (
         <img
           className={styles.coverImage}
           src={image}

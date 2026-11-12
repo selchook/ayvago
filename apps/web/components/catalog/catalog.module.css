@@ -48,6 +48,12 @@
   display: none;
 }
 
+/* The player overlay (size "hero") shows the card art in every theme, Arcade included (owner
+   request), and renders no cover behind it; only Arcade's tiles keep the cover or screenshot. */
+[data-theme='arcade'] .cover[data-size='hero'] .cardFrame {
+  display: contents;
+}
+
 /* Retro covers: hard-edged stripes and a pixel grid instead of soft gradients. */
 [data-theme='arcade'] .cover {
   background:
