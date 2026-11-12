@@ -91,7 +91,10 @@ Players see no change except the new privacy page and its link at the bottom of 
     there is no privacy contact.
 - **The settings:** the three formats, the five numbers with their ranges, test mode and the
   consent confirmation, under "Save settings" (disabled until something changed and every number
-  is valid) and "Discard changes".
+  is valid; it then says "No unsaved changes") and "Discard changes". Only a button that is
+  actually saving (`aria-busy`) shows the progress cursor and reads "Saving…"; a merely disabled
+  one shows the not-allowed cursor. Before this, the disabled button looked as if it were loading
+  forever.
 - **Changes:** "Last changed by {name} on {time}" and the last five changes. Before the first
   save the section says ads are off by default and the first save creates the settings.
 

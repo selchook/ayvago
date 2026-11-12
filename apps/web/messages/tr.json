@@ -500,6 +500,8 @@
       "turnedOff": "Reklamlar kapatıldı.",
       "saved": "Ayarlar kaydedildi.",
       "save": "Ayarları kaydet",
+      "saving": "Kaydediliyor…",
+      "noChanges": "Kaydedilmemiş değişiklik yok.",
       "discard": "Değişiklikleri geri al",
       "invalid": "Sayıları kontrol edin: her biri kendi aralığında bir tam sayı olmalı.",
       "status": {

@@ -500,6 +500,8 @@
       "turnedOff": "Ads turned off.",
       "saved": "Settings saved.",
       "save": "Save settings",
+      "saving": "Saving…",
+      "noChanges": "No unsaved changes.",
       "discard": "Discard changes",
       "invalid": "Check the numbers: each must be a whole number in its range.",
       "status": {

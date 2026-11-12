@@ -123,6 +123,7 @@ export function AdsPanel() {
           aria-label={t('switchLabel')}
           className={styles.switch}
           disabled={busy}
+          aria-busy={busy}
           data-testid="ads-switch"
           onClick={() =>
             on ? save({ ...saved, enabled: false }, t('turnedOff')) : setConfirmOn(true)
@@ -238,9 +239,16 @@ export function AdsPanel() {
         </fieldset>
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.button} disabled={busy || !dirty || invalid}>
-            {t('save')}
+          <button
+            type="submit"
+            className={styles.button}
+            disabled={busy || !dirty || invalid}
+            aria-busy={busy}
+            data-testid="ads-save"
+          >
+            {busy ? t('saving') : t('save')}
           </button>
+          {!dirty && !busy ? <span className={styles.note}>{t('noChanges')}</span> : null}
           {dirty ? (
             <button
               type="button"
