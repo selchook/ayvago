@@ -2174,6 +2174,13 @@ Tests:
 Owner steps: deploy the functions (the usual workflow on merge). See the
 [setup doc](../setup/phase-5.md#527-most-played-a-bigger-spotlight-and-thinkers-quotes).
 
+**Follow-up (owner request): empty tabs are hidden.** Only tabs with at least one game are shown
+(`visibleTabs` in `lib/catalog/most-played.ts`). "Yours" is read when the page opens and appears
+once it is known to have games, so it never flashes in and out. A requested tab (`?tab=`) that is
+empty falls back to the first one with games, without rewriting the address. A single remaining
+list shows its name as a heading instead of a one-tab row. When nothing has games yet, all three
+tabs stay so each can say why.
+
 Still open:
 - "This week" and "All time" stay empty until `recomputeRankings` has run once with the new code
   (up to an hour after the functions deploy), and the page reads the document with the

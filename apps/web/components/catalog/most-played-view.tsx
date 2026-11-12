@@ -5,9 +5,10 @@ import { useId, useMemo, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { useRecent } from '@/lib/library';
 import {
-  MOST_PLAYED_TABS,
+  activeTab,
   medal,
   rankMine,
+  visibleTabs,
   type MostPlayedTab,
   type RankedEntry,
 } from '@/lib/catalog/most-played';
@@ -51,26 +52,36 @@ export function MostPlayedView({
 }) {
   const t = useTranslations('mostPlayed');
   const tl = useTranslations('library');
-  const [tab, setTab] = useState<MostPlayedTab>(initialTab);
+  const [requested, setRequested] = useState<MostPlayedTab>(initialTab);
   const tabRefs = useRef<Partial<Record<MostPlayedTab, HTMLButtonElement | null>>>({});
   const baseId = useId();
   const recent = useRecent();
-  const mine = useMyStats(tab === 'mine');
+  // Read at once: whether "Yours" has games decides whether its tab is shown at all.
+  const mine = useMyStats(true);
   const games = useMemo(() => tiles.map(({ slug, id }) => ({ slug, id })), [tiles]);
   const mineEntries = useMemo(
     () => rankMine(mine.stats, recent, games),
     [mine.stats, recent, games],
   );
+  // Only tabs with games are shown (owner request); a requested tab that is empty falls back to
+  // the first one that is not, without rewriting the address.
+  const tabs = visibleTabs({
+    week: week.length,
+    all: all.length,
+    mine: mineEntries.length,
+    mineKnown: mine.status === 'ready',
+  });
+  const tab = activeTab(requested, tabs);
 
   function select(next: MostPlayedTab, focus = false) {
-    setTab(next);
+    setRequested(next);
     rememberTab(next);
     if (focus) tabRefs.current[next]?.focus();
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
-    const index = MOST_PLAYED_TABS.indexOf(tab);
-    const last = MOST_PLAYED_TABS.length - 1;
+    const index = tabs.indexOf(tab);
+    const last = tabs.length - 1;
     const targets: Record<string, number> = {
       ArrowLeft: index === 0 ? last : index - 1,
       ArrowRight: index === last ? 0 : index + 1,
@@ -80,41 +91,54 @@ export function MostPlayedView({
     const target = targets[event.key];
     if (target === undefined) return;
     event.preventDefault();
-    select(MOST_PLAYED_TABS[target]!, true);
+    select(tabs[target]!, true);
   }
 
   const entries = tab === 'week' ? week : tab === 'all' ? all : mineEntries;
-  const loading = tab === 'mine' && mine.status === 'loading' && mineEntries.length === 0;
+  const loading =
+    tabs.length === 0 || (tab === 'mine' && mine.status === 'loading' && mineEntries.length === 0);
   const empty = tab === 'week' ? t('weekEmpty') : tab === 'all' ? t('allEmpty') : t('mineEmpty');
   const note = tab === 'mine' ? tl('syncNote') : t('note');
 
   return (
     <>
-      <div role="tablist" aria-label={t('tabsLabel')} className={styles.tabs} onKeyDown={onKeyDown}>
-        {MOST_PLAYED_TABS.map((value) => (
-          <button
-            key={value}
-            ref={(element) => {
-              tabRefs.current[value] = element;
-            }}
-            type="button"
-            role="tab"
-            id={`${baseId}-tab-${value}`}
-            aria-selected={tab === value}
-            aria-controls={`${baseId}-panel`}
-            tabIndex={tab === value ? 0 : -1}
-            className={styles.tab}
-            onClick={() => select(value)}
-          >
-            {t(TAB_LABEL[value])}
-          </button>
-        ))}
-      </div>
+      {/* One list needs no tabs: its name stands as a heading instead. */}
+      {tabs.length === 1 ? (
+        <h2 className={styles.single} id={`${baseId}-tab-${tab}`}>
+          {t(TAB_LABEL[tab])}
+        </h2>
+      ) : tabs.length > 1 ? (
+        <div
+          role="tablist"
+          aria-label={t('tabsLabel')}
+          className={styles.tabs}
+          onKeyDown={onKeyDown}
+        >
+          {tabs.map((value) => (
+            <button
+              key={value}
+              ref={(element) => {
+                tabRefs.current[value] = element;
+              }}
+              type="button"
+              role="tab"
+              id={`${baseId}-tab-${value}`}
+              aria-selected={tab === value}
+              aria-controls={`${baseId}-panel`}
+              tabIndex={tab === value ? 0 : -1}
+              className={styles.tab}
+              onClick={() => select(value)}
+            >
+              {t(TAB_LABEL[value])}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div
-        role="tabpanel"
+        role={tabs.length > 1 ? 'tabpanel' : undefined}
         id={`${baseId}-panel`}
-        aria-labelledby={`${baseId}-tab-${tab}`}
-        tabIndex={0}
+        aria-labelledby={tabs.length > 0 ? `${baseId}-tab-${tab}` : undefined}
+        tabIndex={tabs.length > 1 ? 0 : undefined}
         className={styles.panel}
       >
         {loading ? (

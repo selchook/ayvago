@@ -14,6 +14,29 @@ export function parseTab(value: string | string[] | undefined | null): MostPlaye
   return MOST_PLAYED_TABS.includes(raw as MostPlayedTab) ? (raw as MostPlayedTab) : 'week';
 }
 
+/**
+ * The tabs worth showing: only those with at least one game (owner request). "Yours" counts only
+ * once it is known, so it never flashes in and out. With nothing anywhere every tab is kept, so
+ * the page can still say why it is empty.
+ */
+export function visibleTabs(counts: {
+  week: number;
+  all: number;
+  mine: number;
+  mineKnown: boolean;
+}): MostPlayedTab[] {
+  const shown = MOST_PLAYED_TABS.filter((tab) =>
+    tab === 'mine' ? counts.mineKnown && counts.mine > 0 : counts[tab] > 0,
+  );
+  if (shown.length > 0) return shown;
+  return counts.mineKnown ? [...MOST_PLAYED_TABS] : [];
+}
+
+/** The tab to show: the requested one while it is visible, otherwise the first visible one. */
+export function activeTab(requested: MostPlayedTab, visible: MostPlayedTab[]): MostPlayedTab {
+  return visible.includes(requested) ? requested : (visible[0] ?? requested);
+}
+
 /** One row of a ranked list: the game's slug, its plays (0 when unknown) and its rank from 1. */
 export type RankedEntry = { slug: string; plays: number; rank: number };
 

@@ -1,7 +1,7 @@
 import type { CatalogRankings } from '@ayvago/shared';
 import { describe, expect, it } from 'vitest';
 import type { CatalogGame } from './index';
-import { medal, parseTab, rankByPlays, rankMine } from './most-played';
+import { medal, parseTab, rankByPlays, rankMine, activeTab, visibleTabs } from './most-played';
 
 const game = (slug: string, overrides: Partial<CatalogGame> = {}): CatalogGame =>
   ({ slug, status: 'live', manifest: { id: slug.replace(/-/g, '') }, ...overrides }) as CatalogGame;
@@ -101,5 +101,38 @@ describe('rankMine', () => {
       { slug: 'b', plays: 0, rank: 1 },
     ]);
     expect(rankMine([], [], tiles)).toEqual([]);
+  });
+});
+
+describe('visibleTabs', () => {
+  it('shows only the tabs that have games', () => {
+    expect(visibleTabs({ week: 0, all: 0, mine: 3, mineKnown: true })).toEqual(['mine']);
+    expect(visibleTabs({ week: 2, all: 5, mine: 0, mineKnown: true })).toEqual(['week', 'all']);
+    expect(visibleTabs({ week: 2, all: 5, mine: 1, mineKnown: true })).toEqual([
+      'week',
+      'all',
+      'mine',
+    ]);
+  });
+
+  it('leaves "Yours" out until it is known', () => {
+    expect(visibleTabs({ week: 2, all: 5, mine: 3, mineKnown: false })).toEqual(['week', 'all']);
+    expect(visibleTabs({ week: 0, all: 0, mine: 0, mineKnown: false })).toEqual([]);
+  });
+
+  it('keeps every tab when nothing has games, so each can say why', () => {
+    expect(visibleTabs({ week: 0, all: 0, mine: 0, mineKnown: true })).toEqual([
+      'week',
+      'all',
+      'mine',
+    ]);
+  });
+});
+
+describe('activeTab', () => {
+  it('keeps a visible request and falls back to the first visible tab', () => {
+    expect(activeTab('all', ['week', 'all'])).toBe('all');
+    expect(activeTab('week', ['mine'])).toBe('mine');
+    expect(activeTab('mine', [])).toBe('mine');
   });
 });
