@@ -1,7 +1,7 @@
 import type { PlayReport } from '@ayvago/shared';
 import { describe, expect, it } from 'vitest';
 import { csvCell, toCsv } from './csv';
-import { gameCsvRows, playerCsvRows, splitDuration } from './play-report';
+import { gameCsvRows, playerCsvRows, reportFileName, splitDuration } from './play-report';
 
 const kinds = (google: number, registered: number, guest: number, unknown: number) => ({
   google,
@@ -29,7 +29,6 @@ const report: PlayReport = {
   generatedAt: Date.parse('2026-11-09T12:00:00Z'),
   statsSince: '2026-11-07',
   extendedSince: '2026-11-10',
-  allTimeSince: '2026-10-20',
   summary: {
     google: { profiles: 2, players: 1, ...counts(9, 7, 3, 420, 30) },
     registered: { profiles: 0, players: 0, ...counts(0, 0, 0, 0, 0) },
@@ -39,22 +38,13 @@ const report: PlayReport = {
   games: [
     {
       gameId: 'snake',
-      allTime: {
-        started: 22,
-        finished: 17,
-        playSeconds: 1030,
-        abandonedSeconds: 30,
-        onlineStarted: 0,
-      },
       window: {
         started: 12,
         finished: 9,
         playSeconds: 480,
         abandonedSeconds: 30,
-        onlineStarted: 0,
+        onlineStarted: 2,
       },
-      plays: 9,
-      playSeconds: 480,
       playsByKind: kinds(7, 0, 2, 0),
       playersByKind: kinds(1, 0, 1, 0),
     },
@@ -122,62 +112,42 @@ describe('play report rows', () => {
     const rows = gameCsvRows(report.games, (id) => (id === 'snake' ? 'Yılan' : id), {
       game: 'Game',
       gameId: 'Id',
-      allTimeFinished: 'Runs',
-      allTimeStarted: 'Starts',
-      allTimeSeconds: 'Seconds all',
-      allTimeAbandonedSeconds: 'Left all',
-      allTimeOnline: 'Online all',
-      windowStarted: 'W starts',
-      windowFinished: 'W runs',
-      windowOnline: 'W online',
-      windowSeconds: 'W seconds',
-      windowAbandonedSeconds: 'W left',
-      plays: 'Plays',
+      started: 'Starts',
+      finished: 'Runs',
+      online: 'Online',
       seconds: 'Seconds',
+      abandonedSeconds: 'Left',
       playsByKind: label('Plays'),
       playersByKind: label('Players'),
     });
-    expect(rows[0]!.slice(0, 14)).toEqual([
+    // one window: no all-time columns (slice 5.28)
+    expect(rows[0]).toEqual([
       'Game',
       'Id',
-      'Runs',
       'Starts',
-      'Seconds all',
-      'Left all',
-      'Online all',
-      'W starts',
-      'W runs',
-      'W online',
-      'W seconds',
-      'W left',
-      'Plays',
+      'Runs',
+      'Online',
       'Seconds',
+      'Left',
+      'Plays G',
+      'Plays R',
+      'Plays M',
+      'Plays U',
+      'Players G',
+      'Players R',
+      'Players M',
+      'Players U',
     ]);
-    expect(rows[0]).toHaveLength(22);
-    expect(rows[1]).toEqual([
-      'Yılan',
-      'snake',
-      17,
-      22,
-      1030,
-      30,
-      0,
-      12,
-      9,
-      0,
-      480,
-      30,
-      9,
-      480,
-      7,
-      0,
-      2,
-      0,
-      1,
-      0,
-      1,
-      0,
-    ]);
+    expect(rows[1]).toEqual(['Yılan', 'snake', 12, 9, 2, 480, 30, 7, 0, 2, 0, 1, 0, 1, 0]);
+  });
+
+  it('names the files after the window and the build time', () => {
+    expect(reportFileName('games', report.statsSince, report.generatedAt)).toBe(
+      'ayvago-games-from-2026-11-07-2026-11-09T12-00.csv',
+    );
+    expect(reportFileName('players', '2026-11-07', Date.parse('2026-11-13T09:30:59Z'))).toBe(
+      'ayvago-players-from-2026-11-07-2026-11-13T09-30.csv',
+    );
   });
 
   it('builds the per-player rows with their games', () => {

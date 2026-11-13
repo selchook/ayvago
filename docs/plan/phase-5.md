@@ -52,6 +52,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.25 | Sortable admin report tables: the "Players and plays" per-game and per-player tables and the admin Games table sort by a click on a column heading, remembered for the browser session; the CSV downloads follow the order shown (owner request) | ✅ code |
 | 5.26 | Mobile menu drawer: phones get a ☰ button and a slide-in drawer with the full side menu (every category) instead of the bottom tab bar; tablets get a collapsible icon rail that remembers its state; desktop unchanged (owner request, [ADR 0025](../adr/0025-phone-menu-drawer.md)) | ✅ code |
 | 5.27 | Most played, a bigger spotlight and thinkers' quotes: "Recently played" becomes a "Most played" page with This week, All time and Yours tabs; the home spotlight grows to ten slides with in-game card art, a progress bar and thumbnails; the top-bar ticker mixes in short, sourced quotes from philosophers (owner request) | ✅ code |
+| 5.28 | One window in the "Players and plays" report: every number counts from 7 November 2026 (UTC); the all-time columns are gone, one small note names the window, the columns counted only from 10 November keep a `*` (owner request) | ✅ code · ⏳ functions deploy |
 
 ## 5.1 Player characters ✅
 
@@ -2186,3 +2187,106 @@ Still open:
   (up to an hour after the functions deploy), and the page reads the document with the
   one-hour cache.
 - Online matches are not in the platform-wide counts (see Deviations).
+
+## 5.28 One window in the play report ✅ code
+
+The owner found the admin panel's "Players and plays" report confusing ("şu anki hali karışık
+görünüyor") and asked to list everything from 7 November, with only a small note saying so ("7
+Kasım'dan itibaren listelenmiştir"). The report mixed three windows: all-time columns per game
+(since the first recorded day), the per-player and "since 7 Nov" numbers (since the slice 5.13
+fresh start), and columns counted only from slice 5.22 on (10 November), explained by a long
+ranges paragraph and a second note.
+
+What shipped:
+- **One window** (`packages/shared/src/play-report.ts`): every number covers `STATS_SINCE`
+  (`'2026-11-07'`, UTC) onward. `STATS_SINCE_MS` is its midnight in epoch milliseconds.
+  - Per game, only the `games/{gameId}/daily` days from `STATS_SINCE` on are summed (as the
+    window columns already were). A game played only before then has no row any more.
+  - Per player: `users/{uid}/stats/{gameId}` already starts on that day, because the fresh start
+    deleted every stats document. A document last played before `STATS_SINCE` is now skipped as
+    a leftover the reset missed; a document without `lastPlayedAt` (only started runs) is kept.
+  - Summary: **Profiles** became **New profiles**, the profiles created from `STATS_SINCE` on per
+    kind, instead of every profile ever created.
+  - Removed: `PlayReport.allTimeSince`, `GameReport.allTime`, and `GameReport.plays` /
+    `playSeconds` (the per-kind plays stay; the total duplicated the daily finished runs).
+    Games are ordered by finished runs plus online matches in the window, then starts.
+  - `window` and `statsSince` keep their names, so the new web app also reads a report from the
+    function as it is deployed today (it ignores `allTime`) while the functions deploy is pending.
+- **Function** (`firebase/functions/src/reports.ts`): new profiles are counted with one
+  `users where createdAt >= STATS_SINCE` count query (the automatic single-field index, no
+  composite index); the registered profiles already read bring `createdAt`, so the Google and
+  registered counts come from them, and the guests are the rest. It no longer counts all guest
+  profiles. Daily documents before `STATS_SINCE` are still read (a collection group cannot filter
+  on the document id alone) and dropped by `buildPlayReport`; that is one small read per game and day played before then.
+- **UI** (`apps/web/components/admin/play-report.tsx`):
+  - the ranges paragraph and the long note are replaced by one small, muted line above the
+    tables: "Listed from November 7, 2026. * Counted from November 10, 2026." / "7 Kasım 2026
+    tarihinden itibaren listelenmiştir. * 10 Kasım 2026 tarihinden itibaren sayılır." The dates
+    come from the date formatter (`dateStyle: 'long'`, UTC);
+  - the summary loses its "Since …" group row; the per-game table loses the two all-time columns
+    and the "Since …" group, keeping one group heading, **Players**, over the four kinds; the
+    per-player heading is "Per player (72)" and its empty text "Nobody has played yet.";
+  - the columns counted only from 10 November keep their small `*` (summary and per-player
+    Starts and Online, per-game Online matches);
+  - sorting (slice 5.25) is unchanged; the kind columns' sort buttons are named with their group
+    ("Sort by Google (Players), descending").
+- **CSV** (`apps/web/lib/admin/play-report.ts`): the per-game file has Game, Game id, Starts,
+  Finished runs, Online matches (from 10 Nov), finished and unfinished runs' play time in seconds,
+  then plays and players per kind; no all-time columns. The per-player file's later columns say
+  "(from …)". File names name the window: `ayvago-games-from-2026-11-07-<UTC time>.csv` and
+  `ayvago-players-from-2026-11-07-<UTC time>.csv` (`reportFileName`).
+- **Messages** (`admin.report` in `en.json` and `tr.json`): new `since`, `laterNote`,
+  `csv.gameStarts`, `csv.finished`, `csv.finishedSeconds`; reworded `summary.profiles`,
+  `games.playersGroup`, `players.title`, `players.empty`, `csv.starts`, `csv.online`,
+  `csv.abandonedSeconds`; removed `ranges`, `rangesNoAllTime`, `extendedNote`, `games.allTime`,
+  `games.sinceGroup`, `games.allTimeRuns`, `games.allTimeStarts`, `games.plays`,
+  `csv.allTime*`, `csv.window*`, `csv.seconds` and `csv.playerSeconds`.
+
+**The 10 November columns stay.** Per-player starts, online matches (per player and per game) and
+the time of runs left unfinished were only recorded from slice 5.22 on, so they cannot be
+backfilled to 7 November. They are kept with the small `*` because they are the only numbers for
+online table and room games (Okey and the other table games would otherwise show no activity at
+all) and for players who start runs but never finish one. The note says when they start.
+
+Deviations from the brief:
+- **Play time** (finished plus unfinished runs) is not marked: its finished part, nearly all of it,
+  counts from 7 November; the unfinished-run part only exists from 10 November. The CSV keeps
+  the two in separate columns, the unfinished one labelled "(from 10 Nov)".
+- **The daily counters start at midnight UTC on 7 November**, the per-player stats at the moment
+  the reset ran that day, so per-game runs may include a few hours more than the per-player sums.
+- **The kinds note stays** (what Google, Registered, Guest and Unknown mean); it is not a time
+  window.
+- `apps/web/vitest.config.mts` is new: it gives Vitest the React JSX runtime and the `@/` alias so
+  web components can be rendered in a test (the first component test of the web app).
+
+Tests:
+- shared `play-report.test.ts` (8): the one window (`STATS_SINCE`, `STATS_SINCE_MS`, no
+  `allTimeSince` and no `allTime`); per game only 7 and 8 November are summed (6 November and
+  October are left out, a game played only before has no row); stats last played before
+  `STATS_SINCE` are skipped while the first millisecond of the day counts; the 5.22 counters;
+- web `lib/admin/play-report.test.ts`: the per-game CSV header and row without all-time columns,
+  the file names;
+- web `components/admin/play-report.test.tsx` (new, 4; `react-dom/server` with
+  `NextIntlClientProvider`): the note in English and Turkish, no "all time", "since",
+  "tüm zamanlar" or "tarihinden beri" anywhere, the old ranges paragraph gone, the headings of the
+  three tables (marks included), the per-game row's numbers, and the sort button names;
+- firebase `play-report.test.ts` (emulator): daily documents of 20 October and 6 November and a
+  game played only in October are left out, 7 November counts; profiles created in October are
+  not counted as new; a stats document last played on 6 November is skipped; `play-stats.test.ts`
+  unchanged and passing;
+- full run: shared 117, web 247 passed and 1 failed, themes 16, adapter 30, firebase 234 passed
+  and 3 skipped; `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build`
+  pass. The web failure (`lib/catalog/catalog.test.ts`, "leaves the parked imported games out of
+  the catalog") also fails on `origin/main` and is unrelated: a recent catalog sync changed the
+  parked games;
+- Playwright on `next dev` with a temporary harness route rendering the report from made-up data
+  (removed before the commit): Minimal light and dark, Cartoon and Arcade, 1366×900 and 390×844,
+  English and Turkish; no page overflow, the phone tables scroll inside their frame.
+
+Owner steps: deploy the functions (the usual workflow on merge). See the
+[setup doc](../setup/phase-5.md#528-one-window-in-the-play-report).
+
+Still open:
+- Until the functions deploy, the report on ayvago.com comes from the old `getPlayReport`: the
+  tables show the new layout, but **New profiles** still counts every profile and games played
+  only before 7 November still have a row.

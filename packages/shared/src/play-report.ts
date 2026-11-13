@@ -1,15 +1,18 @@
-// "Players and plays" report of the admin panel (Phase 5 slices 5.16 and 5.22). The getPlayReport
-// Cloud Function reads the documents and builds the report with buildPlayReport; the web app shows
-// it. Pure, so the aggregation is unit-tested without Firebase.
+// "Players and plays" report of the admin panel (Phase 5 slices 5.16, 5.22 and 5.28). The
+// getPlayReport Cloud Function reads the documents and builds the report with buildPlayReport; the
+// web app shows it. Pure, so the aggregation is unit-tested without Firebase.
 //
-// Sources:
+// One window (slice 5.28): every number covers STATS_SINCE (UTC) onward.
 //   users/{uid}/stats/{gameId}          per player and game; cleared by the fresh start of slice
-//                                       5.13 (docs/adr/0017-server-best-and-fresh-start.md)
-//   games/{gameId}/daily/{YYYY-MM-DD}   per game and day; kept through the fresh start
+//                                       5.13 (docs/adr/0017-server-best-and-fresh-start.md), so
+//                                       they start then; a document last played before
+//                                       STATS_SINCE is skipped
+//   games/{gameId}/daily/{YYYY-MM-DD}   per game and day; only the days from STATS_SINCE on
+//   users/{uid}                         profiles created from STATS_SINCE on (by kind)
 //
 // Slice 5.22 (docs/adr/0022-started-abandoned-and-online-play.md) added started runs per player,
-// online matches and the time of runs left without finishing. Documents written before it simply
-// lack those fields, which read as 0.
+// online matches and the time of runs left without finishing, counted from EXTENDED_STATS_SINCE.
+// Documents written before it simply lack those fields, which read as 0.
 
 /**
  * How a player signed in: "google" (Firebase Auth lists google.com), "registered" (another
@@ -20,10 +23,14 @@ export const PLAYER_KINDS = ['google', 'registered', 'guest', 'unknown'] as cons
 export type PlayerKind = (typeof PLAYER_KINDS)[number];
 
 /**
- * The day the progress reset ran (slice 5.13). It deleted every `users/{uid}/stats/{gameId}`, so
- * per-player numbers only cover the time since then.
+ * The first day (UTC) of every number in the report: the day the progress reset ran (slice 5.13).
+ * It deleted every `users/{uid}/stats/{gameId}`, so per-player numbers only exist from then on, and
+ * the report counts everything else (daily game counters, new profiles) from the same day.
  */
 export const STATS_SINCE = '2026-11-07';
+
+/** STATS_SINCE as epoch milliseconds (midnight UTC). */
+export const STATS_SINCE_MS = Date.parse(`${STATS_SINCE}T00:00:00Z`);
 
 /**
  * The day slice 5.22 went live (UTC). From then on the server counts started runs per player,
@@ -91,13 +98,16 @@ export type PlayCounts = {
 };
 
 export type KindSummary = PlayCounts & {
-  /** Profiles of this kind (null for "unknown", which has none by definition). */
+  /**
+   * Profiles of this kind created from STATS_SINCE on (null for "unknown", which has none by
+   * definition).
+   */
   profiles: number | null;
   /** Players of this kind with at least one stats document. */
   players: number;
 };
 
-/** Sums of games/{gameId}/daily over a range of days. */
+/** Sums of games/{gameId}/daily over the days from STATS_SINCE on. */
 export type DailyTotals = {
   started: number;
   finished: number;
@@ -108,13 +118,9 @@ export type DailyTotals = {
 
 export type GameReport = {
   gameId: string;
-  /** Sums of games/{gameId}/daily: everything since launch. */
-  allTime: DailyTotals;
   /** Sums of games/{gameId}/daily from STATS_SINCE on (UTC days). */
   window: DailyTotals;
-  /** Since STATS_SINCE, from users/{uid}/stats/{gameId}. */
-  plays: number;
-  playSeconds: number;
+  /** Finished runs and distinct players per kind, from users/{uid}/stats/{gameId}. */
   playsByKind: KindCounts;
   playersByKind: KindCounts;
 };
@@ -134,14 +140,12 @@ export type PlayerReport = PlayCounts & {
 
 export type PlayReport = {
   generatedAt: number;
-  /** First day of the per-player numbers (the fresh start). */
+  /** First day (UTC) of every number in the report: STATS_SINCE. */
   statsSince: string;
   /** First day of per-player starts, online matches and abandoned-run time (slice 5.22). */
   extendedSince: string;
-  /** Earliest day in games/{gameId}/daily, null without any. */
-  allTimeSince: string | null;
   summary: Record<PlayerKind, KindSummary>;
-  /** Most finished runs and online matches of all time first. */
+  /** Most finished runs and online matches first. */
   games: GameReport[];
   /** Most plays (finished and online) first, at most PLAY_REPORT_MAX_PLAYERS. */
   players: PlayerReport[];
@@ -156,7 +160,7 @@ export type PlayReportInput = {
   daily: DailyInput[];
   /** Profiles of the players in `stats`; a missing uid is an "unknown" player. */
   profiles: Map<string, ProfileInput>;
-  /** Profiles in total per kind (all of them, players or not). */
+  /** Profiles per kind created from STATS_SINCE on (players or not). */
   profileTotals: Record<Exclude<PlayerKind, 'unknown'>, number>;
   maxPlayers?: number;
 };
@@ -229,10 +233,7 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
     if (!row) {
       row = {
         gameId,
-        allTime: zeroDaily(),
         window: zeroDaily(),
-        plays: 0,
-        playSeconds: 0,
         playsByKind: zeroKinds(),
         playersByKind: zeroKinds(),
         players: { google: new Set(), registered: new Set(), guest: new Set(), unknown: new Set() },
@@ -242,22 +243,20 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
     return row;
   };
 
-  let allTimeSince: string | null = null;
   for (const day of input.daily) {
-    const row = game(day.gameId);
-    addDaily(row.allTime, day);
-    // YYYY-MM-DD strings compare like the days they name.
-    if (day.day >= STATS_SINCE) addDaily(row.window, day);
-    if (allTimeSince === null || day.day < allTimeSince) allTimeSince = day.day;
+    // YYYY-MM-DD strings compare like the days they name; earlier days are not in the report.
+    if (day.day < STATS_SINCE) continue;
+    addDaily(game(day.gameId).window, day);
   }
 
   const players = new Map<string, PlayerReport>();
   for (const stat of input.stats) {
+    // The fresh start cleared every stats document on STATS_SINCE, so one last played before it
+    // is a leftover the reset missed. A document without a time (only started runs) is kept.
+    if (stat.lastPlayedAt !== null && stat.lastPlayedAt < STATS_SINCE_MS) continue;
     const counts = statsCounts(stat);
     const kind = kindOf(stat.uid);
     const row = game(stat.gameId);
-    row.plays += counts.plays;
-    row.playSeconds += counts.playSeconds;
     row.playsByKind[kind] += counts.plays;
     row.players[kind].add(stat.uid);
 
@@ -308,7 +307,6 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
     generatedAt: input.now,
     statsSince: STATS_SINCE,
     extendedSince: EXTENDED_STATS_SINCE,
-    allTimeSince,
     summary,
     games: [...games.values()]
       .map(({ players: sets, ...row }) => ({
@@ -319,10 +317,10 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
       }))
       .sort(
         (a, b) =>
-          b.allTime.finished +
-            b.allTime.onlineStarted -
-            (a.allTime.finished + a.allTime.onlineStarted) ||
-          b.plays - a.plays ||
+          b.window.finished +
+            b.window.onlineStarted -
+            (a.window.finished + a.window.onlineStarted) ||
+          b.window.started - a.window.started ||
           a.gameId.localeCompare(b.gameId),
       ),
     players: sortedPlayers.slice(0, maxPlayers),

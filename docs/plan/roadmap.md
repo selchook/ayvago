@@ -224,7 +224,7 @@ RTDB rules: only the two players of a room can use its signals and relay; anyone
 | `recordRoomPlayers` ✅ | RTDB trigger (`rooms/{code}/guestUid` created) | Records both players of a two-player room in each other's `users/{uid}/recentPlayers` once the guest seat is taken; keeps the newest 30 (slice 5.21, [ADR 0021](../adr/0021-site-presence-recent-players.md)); since slice 5.22 counts the match for both players (`onlinePlays`, never ranked) |
 | `reviewScoreFlag` ✅ · `setPlayerBan` ✅ | Callable (admin claim) | Admin panel: decide flagged scores; ban or unban players |
 | `getAppCheckStatus` ✅ · `setAppCheckMode` ✅ | Callable (admin claim) | App Check rollout: verified share of recent sessions; monitor / enforce switch |
-| `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16); since slice 5.22 also starts, online matches and the time of left runs |
+| `getPlayReport` ✅ | Callable (admin claim) | Admin panel "Players and plays" report, computed on demand: players by kind (Google, registered, guest, unknown), plays and play time per player and game since the fresh start, all-time runs per game (slice 5.16); since slice 5.22 also starts, online matches and the time of left runs; since slice 5.28 one window, everything from 2026-11-07 (UTC), with new profiles instead of all profiles and no all-time columns |
 | `onUserDeleted` | Auth trigger | KVKK/GDPR: delete or anonymize user data (covered for now by `deleteMyData` and `cleanupGuests`) |
 | `submissionChecks` | Firestore trigger / Cloud Run job | Automated checks for developer submissions (Phase 6) |
 
@@ -553,6 +553,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Sortable admin report tables: the "Players and plays" per-game and per-player tables and the Games tab sort by a click on a column heading (locale-aware text, nulls last, kept for the browser session); the CSV downloads follow the order shown (slice 5.25)
 - [x] Mobile menu drawer: a ☰ button and a slide-in drawer with the full side menu (every category) replace the bottom tab bar on phones; tablets get a collapsible icon rail that remembers its state; desktop unchanged (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md))
 - [x] Most played page (This week, All time and Yours tabs; `plays7d` and the all-time `playsTotal` in `rankings/catalog` from the hourly `recomputeRankings`) instead of Recently played; a ten-slide home spotlight with in-game card art, a progress bar and thumbnails; sourced thinkers' quotes in the top-bar ticker (slice 5.27)
+- [x] One window in the "Players and plays" report: every number from 7 November 2026 (UTC), named by one small note; no all-time columns; the columns counted from 10 November keep a `*`; CSV columns and file names follow (slice 5.28)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

@@ -7,10 +7,11 @@ import {
 } from '@ayvago/shared';
 import type { CsvValue } from './csv';
 
-// Table rows of the "Players and plays" report (slices 5.16 and 5.22) for the CSV downloads. The
-// labels (headers, kind names, game lines) come from the caller, so the files follow the UI
+// Table rows of the "Players and plays" report (slices 5.16, 5.22 and 5.28) for the CSV downloads.
+// The labels (headers, kind names, game lines) come from the caller, so the files follow the UI
 // language. The rows come in the order the table shows them (slice 5.25: a sorted table exports
-// sorted rows, and the player rank follows that order).
+// sorted rows, and the player rank follows that order). Like the report, every column covers
+// statsSince onward (slice 5.28).
 
 /** Whole hours and the remaining minutes (rounded) of a play time in seconds. */
 export function splitDuration(seconds: number): { hours: number; minutes: number } {
@@ -23,21 +24,13 @@ const isoDay = (time: number | null) => (time === null ? '' : new Date(time).toI
 export type GameCsvHeaders = {
   game: string;
   gameId: string;
-  allTimeFinished: string;
-  allTimeStarted: string;
-  allTimeSeconds: string;
-  allTimeAbandonedSeconds: string;
-  allTimeOnline: string;
   /** games/{gameId}/daily from statsSince on. */
-  windowStarted: string;
-  windowFinished: string;
-  windowOnline: string;
-  windowSeconds: string;
-  windowAbandonedSeconds: string;
-  /** users/{uid}/stats since statsSince. */
-  plays: string;
+  started: string;
+  finished: string;
+  online: string;
   seconds: string;
-  /** "Plays: Google" … and "Players: Google" … in PLAYER_KINDS order. */
+  abandonedSeconds: string;
+  /** users/{uid}/stats: "Plays: Google" … and "Players: Google" … in PLAYER_KINDS order. */
   playsByKind: Record<PlayerKind, string>;
   playersByKind: Record<PlayerKind, string>;
 };
@@ -51,36 +44,22 @@ export function gameCsvRows(
     [
       h.game,
       h.gameId,
-      h.allTimeFinished,
-      h.allTimeStarted,
-      h.allTimeSeconds,
-      h.allTimeAbandonedSeconds,
-      h.allTimeOnline,
-      h.windowStarted,
-      h.windowFinished,
-      h.windowOnline,
-      h.windowSeconds,
-      h.windowAbandonedSeconds,
-      h.plays,
+      h.started,
+      h.finished,
+      h.online,
       h.seconds,
+      h.abandonedSeconds,
       ...PLAYER_KINDS.map((kind) => h.playsByKind[kind]),
       ...PLAYER_KINDS.map((kind) => h.playersByKind[kind]),
     ],
     ...games.map((g) => [
       title(g.gameId),
       g.gameId,
-      g.allTime.finished,
-      g.allTime.started,
-      g.allTime.playSeconds,
-      g.allTime.abandonedSeconds,
-      g.allTime.onlineStarted,
       g.window.started,
       g.window.finished,
       g.window.onlineStarted,
       g.window.playSeconds,
       g.window.abandonedSeconds,
-      g.plays,
-      g.playSeconds,
       ...PLAYER_KINDS.map((kind) => g.playsByKind[kind]),
       ...PLAYER_KINDS.map((kind) => g.playersByKind[kind]),
     ]),
@@ -139,4 +118,13 @@ export function playerCsvRows(
       p.games.map(gameLine).join('; '),
     ]),
   ];
+}
+
+/**
+ * The CSV file name: what it holds, the report's first day and when it was built (UTC), e.g.
+ * `ayvago-games-from-2026-11-07-2026-11-13T09-30.csv`.
+ */
+export function reportFileName(table: 'games' | 'players', since: string, generatedAt: number) {
+  const stamp = new Date(generatedAt).toISOString().slice(0, 16).replace(':', '-');
+  return `ayvago-${table}-from-${since}-${stamp}.csv`;
 }
