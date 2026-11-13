@@ -3,8 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PlayerCover } from '@/components/game/player-cover';
-import { gamePath, gameTitle, getGameBySlug, isTableGame } from '@/lib/catalog';
-import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
+import { gamePath, gameTitle, getGameBySlug, isTableGame, tableSize } from '@/lib/catalog';
 import { TableView } from './table-view';
 
 // Shared by /games/{slug}/table (opens a table) and /games/{slug}/table/{code} (joins one).
@@ -42,7 +41,7 @@ export function TablePage({
       key={code ?? 'new'}
       code={code}
       gamePath={gamePath(game)}
-      size={Math.min(MAX_TABLE_SIZE, manifest.players.max)}
+      size={tableSize(game)}
       slug={game.slug}
       gameId={manifest.id}
       title={title}

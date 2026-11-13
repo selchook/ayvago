@@ -83,7 +83,8 @@ describe('seed catalog', () => {
     }
     expect(getAllGames().every((game) => game.repo === 'selchook/ayvago-games')).toBe(true);
     // Online two-player games come from the studio, so the list grows with every catalog sync:
-    // check that the slice 4.1 games are there and that no parked Ably game is among them.
+    // check that the slice 4.1 games still in the studio are there (Bowling Strike and Mini Golf
+    // were retired in sync #93) and that no parked Ably game is among them.
     const multiplayer = getMultiplayerGames().map((game) => game.slug);
     expect(multiplayer).toEqual(
       expect.arrayContaining([
@@ -152,6 +153,49 @@ describe('seed catalog', () => {
       }
     }
     expect(getAllGames().filter((game) => game.coverUrl).length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('plays games for more than two at tables, and two-player games only when flagged', async () => {
+    const { getAllGames, getGameBySlug, getTableGames, isTableGame, tableSize } =
+      await loadCatalog();
+    for (const game of getAllGames()) {
+      if (game.manifest.players.max > 2) expect(isTableGame(game), game.slug).toBe(true);
+      if (game.manifest.players.max < 2) expect(isTableGame(game), game.slug).toBe(false);
+    }
+    const okey = getGameBySlug('okey')!;
+    expect(isTableGame(okey)).toBe(true);
+    expect(tableSize(okey)).toBe(4);
+    // A real-time two-player game stays in rooms.
+    expect(isTableGame(getGameBySlug('air-hockey')!)).toBe(false);
+    expect(getTableGames().map((game) => game.slug)).toContain('okey');
+  });
+
+  it('seats a flagged two-player game at a two-seat table (docs/adr/0026)', async () => {
+    vi.resetModules();
+    vi.doMock('@ayvago/shared', async (importOriginal) => {
+      const shared = await importOriginal<typeof import('@ayvago/shared')>();
+      return {
+        ...shared,
+        SEED_GAMES: shared.SEED_GAMES.map((seed) =>
+          seed.slug === 'backgammon' || seed.slug === 'neon-pong'
+            ? { ...seed, tables: seed.slug === 'backgammon' }
+            : seed,
+        ),
+      };
+    });
+    try {
+      const { getGameBySlug, getTableGames, isTableGame, tableSize } = await import('./index');
+      const tavla = getGameBySlug('backgammon')!;
+      expect(tavla.tables).toBe(true);
+      expect(isTableGame(tavla)).toBe(true);
+      expect(tableSize(tavla)).toBe(2);
+      expect(isTableGame(getGameBySlug('neon-pong')!)).toBe(false);
+      expect(getTableGames().map((game) => game.slug)).toEqual(
+        expect.arrayContaining(['okey', 'backgammon']),
+      );
+    } finally {
+      vi.doUnmock('@ayvago/shared');
+    }
   });
 
   it('never relates a game to itself', async () => {

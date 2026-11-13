@@ -6,6 +6,7 @@ import {
   HOST_HANDOVER_STEP_MS,
   readCharacterId,
   readTableSettings,
+  tableSettingsFor,
   type CharacterId,
   type TableSettings,
   type TableVisibility,
@@ -23,7 +24,7 @@ export type Table = {
   slug: string;
   /** The host: the opener (seat 0) until a hand-over gives the role to another seated player. */
   hostUid: string;
-  /** Number of seats (2 to 4). */
+  /** Number of seats (2 to 4; two seats are a duel without bots, docs/adr/0026). */
   size: number;
   /** One entry per seat; null for an empty seat. The opener sits in seat 0. */
   seats: Array<TableSeat | null>;
@@ -93,7 +94,8 @@ export function toTable(code: string, value: unknown): Table | null {
     visibility: v.visibility === 'public' ? 'public' : 'private',
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     online,
-    settings: readTableSettings(v.settings),
+    // A two-seat table never has bots, whatever is stored (docs/adr/0026).
+    settings: tableSettingsFor(size, readTableSettings(v.settings)),
     startAt: typeof v.startAt === 'number' ? v.startAt : null,
     hostLeft: typeof v.hostLeft === 'string' && v.hostLeft === v.hostUid,
   };

@@ -94,6 +94,30 @@ describe('summarizeTable', () => {
   it('lists a started table as playing', () => {
     expect(summarizeTable(table({ status: 'playing' }))?.status).toBe('playing');
   });
+
+  it('lists a two-seat Tavla table (docs/adr/0026)', () => {
+    const duel = table({
+      gameId: 'backgammon',
+      slug: 'backgammon',
+      size: 2,
+      settings: { hands: 5, turnSeconds: 30, bots: false },
+      seats: { 0: { uid: 'host-uid', name: 'Ayşe', character: 'zombie' } },
+    });
+    const summary = summarizeTable(duel);
+    expect(summary).toMatchObject({
+      gameId: 'backgammon',
+      size: 2,
+      seats: { 0: { kind: 'player', name: 'Ayşe' }, 1: { kind: 'empty' } },
+      settings: { bots: false },
+      online: 1,
+    });
+    // Seats past the table's size are never listed.
+    expect(Object.keys(summary!.seats)).toEqual(['0', '1']);
+    expect(readLobbyTable('ABC234', summary)?.seats.map((seat) => seat.kind)).toEqual([
+      'player',
+      'empty',
+    ]);
+  });
 });
 
 describe('readLobbyTable', () => {

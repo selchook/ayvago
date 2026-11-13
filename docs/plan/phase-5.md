@@ -11,7 +11,8 @@
   [ADR 0018](../adr/0018-difficulty-easy-is-practice.md),
   [ADR 0019](../adr/0019-table-lobby-presence-invites.md),
   [ADR 0020](../adr/0020-quick-play-settings-host-handover.md),
-  [ADR 0024](../adr/0024-game-card-art.md), [ADR 0025](../adr/0025-phone-menu-drawer.md)
+  [ADR 0024](../adr/0024-game-card-art.md), [ADR 0025](../adr/0025-phone-menu-drawer.md),
+  [ADR 0026](../adr/0026-two-seat-tables.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -53,6 +54,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.26 | Mobile menu drawer: phones get a ☰ button and a slide-in drawer with the full side menu (every category) instead of the bottom tab bar; tablets get a collapsible icon rail that remembers its state; desktop unchanged (owner request, [ADR 0025](../adr/0025-phone-menu-drawer.md)) | ✅ code |
 | 5.27 | Most played, a bigger spotlight and thinkers' quotes: "Recently played" becomes a "Most played" page with This week, All time and Yours tabs; the home spotlight grows to ten slides with in-game card art, a progress bar and thumbnails; the top-bar ticker mixes in short, sourced quotes from philosophers (owner request) | ✅ code |
 | 5.28 | One window in the "Players and plays" report: every number counts from 7 November 2026 (UTC); the all-time columns are gone, one small note names the window, the columns counted only from 10 November keep a `*` (owner request) | ✅ code · ⏳ functions deploy |
+| 5.29 | Tavla in the lobby: the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables) for Tavla, at two-seat tables without bots; a catalog flag from the studio decides which two-player games get one (owner request, [ADR 0026](../adr/0026-two-seat-tables.md)) | ✅ code · ⏳ studio merge and catalog sync |
 
 ## 5.1 Player characters ✅
 
@@ -2290,3 +2292,106 @@ Still open:
 - Until the functions deploy, the report on ayvago.com comes from the old `getPlayReport`: the
   tables show the new layout, but **New profiles** still counts every profile and games played
   only before 7 November still have a row.
+
+## 5.29 Tavla in the lobby: two-seat tables ✅ code
+
+The owner asked for Okey's lobby system for Tavla ("okey'deki lobi sisteminin aynısını tavla için
+de uygula"). Decision and reasons: [ADR 0026](../adr/0026-two-seat-tables.md); behaviour:
+[multiplayer spec §7a](../specs/multiplayer.md#7a-tables-for-up-to-four-protocol-23).
+
+What shipped:
+- **Which games get a lobby:** `SeedGame.tables` (`packages/shared/src/seed-catalog.ts`), set by
+  the studio's catalog generator for every game whose `game.json` has a number of seats in
+  `"multiplayer"`. `CatalogGame.tables` is `multiplayer && (tables || players.max > 2)`;
+  `isTableGame` reads it, and `tableSize(game)` replaces the four copies of
+  `Math.min(MAX_TABLE_SIZE, players.max)` (game page, lobby, table page, profile). Real-time
+  two-player games keep rooms.
+- **Two-seat tables are duels** (`isDuelTable`, `tableSettingsFor` in
+  `packages/shared/src/tables.ts`):
+  - `createTable` and `setTableSettings` store `bots: false` for two seats, and `toTable` reads a
+    two-seat table without bots whatever is stored. So the opponent's seat never offers "Add a
+    bot", and Start stays off until the opponent sits down;
+  - the settings form (game page "Open a private table", lobby "Open a table") shows only "Who can
+    sit down"; the table page has no settings card, and lobby rows show only "Starts by itself";
+  - duel texts in `en.json` and `tr.json`: `lobby.duel.*` (quick-play hint on the lobby and the
+    game page, the empty lobby, the seat summary for screen readers), `table.duel.*` (invite text,
+    start hint, countdown, "you are the host now", the away notice) and
+    `table.leave.body.gameDuel` ("Your opponent wins this game…").
+- **Protocol:** `buildStartConfig` fills `peerName` and `peerCharacter` from the other seat at a
+  two-seat table, so a game written for rooms finds its opponent. No new message and no adapter
+  change.
+- **Unchanged and reused:** the rules, `syncLobbyTable`, `cleanupRooms`, quick play, invites and
+  the invite centre, recent players, host hand-over and "Leave table" all handled `size: 2`
+  already. Room links (`/room/{code}`) stay generated for Tavla, so links shared before the change
+  keep working.
+- **Studio** (`selchook/ayvago-games`, branch `backgammon-lobby`): `games/backgammon/game.json`
+  `"multiplayer": 2` (v1.4.0); `gen-platform.mjs` writes the seat count and `arcadeGame()` adds
+  `tables: true`; Backgammon's `onSeatLeave` ends the round as a win for the player who stayed and
+  reads the opponent from the seats; `mp-harness.mjs --table` checks the two-seat flow.
+
+Decisions and deviations from the brief:
+- **Two-seat tables, not rooms in the lobby** (option a in the brief): the table system already
+  took two seats, so the slice needs no backend change. Listing rooms would have meant a second
+  lobby summary, room invites and room quick play.
+- **No bots at Tavla tables:** a bot opponent is the game's own solo mode.
+- **No table settings for Tavla:** hands and turn time are Okey's settings. Tavla keeps its match
+  to 5 and has no turn clock; a match-length setting is left for later.
+- **The catalog flag lives on `SeedGame`, not in `ayvago.json`:** the manifest is the strict public
+  contract for outside developers, and only the platform's own catalog needs the flag.
+- The parked-games catalog test listed Bowling Strike and Mini Golf, which the studio retired in
+  sync #93 (the test failed on `main`); they are out of the list now.
+
+Tests:
+- shared (4 new): duel tables never allow bots (`tables.test.ts`); `summarizeTable` lists a
+  two-seat Tavla table with two seats and no uids (`lobby.test.ts`).
+- web (5 new): a flagged two-player game is a table game of two seats while Neon Pong stays in
+  rooms, Okey keeps four seats (`catalog.test.ts`, with a mocked catalog); a two-seat table reads
+  without bots and starts only once both are seated (`table-data.test.ts`); `GHA_START` names the
+  other seat as the peer at a table of two, not at bigger ones (`bridge.test.ts`).
+- RTDB emulator `firebase/tests/table-duel.test.ts` (6, no rule changed): a host opens a public
+  two-seat table with the auto start; one opponent sits down, a third player (seat 2) and a bot
+  are refused; the host's start transaction, moves from both seats only, strangers refused; an
+  invite from the Tavla lobby (and not with another game's id); the quick-play pointer;
+  `syncLobbyTable` lists it with two seats and no uids.
+- Full run: shared 120, web 248, themes 16, adapter 30, firebase 240 passed and 3 skipped (the
+  opt-in live-trigger tests); typecheck, Prettier and the web build pass.
+- **In the browser** (`next start` with `NEXT_PUBLIC_FIREBASE_EMULATORS=1`, the live trigger opted
+  in, the studio's new catalog copied in locally and Backgammon v1.4.0 from a `vite preview` of the
+  studio branch), 31 checks passed with no console errors:
+  - the game page offers Quick play, Go to the lobby and Open a private table, with the duel text
+    and no "Play with a friend";
+  - the lobby's Open a table form shows only "Who can sit down"; the table is stored with two
+    seats and `bots: false`; the table page shows two seats, no Add a bot and no settings card,
+    and Start stays off;
+  - a second player's lobby lists the table and two players online; the host invites them from
+    the table page, the toast arrives, Join seats them, and Start reads "Start the game";
+  - both games reach the online menu and Play; each names the other seat; one whole turn played
+    on the host's screen shows the same pips on both (moves from both seats in `tableMoves`);
+  - the guest's Leave table dialog says the opponent wins; the host's game ends the round ("Your
+    opponent left"), the table notice says they can come back; the guest's lobby offers "Back to
+    your table", the link brings them back to the running game, and the host's Rematch puts both
+    in Play again;
+  - two players who tap Quick play at once (TR, phone and desktop) meet at one public two-seat
+    table without bots, which starts by itself once both sat down;
+  - Okey: the lobby form keeps hands, turn time, bots and visibility, and the game page keeps the
+    bot text.
+  - **Screenshots:** the Tavla game page and the lobby with an open table, two players online and
+    an invite toast, in English and Turkish, on a 1366×900 desktop and a Pixel 7 profile, in
+    minimal light and dark, cartoon and arcade; the flow above; Okey's lobby and its form in four
+    of those combinations.
+- **Studio:** `tsc`, the smoke test and the platform harness for Backgammon;
+  `mp-harness.mjs backgammon` (room) and `--table` (two-seat table, the round ends when the
+  opponent leaves; it fails without the change); `gen-platform.mjs --live`; `validate:platform`
+  (93 manifests). The canary set that `test:changed` picks for the type comment in
+  `src/core/registry.ts` passes except Archery, which fails the same way on `origin/main`.
+
+Owner steps ([setup](../setup/phase-5.md#529-tavla-in-the-lobby-two-seat-tables)): merge this
+first, then the studio branch; the catalog sync then brings Tavla's flag. No rules, functions or
+secrets.
+
+Still open:
+- A Tavla game cannot resume after a reload: a player who leaves or reloads loses the round (as
+  in a room). Resyncing the position from the host is studio work.
+- A match-length setting (3/5/7) for Tavla tables, as a per-game table setting.
+- Other turn-based two-player games (Mangala, Reversi, Turkish Draughts …) can join the lobby the
+  same way, from the studio alone.

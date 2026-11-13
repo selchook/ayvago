@@ -1,4 +1,4 @@
-import { pickLocalized, type Locale } from '@ayvago/shared';
+import { isDuelTable, pickLocalized, type Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -21,11 +21,11 @@ import {
   getGameBySlug,
   getRelatedGames,
   isTableGame,
+  tableSize,
   type CatalogGame,
 } from '@/lib/catalog';
 import { getRankings } from '@/lib/catalog/rankings';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
-import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
 
 type Props = { params: Promise<{ locale: Locale; slug: string }> };
@@ -132,13 +132,17 @@ export default async function GamePage({ params }: Props) {
                   <UsersIcon />
                   {t('table.playAtTable')}
                 </h2>
-                <p>{t('lobby.quickPlayHint')}</p>
+                <p>
+                  {isDuelTable(tableSize(game))
+                    ? t('lobby.duel.quickPlayHint')
+                    : t('lobby.quickPlayHint')}
+                </p>
                 <div className={styles.tableActions}>
                   <QuickPlayButton
                     gameId={manifest.id}
                     slug={game.slug}
                     gamePath={gamePath(game)}
-                    size={Math.min(MAX_TABLE_SIZE, manifest.players.max)}
+                    size={tableSize(game)}
                     className={styles.friendButton}
                   />
                   <Link

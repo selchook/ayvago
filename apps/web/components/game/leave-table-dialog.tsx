@@ -6,9 +6,10 @@ import styles from './game.module.css';
 
 /**
  * What leaving means right now (slice 5.20): a free seat at a waiting table, a waiting table
- * handed to another player or closed because the host was alone, or a game the others play on.
+ * handed to another player or closed because the host was alone, a game the others play on, or
+ * a game at a two-seat table, which the opponent wins (`gameDuel`, docs/adr/0026).
  */
-export type LeaveMode = 'seat' | 'host' | 'close' | 'game';
+export type LeaveMode = 'seat' | 'host' | 'close' | 'game' | 'gameDuel';
 
 /**
  * "Leave table?" confirmation. A native modal dialog: the page behind it is inert, so the focus
@@ -61,7 +62,9 @@ export function LeaveTableDialog({
       }}
     >
       <div className={styles.leaveDialogBody}>
-        <h2 id="leave-table-title">{mode === 'game' ? t('titleGame') : t('titleTable')}</h2>
+        <h2 id="leave-table-title">
+          {mode === 'game' || mode === 'gameDuel' ? t('titleGame') : t('titleTable')}
+        </h2>
         <p id="leave-table-body">{t(`body.${mode}`)}</p>
         {failed ? <p role="alert">{t('failed')}</p> : null}
         <div className={styles.leaveDialogActions}>

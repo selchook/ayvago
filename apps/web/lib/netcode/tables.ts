@@ -8,7 +8,7 @@
 // docs/adr/0020-quick-play-settings-host-handover.md.
 import {
   AUTO_START_MS,
-  DEFAULT_TABLE_SETTINGS,
+  tableSettingsFor,
   type CharacterId,
   type TableSettings,
   type TableVisibility,
@@ -75,7 +75,8 @@ export async function createTable(input: {
         size: input.size,
         status: 'open',
         visibility: input.visibility,
-        settings: input.settings ?? DEFAULT_TABLE_SETTINGS,
+        // A two-seat table never allows bots (docs/adr/0026).
+        settings: tableSettingsFor(input.size, input.settings),
         ...(input.autoStart ? { startAt: serverNow() + AUTO_START_MS } : {}),
         createdAt: serverTimestamp(),
         seats: { 0: playerSeat(input.uid, input.name, input.character) },
@@ -171,8 +172,9 @@ export async function setTableVisibility(code: string, visibility: TableVisibili
 export async function setTableSettings(table: Table, settings: TableSettings): Promise<void> {
   const db = await loadDatabase();
   const { ref, update } = await import('firebase/database');
-  const updates: Record<string, unknown> = { settings };
-  if (!settings.bots) {
+  const next = tableSettingsFor(table.size, settings);
+  const updates: Record<string, unknown> = { settings: next };
+  if (!next.bots) {
     table.seats.forEach((seat, index) => {
       if (seat?.kind === 'bot') updates[`seats/${index}`] = null;
     });

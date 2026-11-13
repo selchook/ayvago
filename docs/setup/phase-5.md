@@ -395,6 +395,31 @@ automatic single-field index on `users.createdAt`, so no index is added.
   downloaded files are named `ayvago-games-from-2026-11-07-….csv` and
   `ayvago-players-from-2026-11-07-….csv`.
 
+## 5.29 Tavla in the lobby: two-seat tables
+No secrets, env vars, rules, functions or indexes are new, and nothing needs deploying by hand.
+Merging deploys the web app. The order matters only for what players see:
+
+1. ⏳ Merge the platform pull request (branch `tavla-lobby`) first. On its own it changes nothing
+   visible: Tavla gets the lobby only with the studio's flag.
+2. ⏳ Merge the studio pull request (`selchook/ayvago-games`, branch `backgammon-lobby`). Vercel
+   deploys Backgammon v1.4.0.
+3. ⏳ Merge the "Sync arcade catalog" pull request that follows (or run **Sync arcade catalog**
+   from the Actions tab to open it at once). It brings `multiplayer: 2` and `tables: true` for
+   Backgammon; after its deploy Tavla has the lobby.
+
+The reverse order is safe too (an older platform ignores the flag), but then Tavla v1.4.0 runs
+without the lobby until the platform is merged.
+
+Optional check after the sync deploys:
+1. Open `https://ayvago.com/tr/games/backgammon`: the box says **Masada oyna** with **Hızlı oyna**,
+   **Lobiye git** and "Özel masa aç" instead of "Arkadaşınla oyna".
+2. In two browsers press **Hızlı oyna** on the Tavla page at about the same time: both land at the
+   same table, and the game starts by itself.
+3. In the Tavla lobby, open a table and invite the other browser from the table page: the
+   invitation arrives as "… seni Tavla oynamaya davet ediyor", and **Katıl** seats them.
+4. A room link shared before the change (`/tr/games/backgammon/room/…`) still opens the room
+   while it lasts.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

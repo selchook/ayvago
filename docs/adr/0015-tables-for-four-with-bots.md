@@ -1,6 +1,7 @@
 # ADR 0015 — Game tables for up to four players, with bots
 
-- Status: Accepted (2026-11-06)
+- Status: Accepted (2026-11-06). Two-player games the studio flags play at two-seat tables
+  without bots too ([ADR 0026](0026-two-seat-tables.md)).
 - Related: [ADR 0010](0010-online-matches.md) (two-player rooms),
   [ADR 0012](0012-online-matches-always-use-turn.md) (TURN), [Multiplayer spec](../specs/multiplayer.md),
   [Phase 5 plan](../plan/phase-5.md)

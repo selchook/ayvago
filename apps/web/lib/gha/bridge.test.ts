@@ -194,6 +194,52 @@ describe('buildStartConfig', () => {
       { name: 'Mert', bot: false },
       { name: 'Bot 2', bot: true },
     ]);
+    // Bigger tables have no single opponent.
+    expect(config.peerName).toBe('');
+    expect(config).not.toHaveProperty('peerCharacter');
+  });
+
+  it('names the opponent at a two-seat table, as in a room (docs/adr/0026)', () => {
+    const base = {
+      theme: 'minimal',
+      colorMode: 'light',
+      tokens: {},
+      locale: 'tr',
+      adsEnabled: false,
+    } as const;
+    const seats = [
+      { name: 'Ayşe', character: 'explorer', bot: false },
+      { name: 'Mert', character: 'soldier', bot: false },
+    ];
+    const settings = { hands: 5, turnSeconds: 30, bots: false } as const;
+    const host = buildStartConfig(base, {
+      isHost: true,
+      peerName: '',
+      table: { index: 0, seats, settings, hostSeat: 0 },
+    });
+    expect(host).toMatchObject({
+      isHost: true,
+      playerIndex: 0,
+      playerCount: 2,
+      peerName: 'Mert',
+      peerCharacter: 'soldier',
+      table: { settings, hostSeat: 0 },
+    });
+    expect(host.seats).toHaveLength(2);
+    const guest = buildStartConfig(base, {
+      isHost: false,
+      peerName: '',
+      table: { index: 1, seats: [seats[0]!, { name: 'Mert', bot: false }], settings, hostSeat: 0 },
+    });
+    expect(guest).toMatchObject({ playerIndex: 1, peerName: 'Ayşe', peerCharacter: 'explorer' });
+    // A seat without a character leaves peerCharacter out.
+    expect(
+      buildStartConfig(base, {
+        isHost: true,
+        peerName: '',
+        table: { index: 0, seats: [seats[0]!, { name: 'Mert', bot: false }] },
+      }),
+    ).not.toHaveProperty('peerCharacter');
   });
 });
 

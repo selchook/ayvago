@@ -2,6 +2,7 @@
 
 import {
   DEFAULT_TABLE_SETTINGS,
+  isDuelTable,
   type Locale,
   type LobbyPresence,
   type TableSettings,
@@ -72,7 +73,7 @@ export type TableViewProps = Omit<GamePlayerProps, 'match' | 'comingSoon'> & {
   /** null: open a new table and move to its address. */
   code: string | null;
   gamePath: string;
-  /** Number of seats (the game's most players). */
+  /** Number of seats (the game's most players; two: a duel without bots, docs/adr/0026). */
   size: number;
 };
 
@@ -114,6 +115,8 @@ export function TableView(props: TableViewProps) {
   const [inviteNotice, setInviteNotice] = useState<'inviteLimit' | 'inviteFailed' | null>(null);
   const outgoing = useOutgoingInvites();
   const tLobby = useTranslations('lobby');
+  // A two-seat table (Tavla): no bots and no hands or turn settings (docs/adr/0026).
+  const duel = isDuelTable(size);
   // "Open a table": the settings chosen before the table exists.
   const [draft, setDraft] = useState<TableSettings>(DEFAULT_TABLE_SETTINGS);
   const [draftVisibility, setDraftVisibility] = useState<TableVisibility>('private');
@@ -584,7 +587,9 @@ export function TableView(props: TableViewProps) {
   const awayNames = away.map((index) => table?.seats[index]?.name).filter(Boolean);
   const seatedHere = view.kind === 'table' && !!table && mySeat >= 0;
   const leaveMode: LeaveMode = playing
-    ? 'game'
+    ? duel
+      ? 'gameDuel'
+      : 'game'
     : isHost
       ? table && seatedUids(table).length > 1
         ? 'host'
@@ -644,7 +649,9 @@ export function TableView(props: TableViewProps) {
       {hostNotice && view.kind === 'table' ? (
         <p className={styles.hostNotice} role="status" data-host-notice={hostNotice.kind}>
           {hostNotice.kind === 'you'
-            ? t('youAreHost')
+            ? duel
+              ? t('duel.youAreHost')
+              : t('youAreHost')
             : t('hostChanged', { name: hostNotice.name })}
         </p>
       ) : null}
@@ -679,6 +686,7 @@ export function TableView(props: TableViewProps) {
             visibility={draftVisibility}
             onVisibility={setDraftVisibility}
             disabled={creating}
+            duel={duel}
           />
           <button
             type="button"
@@ -707,12 +715,18 @@ export function TableView(props: TableViewProps) {
                 aria-hidden="true"
                 style={{ '--countdown': Math.min(1, left / 20) } as React.CSSProperties}
               />
-              <p>{table.settings.bots ? t('countdownBots') : t('countdownNoBots')}</p>
+              <p>
+                {duel
+                  ? t('duel.countdown')
+                  : table.settings.bots
+                    ? t('countdownBots')
+                    : t('countdownNoBots')}
+              </p>
             </div>
           ) : null}
 
           <h2 id="table-heading">{t('inviteTitle')}</h2>
-          <p>{t('inviteBody')}</p>
+          <p>{duel ? t('duel.inviteBody') : t('inviteBody')}</p>
           <div className={styles.inviteRow}>
             <input
               className={styles.inviteInput}
@@ -805,10 +819,16 @@ export function TableView(props: TableViewProps) {
                 }
                 data-start
               >
-                {ready ? t('start') : t('startWithBots')}
+                {ready || duel ? t('start') : t('startWithBots')}
               </button>
               {!ready ? (
-                <p>{table.settings.bots ? t('startHintBots') : t('startHintNoBots')}</p>
+                <p>
+                  {duel
+                    ? t('duel.startHint')
+                    : table.settings.bots
+                      ? t('startHintBots')
+                      : t('startHintNoBots')}
+                </p>
               ) : null}
               <label className={styles.toggle}>
                 <input
@@ -853,7 +873,7 @@ export function TableView(props: TableViewProps) {
         </section>
       ) : null}
 
-      {view.kind === 'table' && table && !playing && !departed ? (
+      {view.kind === 'table' && table && !playing && !departed && !duel ? (
         <section className={styles.card} aria-labelledby="table-settings-heading">
           <h2 id="table-settings-heading">{t('settings.title')}</h2>
           {isHost ? (
@@ -907,8 +927,10 @@ export function TableView(props: TableViewProps) {
                 names: table.seats.map((seat) => seat?.name ?? '').join(' · '),
               })}
             </strong>
-            <TableSettingsSummary settings={table.settings} />
-            {awayNames.length ? <span>{t('peerAway', { name: awayNames.join(', ') })}</span> : null}
+            <TableSettingsSummary settings={table.settings} duel={duel} />
+            {awayNames.length ? (
+              <span>{t(duel ? 'duel.peerAway' : 'peerAway', { name: awayNames.join(', ') })}</span>
+            ) : null}
           </div>
           <GamePlayer {...props} comingSoon={false} match={match} />
         </>

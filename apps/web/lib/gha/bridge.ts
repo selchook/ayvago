@@ -212,14 +212,19 @@ export function buildStartConfig(
 ): StartConfig {
   const { character, best, ...rest } = options;
   const table = match?.table;
+  // At a two-seat table (docs/adr/0026) the other seat is the opponent, as in a room: games
+  // written for rooms read `peerName` and `peerCharacter`.
+  const other = table?.seats.length === 2 ? table.seats[1 - table.index] : undefined;
+  const peerName = match?.peerName || other?.name || '';
+  const peerCharacter = match?.peerCharacter ?? (other && !other.bot ? other.character : null);
   const seat = match
     ? {
         mode: 'multiplayer' as const,
         isHost: match.isHost,
         playerIndex: table ? table.index : match.isHost ? 0 : 1,
         playerCount: table ? table.seats.length : 2,
-        peerName: match.peerName,
-        ...(isCharacterId(match.peerCharacter) ? { peerCharacter: match.peerCharacter } : {}),
+        peerName,
+        ...(isCharacterId(peerCharacter) ? { peerCharacter } : {}),
         ...(table
           ? {
               seats: table.seats.map((s): SeatConfig => ({
