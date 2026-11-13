@@ -16,6 +16,11 @@ export type SeedGame = {
   featured?: boolean;
   // Use the generated placeholder cover even when live (for games that publish no assets).
   generatedCover?: boolean;
+  /**
+   * Online play at tables with a lobby (docs/adr/0015, 0019), even for two seats (Tavla,
+   * docs/adr/0026). Games for more than two players are table games without it.
+   */
+  tables?: boolean;
   manifest: GameManifestInput;
 };
 

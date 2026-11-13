@@ -775,7 +775,8 @@
         "seat": "Your seat becomes free for another player.",
         "host": "Your seat becomes free, and another player at the table becomes the host.",
         "close": "Nobody else is seated, so the table closes.",
-        "game": "A bot will play your seat for the others. Your seat stays yours: you can come back with the table link."
+        "game": "A bot will play your seat for the others. Your seat stays yours: you can come back with the table link.",
+        "gameDuel": "Your opponent wins this game. Your seat stays yours: you can come back with the table link for a rematch."
       },
       "confirm": "Leave",
       "stay": "Stay",
@@ -790,6 +791,13 @@
       "expired": "This table has expired. Tables stay open for two hours.",
       "failed": "The table could not be opened. Check your connection and try again.",
       "unavailable": "Online play is not available right now."
+    },
+    "duel": {
+      "inviteBody": "Send this link to a friend. Whoever opens it first takes the free seat, and then you can start the game.",
+      "startHint": "Your opponent's seat is still empty: invite someone, or wait for a player from the lobby.",
+      "countdown": "The game starts once an opponent sits down.",
+      "youAreHost": "The host left, so you are the host now: you start the game.",
+      "peerAway": "{name} left the table. They can come back with the link for a new game."
     }
   },
   "lobby": {
@@ -860,6 +868,11 @@
       "failed": "The lobby could not be loaded. Check your connection and try again.",
       "tableFailed": "The table could not be opened. Check your connection and try again.",
       "unavailable": "Online play is not available right now."
+    },
+    "duel": {
+      "quickPlayHint": "One tap: sit at an open table, or open one that starts as soon as an opponent sits down.",
+      "nobody": "Nobody else is here yet. Open a table and invite a friend, or wait for an opponent.",
+      "seatsSummary": "{players, plural, one {# player} other {# players}}, {free, plural, one {# free seat} other {# free seats}}"
     }
   },
   "invites": {

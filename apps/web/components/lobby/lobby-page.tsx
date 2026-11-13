@@ -2,11 +2,17 @@ import type { Locale } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { gamePath, gameTitle, getAllGames, getGameBySlug, isTableGame } from '@/lib/catalog';
-import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
+import {
+  gamePath,
+  gameTitle,
+  getAllGames,
+  getGameBySlug,
+  isTableGame,
+  tableSize,
+} from '@/lib/catalog';
 import { LobbyView } from './lobby-view';
 
-// /games/{slug}/lobby for every table game (players.max > 2): docs/adr/0019.
+// /games/{slug}/lobby for every table game (isTableGame): docs/adr/0019, 0026.
 
 function lobbyGame(slug: string) {
   const game = getGameBySlug(slug);
@@ -36,7 +42,7 @@ export function LobbyPage({ locale, slug }: { locale: Locale; slug: string }) {
       slug={game.slug}
       title={gameTitle(game, locale)}
       gamePath={gamePath(game)}
-      size={Math.min(MAX_TABLE_SIZE, game.manifest.players.max)}
+      size={tableSize(game)}
       gameTitles={Object.fromEntries(
         getAllGames().map((other) => [other.manifest.id, gameTitle(other, locale)]),
       )}

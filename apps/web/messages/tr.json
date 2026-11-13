@@ -775,7 +775,8 @@
         "seat": "Koltuğun başka bir oyuncu için boşalır.",
         "host": "Koltuğun boşalır ve masadaki başka bir oyuncu masa sahibi olur.",
         "close": "Masada başka oyuncu olmadığı için masa kapanır.",
-        "game": "Diğerleri için koltuğunu bir bot oynar. Koltuk senin kalır: masa linkiyle geri dönebilirsin."
+        "game": "Diğerleri için koltuğunu bir bot oynar. Koltuk senin kalır: masa linkiyle geri dönebilirsin.",
+        "gameDuel": "Bu oyunu rakibin kazanır. Koltuk senin kalır: rövanş için masa linkiyle geri dönebilirsin."
       },
       "confirm": "Ayrıl",
       "stay": "Kal",
@@ -790,6 +791,13 @@
       "expired": "Bu masanın süresi doldu. Masalar iki saat açık kalır.",
       "failed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
       "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
+    },
+    "duel": {
+      "inviteBody": "Bu linki bir arkadaşına gönder. Linki ilk açan boş koltuğa oturur, sonra oyunu başlatabilirsin.",
+      "startHint": "Rakibinin koltuğu henüz boş: birini davet et ya da lobiden bir oyuncunun gelmesini bekle.",
+      "countdown": "Bir rakip oturunca oyun başlar.",
+      "youAreHost": "Masa sahibi ayrıldı, artık masanın sahibi sensin: oyunu sen başlatırsın.",
+      "peerAway": "{name} masadan ayrıldı. Yeni bir oyun için linkle geri dönebilir."
     }
   },
   "lobby": {
@@ -860,6 +868,11 @@
       "failed": "Lobi yüklenemedi. Bağlantını kontrol edip tekrar dene.",
       "tableFailed": "Masa açılamadı. Bağlantını kontrol edip tekrar dene.",
       "unavailable": "Çevrimiçi oyun şu an kullanılamıyor."
+    },
+    "duel": {
+      "quickPlayHint": "Tek dokunuşla açık bir masaya otur ya da bir rakip oturur oturmaz başlayan yeni bir masa aç.",
+      "nobody": "Henüz burada başka kimse yok. Bir masa açıp bir arkadaşını davet edebilir ya da bir rakibin gelmesini bekleyebilirsin.",
+      "seatsSummary": "{players} oyuncu, {free} boş koltuk"
     }
   },
   "invites": {

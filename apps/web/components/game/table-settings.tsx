@@ -54,7 +54,10 @@ function Choice<T extends string | number | boolean>({
   );
 }
 
-/** The settings as radio groups; `visibility` adds the "who can sit down" choice. */
+/**
+ * The settings as radio groups; `visibility` adds the "who can sit down" choice. A two-seat table
+ * (`duel`, docs/adr/0026) has no hands, turn time or bots: only the visibility is left.
+ */
 export function TableSettingsFields({
   id,
   settings,
@@ -62,6 +65,7 @@ export function TableSettingsFields({
   disabled,
   visibility,
   onVisibility,
+  duel = false,
 }: {
   /** Unique per form on the page (radio group names). */
   id: string;
@@ -70,43 +74,48 @@ export function TableSettingsFields({
   disabled?: boolean;
   visibility?: TableVisibility;
   onVisibility?(visibility: TableVisibility): void;
+  duel?: boolean;
 }) {
   const t = useTranslations('table.settings');
   return (
     <div className={styles.fields}>
-      <Choice
-        name={`${id}-hands`}
-        legend={t('hands')}
-        value={settings.hands}
-        disabled={disabled}
-        options={TABLE_HANDS.map((hands) => ({
-          value: hands,
-          label: t('handsValue', { count: hands }),
-        }))}
-        onChange={(hands) => onChange({ ...settings, hands })}
-      />
-      <Choice
-        name={`${id}-turn`}
-        legend={t('turn')}
-        value={settings.turnSeconds}
-        disabled={disabled}
-        options={TABLE_TURN_SECONDS.map((seconds) => ({
-          value: seconds,
-          label: t(TURN_KEY[seconds]),
-        }))}
-        onChange={(turnSeconds) => onChange({ ...settings, turnSeconds })}
-      />
-      <Choice
-        name={`${id}-bots`}
-        legend={t('bots')}
-        value={settings.bots}
-        disabled={disabled}
-        options={[
-          { value: true, label: t('botsOn') },
-          { value: false, label: t('botsOff') },
-        ]}
-        onChange={(bots) => onChange({ ...settings, bots })}
-      />
+      {duel ? null : (
+        <>
+          <Choice
+            name={`${id}-hands`}
+            legend={t('hands')}
+            value={settings.hands}
+            disabled={disabled}
+            options={TABLE_HANDS.map((hands) => ({
+              value: hands,
+              label: t('handsValue', { count: hands }),
+            }))}
+            onChange={(hands) => onChange({ ...settings, hands })}
+          />
+          <Choice
+            name={`${id}-turn`}
+            legend={t('turn')}
+            value={settings.turnSeconds}
+            disabled={disabled}
+            options={TABLE_TURN_SECONDS.map((seconds) => ({
+              value: seconds,
+              label: t(TURN_KEY[seconds]),
+            }))}
+            onChange={(turnSeconds) => onChange({ ...settings, turnSeconds })}
+          />
+          <Choice
+            name={`${id}-bots`}
+            legend={t('bots')}
+            value={settings.bots}
+            disabled={disabled}
+            options={[
+              { value: true, label: t('botsOn') },
+              { value: false, label: t('botsOff') },
+            ]}
+            onChange={(bots) => onChange({ ...settings, bots })}
+          />
+        </>
+      )}
       {visibility && onVisibility ? (
         <Choice<TableVisibility>
           name={`${id}-visibility`}
@@ -128,16 +137,24 @@ export function TableSettingsFields({
 export function TableSettingsSummary({
   settings,
   autoStart = false,
+  duel = false,
 }: {
   settings: TableSettings;
   autoStart?: boolean;
+  /** A two-seat table shows only the auto start (docs/adr/0026). */
+  duel?: boolean;
 }) {
   const t = useTranslations('table.settings');
+  if (duel && !autoStart) return null;
   return (
     <ul className={styles.summary} aria-label={t('title')}>
-      <li>{t('handsValue', { count: settings.hands })}</li>
-      <li>{t('summaryTurn', { seconds: settings.turnSeconds })}</li>
-      <li>{settings.bots ? t('summaryBots') : t('summaryNoBots')}</li>
+      {duel ? null : (
+        <>
+          <li>{t('handsValue', { count: settings.hands })}</li>
+          <li>{t('summaryTurn', { seconds: settings.turnSeconds })}</li>
+          <li>{settings.bots ? t('summaryBots') : t('summaryNoBots')}</li>
+        </>
+      )}
       {autoStart ? <li data-tone="accent">{t('summaryAutoStart')}</li> : null}
     </ul>
   );

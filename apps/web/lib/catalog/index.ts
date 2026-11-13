@@ -15,6 +15,7 @@ import {
   type Locale,
   type SeedGame,
 } from '@ayvago/shared';
+import { MAX_TABLE_SIZE, MIN_TABLE_SIZE } from '../netcode/table-data';
 
 // Catalog access layer. Pages only talk to these functions, so the seed data can be swapped
 // for Firestore reads later without touching any page.
@@ -27,6 +28,8 @@ export type CatalogGame = {
   featured: boolean;
   manifest: GameManifest;
   multiplayer: boolean;
+  /** Online play at tables with a lobby (more than two players, or flagged like Tavla). */
+  tables: boolean;
   // Absolute URL of the game's own cover image; null shows the generated placeholder.
   coverUrl: string | null;
   // Absolute URL of an in-game screenshot (Arcade theme tiles); null falls back to the cover.
@@ -76,6 +79,8 @@ function toCatalogGame(seed: SeedGame): CatalogGame {
     featured: seed.featured ?? false,
     manifest: parsed.manifest,
     multiplayer: parsed.manifest.players.max > 1,
+    tables:
+      parsed.manifest.players.max > 1 && (seed.tables === true || parsed.manifest.players.max > 2),
     // Coming-soon games are not deployed with their assets yet, so their asset URLs would 404.
     ...resolveGameArt(parsed.manifest, ownAssets),
   };
@@ -157,11 +162,18 @@ export function getMultiplayerGames(): CatalogGame[] {
 }
 
 /**
- * Games for more than two players are played at a table (up to four seats, bots fill the rest;
- * docs/adr/0015-tables-for-four-with-bots.md); two-player games use a room.
+ * Table games are played at tables with a lobby, quick play and invites (up to four seats, bots
+ * fill the rest; docs/adr/0015, 0019): every game for more than two players, and two-player
+ * games the studio flags (`tables: true`, Tavla: a two-seat table without bots, docs/adr/0026).
+ * Other two-player games use a room.
  */
-export function isTableGame(game: CatalogGame): boolean {
-  return game.manifest.players.max > 2;
+export function isTableGame(game: Pick<CatalogGame, 'tables'>): boolean {
+  return game.tables;
+}
+
+/** Seats per table of a table game: the game's most players, two to four. */
+export function tableSize(game: Pick<CatalogGame, 'manifest'>): number {
+  return Math.max(MIN_TABLE_SIZE, Math.min(MAX_TABLE_SIZE, game.manifest.players.max));
 }
 
 export function getTableGames(): CatalogGame[] {

@@ -3,6 +3,7 @@
 import {
   DEFAULT_TABLE_SETTINGS,
   LOBBY_TABLE_TTL_MS,
+  isDuelTable,
   type Locale,
   type LobbyPresence,
   type LobbyTable,
@@ -56,7 +57,7 @@ export type LobbyViewProps = {
   slug: string;
   title: string;
   gamePath: string;
-  /** Seats per table (the game's most players). */
+  /** Seats per table (the game's most players; two: a duel without bots, docs/adr/0026). */
   size: number;
   /** Every game's title by manifest id: what recent players play now (docs/adr/0021). */
   gameTitles: Record<string, string>;
@@ -77,6 +78,8 @@ export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: L
   const router = useRouter();
   const account = useAccount();
   const outgoing = useOutgoingInvites();
+  // A two-seat table (Tavla): no bots and no hands or turn settings (docs/adr/0026).
+  const duel = isDuelTable(size);
 
   const [error, setError] = useState<LobbyError | null>(() =>
     firebaseEnabled() ? null : 'unavailable',
@@ -274,7 +277,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: L
         <section className={styles.quick} aria-labelledby="lobby-quick">
           <div className={styles.quickText}>
             <h2 id="lobby-quick">{t('quickPlay')}</h2>
-            <p>{t('quickPlayHint')}</p>
+            <p>{duel ? t('duel.quickPlayHint') : t('quickPlayHint')}</p>
           </div>
           <div className={styles.quickAction}>
             <QuickPlayButton
@@ -333,6 +336,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: L
                   visibility={draftVisibility}
                   onVisibility={setDraftVisibility}
                   disabled={busy !== null}
+                  duel={duel}
                 />
                 <div className={styles.setupActions}>
                   <button
@@ -365,6 +369,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: L
                     mine={table.code === myCode}
                     gamePath={gamePath}
                     now={serverNow()}
+                    duel={duel}
                   />
                 ))}
               </ul>
@@ -396,7 +401,7 @@ export function LobbyView({ gameId, slug, title, gamePath, size, gameTitles }: L
                 onInvite={(player) => onInvite(player.uid)}
               />
               {!sortedPlayers.some((player) => player.uid !== uid) ? (
-                <p className={styles.empty}>{t('nobody')}</p>
+                <p className={styles.empty}>{duel ? t('duel.nobody') : t('nobody')}</p>
               ) : !myTableOpen ? (
                 <p className={styles.hint}>{t('inviteHint')}</p>
               ) : null}
@@ -426,11 +431,14 @@ function TableRow({
   mine,
   gamePath,
   now,
+  duel,
 }: {
   table: LobbyTable;
   mine: boolean;
   gamePath: string;
   now: number;
+  /** Two seats, no bots (docs/adr/0026). */
+  duel: boolean;
 }) {
   const t = useTranslations('lobby');
   const free = freeSeatCount(table);
@@ -466,11 +474,13 @@ function TableRow({
           ))}
         </span>
         <span className="visually-hidden">
-          {t('seatsSummary', {
-            players: playerCount(table),
-            bots: botCount(table),
-            free,
-          })}
+          {duel
+            ? t('duel.seatsSummary', { players: playerCount(table), free })
+            : t('seatsSummary', {
+                players: playerCount(table),
+                bots: botCount(table),
+                free,
+              })}
         </span>
         <span className={styles.statusTag} data-status={status}>
           {status === 'open' ? t('freeSeats', { count: free }) : t(`status.${status}`)}
@@ -480,6 +490,7 @@ function TableRow({
         <TableSettingsSummary
           settings={table.settings}
           autoStart={table.autoStart && table.status === 'open'}
+          duel={duel}
         />
       </span>
       <span className={styles.tableAction}>

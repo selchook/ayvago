@@ -30,6 +30,23 @@ export const HOST_HANDOVER_MS = 15_000;
 /** Each further player in line waits this much longer, in case the first one is stuck. */
 export const HOST_HANDOVER_STEP_MS = 5_000;
 
+/**
+ * A two-seat table (Tavla; docs/adr/0026-two-seat-tables.md) is a duel: no bots, because a bot
+ * opponent is the game's own solo mode, and no hands or turn time, because the match rules are
+ * the game's own. Only the visibility and the auto start remain.
+ */
+export function isDuelTable(size: number): boolean {
+  return size <= 2;
+}
+
+/** The settings a new table of `size` seats stores: a duel never allows bots. */
+export function tableSettingsFor(
+  size: number,
+  settings: TableSettings = DEFAULT_TABLE_SETTINGS,
+): TableSettings {
+  return isDuelTable(size) ? { ...settings, bots: false } : settings;
+}
+
 export function isTableHands(value: unknown): value is TableHands {
   return TABLE_HANDS.includes(value as TableHands);
 }

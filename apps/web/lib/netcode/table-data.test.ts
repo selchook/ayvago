@@ -154,6 +154,41 @@ describe('settings and auto start (slice 5.19)', () => {
   });
 });
 
+describe('two-seat tables (docs/adr/0026)', () => {
+  const DUEL = {
+    gameId: 'backgammon',
+    slug: 'backgammon',
+    hostUid: 'host',
+    size: 2,
+    status: 'open',
+    createdAt: 1000,
+    // Stored with bots on (an old or forged write): a duel reads them off all the same.
+    settings: { hands: 5, turnSeconds: 30, bots: true },
+    seats: { 0: { uid: 'host', name: 'Ayşe' } },
+  };
+
+  it('reads two seats and never bots', () => {
+    const table = toTable('ABC234', DUEL)!;
+    expect(table.seats).toHaveLength(2);
+    expect(table.settings.bots).toBe(false);
+    expect(freeSeat(table)).toBe(1);
+  });
+
+  it('starts only once the opponent sits down', () => {
+    const waiting = toTable('ABC234', DUEL)!;
+    expect(canStart(waiting)).toBe(false);
+    expect(planStart(waiting, null)).toEqual({ kind: 'notReady' });
+    const full = toTable('ABC234', {
+      ...DUEL,
+      seats: { ...DUEL.seats, 1: { uid: 'guest', name: 'Mert' } },
+    })!;
+    expect(tableReady(full)).toBe(true);
+    expect(canStart(full)).toBe(true);
+    expect(planStart(full, new Set(['host', 'guest']))).toEqual({ kind: 'start', bots: [] });
+    expect(planStart(full, new Set(['host']))).toEqual({ kind: 'newPlayer' });
+  });
+});
+
 describe('host hand-over (slice 5.19)', () => {
   const seats = {
     0: { uid: 'host', name: 'Ayşe' },

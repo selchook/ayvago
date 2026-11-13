@@ -3,8 +3,7 @@ import { catalogCategories, pickLocalized } from '@ayvago/shared';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ProfileView, type ProfileGame } from '@/components/account/profile-view';
-import { gameTitle, getAllGames, isTableGame } from '@/lib/catalog';
-import { MAX_TABLE_SIZE } from '@/lib/netcode/table-data';
+import { gameTitle, getAllGames, isTableGame, tableSize } from '@/lib/catalog';
 
 type Props = { params: Promise<{ locale: Locale }> };
 
@@ -28,9 +27,7 @@ export default async function ProfilePage({ params }: Props) {
     scoreLabel: pickLocalized(game.manifest.scoring.label, locale),
     // Recent players are invited to live table games only (docs/adr/0021).
     tableSize:
-      game.multiplayer && isTableGame(game) && game.status === 'live'
-        ? Math.min(MAX_TABLE_SIZE, game.manifest.players.max)
-        : null,
+      game.multiplayer && isTableGame(game) && game.status === 'live' ? tableSize(game) : null,
   }));
   // All-rounder asks for one game in every category the catalog uses.
   const categories = catalogCategories(
