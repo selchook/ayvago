@@ -1,8 +1,10 @@
-import type { DocumentSnapshot } from 'firebase-admin/firestore';
+import { Timestamp, type DocumentSnapshot } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { HttpsError, type CallableRequest } from 'firebase-functions/v2/https';
 import {
   buildPlayReport,
+  STATS_SINCE,
+  STATS_SINCE_MS,
   type DailyInput,
   type PlayReport,
   type ProfileInput,
@@ -11,13 +13,13 @@ import {
 import { auth, db } from './admin';
 import { requireAdmin } from './roles';
 
-// "Players and plays" report for the admin panel (Phase 5 slices 5.16 and 5.22), computed on
-// demand.
+// "Players and plays" report for the admin panel (Phase 5 slices 5.16, 5.22 and 5.28), computed on
+// demand. Every number covers STATS_SINCE onward (slice 5.28).
 //
 // Reads (one run), with P = players with stats, R = registered (non-guest) profiles,
 // S = stats documents, D = daily documents (games × days played):
-//   users where isGuest == true, count()        1 read per 1000 guest profiles
-//   users where isGuest == false, two fields    R reads
+//   users where createdAt >= STATS_SINCE, count()  1 read per 1000 new profiles
+//   users where isGuest == false, three fields  R reads
 //   collectionGroup('stats')                    S reads
 //   getAll of the other players' profiles       P − (players among R) reads
 //   collectionGroup('daily')                    D reads
@@ -25,6 +27,8 @@ import { requireAdmin } from './roles';
 // With a few hundred players this is a few thousand reads, well under a cent per run.
 
 const PROFILE_FIELDS = ['username', 'isGuest'];
+/** Registered profiles also bring their creation time, to count the new ones. */
+const REGISTERED_FIELDS = [...PROFILE_FIELDS, 'createdAt'];
 const GET_ALL_CHUNK = 300;
 const AUTH_CHUNK = 100;
 
@@ -59,7 +63,10 @@ async function readStats(): Promise<StatsInput[]> {
   return out;
 }
 
-/** games/{gameId}/daily/{day} documents. */
+/**
+ * games/{gameId}/daily/{day} documents. The days before STATS_SINCE are read too (a collection
+ * group cannot filter on the document id alone) and left out by buildPlayReport.
+ */
 async function readDaily(): Promise<DailyInput[]> {
   const snapshot = await db().collectionGroup('daily').get();
   const out: DailyInput[] = [];
@@ -96,11 +103,14 @@ async function googleUids(uids: string[]): Promise<Set<string>> {
 
 export async function playReport(now = Date.now()): Promise<PlayReport> {
   const users = db().collection('users');
-  const [guestCount, registeredDocs, stats, daily] = await Promise.all([
-    users.where('isGuest', '==', true).count().get(),
+  const since = Timestamp.fromMillis(STATS_SINCE_MS);
+  // New profiles of every kind with one single-field range (no composite index); the guests among
+  // them are the ones that are not registered.
+  const [newCount, registeredDocs, stats, daily] = await Promise.all([
+    users.where('createdAt', '>=', since).count().get(),
     users
       .where('isGuest', '==', false)
-      .select(...PROFILE_FIELDS)
+      .select(...REGISTERED_FIELDS)
       .get(),
     readStats(),
     readDaily(),
@@ -109,11 +119,11 @@ export async function playReport(now = Date.now()): Promise<PlayReport> {
   const registered = registeredDocs.docs.map((doc) => doc.id);
   const google = await googleUids(registered);
   const profiles = new Map<string, ProfileInput>();
+  const newProfiles = { google: 0, registered: 0 };
   for (const doc of registeredDocs.docs) {
-    profiles.set(doc.id, {
-      username: username(doc),
-      kind: google.has(doc.id) ? 'google' : 'registered',
-    });
+    const kind = google.has(doc.id) ? 'google' : 'registered';
+    profiles.set(doc.id, { username: username(doc), kind });
+    if ((millis(doc.get('createdAt')) ?? -Infinity) >= STATS_SINCE_MS) newProfiles[kind] += 1;
   }
 
   // The remaining players are guests, or have no profile any more ("unknown").
@@ -136,12 +146,12 @@ export async function playReport(now = Date.now()): Promise<PlayReport> {
     daily,
     profiles,
     profileTotals: {
-      google: google.size,
-      registered: registered.length - google.size,
-      guest: guestCount.data().count,
+      ...newProfiles,
+      guest: Math.max(0, newCount.data().count - newProfiles.google - newProfiles.registered),
     },
   });
   logger.info('Play report built', {
+    since: STATS_SINCE,
     statsDocs: stats.length,
     dailyDocs: daily.length,
     registeredProfiles: registered.length,

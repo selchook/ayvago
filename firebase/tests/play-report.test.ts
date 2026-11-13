@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
-import type { PlayReport } from '../../packages/shared/src/play-report';
+import { STATS_SINCE, type PlayReport } from '../../packages/shared/src/play-report';
 import { auth } from '../functions/src/admin';
 import {
   admin,
@@ -20,9 +20,9 @@ useEmulators();
 const at = (iso: string) => Timestamp.fromMillis(Date.parse(iso));
 
 /** A player who signed up with e-mail and password (not Google). */
-async function mailPlayer(username: string) {
+async function mailPlayer(username: string, profile: Record<string, unknown> = {}) {
   const user = await auth().createUser({ email: `${username}@example.com`, password: 'secret12' });
-  await seedProfile(user.uid, { isGuest: false, username });
+  await seedProfile(user.uid, { isGuest: false, username, ...profile });
   return user.uid;
 }
 
@@ -57,11 +57,25 @@ describe('getPlayReport', () => {
       playSeconds: 60,
       lastPlayedAt: at('2026-11-08T11:00:00Z'),
     });
-    // all-time counters from before the fresh start, and documents that are not play stats
+    // daily counters before and from STATS_SINCE, and documents that are not play stats
     await write('games/snake/daily/2026-10-20', { started: 9, finished: 7, playSeconds: 500 });
-    await write('games/snake/daily/2026-10-21', { started: 1, finished: 1, playSeconds: 30 });
+    await write('games/snake/daily/2026-11-06', { started: 1, finished: 1, playSeconds: 30 });
+    await write(`games/snake/daily/${STATS_SINCE}`, { started: 3, finished: 2, playSeconds: 90 });
+    await write('games/orbsurge/daily/2026-10-22', { started: 5, finished: 5, playSeconds: 99 });
     await write('games/snake/stats/total', { plays: 999 });
     await write('rankings/catalog/daily/2026-10-20', { finished: 999 });
+    // before STATS_SINCE: profiles created then, and stats the reset missed
+    await mailPlayer('Old', { createdAt: at('2026-10-01T10:00:00Z') });
+    await write('users/oldguest12345', {
+      username: 'OldOwl1000',
+      isGuest: true,
+      createdAt: at('2026-10-02T10:00:00Z'),
+    });
+    await write(`users/${bora}/stats/orbsurge`, {
+      plays: 30,
+      playSeconds: 900,
+      lastPlayedAt: at('2026-11-06T23:59:59Z'),
+    });
 
     const report = await boss.call<PlayReport>('getPlayReport', {});
 
@@ -70,6 +84,7 @@ describe('getPlayReport', () => {
       expect.toSatisfy((v: number) => v >= seconds && v <= seconds + 3);
     // runs through startSession count their starts (slice 5.22); seeded documents have none
     const none = { onlinePlays: 0, abandonedSeconds: 0 };
+    // profiles count from STATS_SINCE on: Old and OldOwl1000 are left out
     expect(report.summary).toEqual({
       google: {
         profiles: 2,
@@ -108,19 +123,23 @@ describe('getPlayReport', () => {
         ...none,
       },
     });
-    expect(report.allTimeSince).toBe('2026-10-20');
+    expect(report.statsSince).toBe(STATS_SINCE);
+    expect(report).not.toHaveProperty('allTimeSince');
 
+    // only the days from STATS_SINCE on; orbsurge, played before then only, has no row
+    expect(report.games.map((g) => g.gameId).sort()).toEqual([FIXTURE, 'snake']);
     const snake = report.games.find((g) => g.gameId === 'snake')!;
-    expect(snake).toMatchObject({
-      allTime: { started: 10, finished: 8, playSeconds: 530 },
-      plays: 6,
+    expect(snake).toEqual({
+      gameId: 'snake',
+      window: { started: 3, finished: 2, playSeconds: 90, abandonedSeconds: 0, onlineStarted: 0 },
+      playsByKind: { google: 0, registered: 4, guest: 0, unknown: 2 },
       playersByKind: { google: 0, registered: 1, guest: 0, unknown: 1 },
     });
     const fixture = report.games.find((g) => g.gameId === FIXTURE)!;
-    expect(fixture.allTime.started).toBe(3);
-    expect(fixture.allTime.finished).toBe(3);
+    // today's real runs
+    expect(fixture.window.started).toBe(3);
+    expect(fixture.window.finished).toBe(3);
     expect(fixture).toMatchObject({
-      plays: 3,
       playsByKind: { google: 2, registered: 0, guest: 1, unknown: 0 },
       playersByKind: { google: 1, registered: 0, guest: 1, unknown: 0 },
     });
@@ -132,6 +151,8 @@ describe('getPlayReport', () => {
       [null, 'unknown', 2],
       ['PixelFox4821', 'guest', 1],
     ]);
+    // Bora's orbsurge stats were last played before STATS_SINCE
+    expect(report.players[0]!.games.map((g) => g.gameId)).toEqual(['snake']);
     expect(report.players[1]!.games).toEqual([
       {
         gameId: FIXTURE,
@@ -155,7 +176,6 @@ describe('getPlayReport', () => {
     const report = await boss.call<PlayReport>('getPlayReport', {});
     expect(report.players).toEqual([]);
     expect(report.games).toEqual([]);
-    expect(report.allTimeSince).toBeNull();
     expect(report.summary.google.profiles).toBe(1);
   });
 });

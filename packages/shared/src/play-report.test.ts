@@ -4,6 +4,7 @@ import {
   countOf,
   EXTENDED_STATS_SINCE,
   STATS_SINCE,
+  STATS_SINCE_MS,
   type DailyInput,
   type ProfileInput,
   type StatsInput,
@@ -60,8 +61,11 @@ const stats: StatsInput[] = [
 ];
 
 const daily: DailyInput[] = [
+  // days before STATS_SINCE are not in the report
   { gameId: 'snake', day: '2026-10-20', started: 10, finished: 8, playSeconds: 600 },
-  { gameId: 'snake', day: '2026-11-08', started: 12, finished: 9, playSeconds: 430 },
+  { gameId: 'snake', day: '2026-11-06', started: 50, finished: 40, playSeconds: 900 },
+  { gameId: 'snake', day: '2026-11-07', started: 2, finished: 1, playSeconds: 30 },
+  { gameId: 'snake', day: '2026-11-08', started: 10, finished: 8, playSeconds: 400 },
   { gameId: 'tetrix', day: '2026-10-25', started: 30, finished: 25, playSeconds: 2000 },
   // a game played before the fresh start only
   { gameId: 'orbsurge', day: '2026-10-22', started: 2, finished: 1, playSeconds: 30 },
@@ -77,13 +81,17 @@ const report = () =>
   });
 
 describe('buildPlayReport', () => {
-  it('labels the time ranges', () => {
+  it('labels its one window and the later columns', () => {
     const r = report();
     expect(r.generatedAt).toBe(NOW);
+    expect(STATS_SINCE).toBe('2026-11-07');
+    expect(STATS_SINCE_MS).toBe(Date.parse('2026-11-07T00:00:00Z'));
     expect(r.statsSince).toBe(STATS_SINCE);
     expect(r.extendedSince).toBe(EXTENDED_STATS_SINCE);
     expect(EXTENDED_STATS_SINCE >= STATS_SINCE).toBe(true);
-    expect(r.allTimeSince).toBe('2026-10-20');
+    // no all-time numbers any more (slice 5.28)
+    expect(r).not.toHaveProperty('allTimeSince');
+    for (const game of r.games) expect(game).not.toHaveProperty('allTime');
   });
 
   it('sums players, plays and play time per kind', () => {
@@ -104,35 +112,66 @@ describe('buildPlayReport', () => {
     });
   });
 
-  it('adds all-time daily totals and recent plays per game', () => {
+  it('counts only the days from STATS_SINCE on per game', () => {
     const r = report();
-    expect(r.games.map((g) => g.gameId)).toEqual(['tetrix', 'snake', 'orbsurge']);
-    expect(r.games[1]).toEqual({
+    // orbsurge was only played before STATS_SINCE: no row; tetrix has plays but no counted days
+    expect(r.games.map((g) => g.gameId)).toEqual(['snake', 'tetrix']);
+    expect(r.games[0]).toEqual({
       gameId: 'snake',
-      allTime: {
-        started: 22,
-        finished: 17,
-        playSeconds: 1030,
-        abandonedSeconds: 0,
-        onlineStarted: 0,
-      },
-      // only the days from STATS_SINCE on
+      // 7 and 8 November; 6 November and October are left out
       window: { started: 12, finished: 9, playSeconds: 430, abandonedSeconds: 0, onlineStarted: 0 },
-      plays: 9,
-      playSeconds: 430,
       playsByKind: { google: 5, registered: 1, guest: 3, unknown: 0 },
       playersByKind: { google: 1, registered: 1, guest: 1, unknown: 0 },
     });
-    expect(r.games[0]).toMatchObject({
-      plays: 9,
+    expect(r.games[1]).toEqual({
+      gameId: 'tetrix',
+      window: { started: 0, finished: 0, playSeconds: 0, abandonedSeconds: 0, onlineStarted: 0 },
+      playsByKind: { google: 2, registered: 0, guest: 3, unknown: 4 },
       playersByKind: { google: 1, registered: 0, guest: 1, unknown: 1 },
     });
-    expect(r.games[2]).toMatchObject({
-      allTime: { started: 2, finished: 1, playSeconds: 30 },
-      window: { started: 0, finished: 0, playSeconds: 0 },
-      plays: 0,
-      playersByKind: { google: 0, registered: 0, guest: 0, unknown: 0 },
+  });
+
+  it('skips stats last played before STATS_SINCE', () => {
+    const r = buildPlayReport({
+      now: NOW,
+      stats: [
+        ...stats,
+        // leftovers the reset missed: one player entirely, one game of a counted player
+        {
+          uid: 'uid-old-OOOOO',
+          gameId: 'snake',
+          plays: 40,
+          playSeconds: 4000,
+          lastPlayedAt: STATS_SINCE_MS - 1,
+        },
+        {
+          uid: 'uid-mail-BBBBB',
+          gameId: 'orbsurge',
+          plays: 9,
+          playSeconds: 900,
+          lastPlayedAt: at('2026-11-01T10:00:00Z'),
+        },
+        // the first moment of STATS_SINCE counts
+        {
+          uid: 'uid-mail-BBBBB',
+          gameId: 'tetrix',
+          plays: 1,
+          playSeconds: 10,
+          lastPlayedAt: STATS_SINCE_MS,
+        },
+      ],
+      daily,
+      profiles,
+      profileTotals: { google: 3, registered: 1, guest: 7 },
     });
+    expect(r.players.map((p) => p.tag)).not.toContain('OOOOO');
+    expect(r.playerCount).toBe(5);
+    const bora = r.players.find((p) => p.tag === 'BBBBB')!;
+    expect(bora.games.map((g) => g.gameId)).toEqual(['snake', 'tetrix']);
+    expect(bora).toMatchObject({ plays: 2, playSeconds: 50 });
+    expect(r.games.map((g) => g.gameId)).toEqual(['snake', 'tetrix']);
+    expect(r.games[0]!.playsByKind).toEqual({ google: 5, registered: 1, guest: 3, unknown: 0 });
+    expect(r.summary.unknown).toMatchObject({ players: 1, plays: 4 });
   });
 
   it('lists players by plays with their games, never the whole uid', () => {
@@ -181,7 +220,6 @@ describe('buildPlayReport', () => {
     expect(r.truncated).toBe(3);
     // the summary still counts everyone
     expect(r.summary.guest.players).toBe(2);
-    expect(r.allTimeSince).toBeNull();
   });
 
   it('counts starts, online matches and abandoned time (slice 5.22)', () => {
@@ -280,7 +318,6 @@ describe('buildPlayReport', () => {
 
     const okey = r.games.find((g) => g.gameId === 'okey')!;
     expect(okey.window).toMatchObject({ onlineStarted: 3, started: 0 });
-    expect(okey.allTime.onlineStarted).toBe(3);
     expect(okey.playersByKind.registered).toBe(1);
     expect(r.games.find((g) => g.gameId === 'tetrix')!.window).toEqual({
       started: 4,
