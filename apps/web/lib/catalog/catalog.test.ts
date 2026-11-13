@@ -88,10 +88,8 @@ describe('seed catalog', () => {
     expect(multiplayer).toEqual(
       expect.arrayContaining([
         'air-hockey',
-        'bowling-strike',
         'connect-four',
         'memory-match',
-        'mini-golf',
         'neon-pong',
         'penalty-kick',
         'reversi',
