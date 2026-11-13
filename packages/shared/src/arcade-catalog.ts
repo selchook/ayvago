@@ -598,14 +598,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'kickflip-park',
     title: { en: 'Kickflip Park', tr: 'Kaykay Parkı' },
     description: {
-      en: "A 3D skateboarding trick game! Roam a skate park in two-minute sessions: ollie, flip kickflips, heelflips and shove-its in the air, grab the board, spin 180s to 540s, grind rails and ledges and link it all with manuals. A combo scores its tricks' points times the number of tricks, but only if you land clean. Fill the special meter to unlock flashy specials like the Comet Twist. Three parks: a schoolyard plaza, a wooden yard with a half-pipe and a skyline of rooftops. Beat score tiers, land big combos, find the lost mixtapes and clear the gaps; goals open new parks, board decks and wheel colours.",
-      tr: "Bir 3D kaykay hareketi oyunu! İki dakikalık seanslarda parkı istediğin gibi gez: ollie yap, havada kickflip, heelflip ve shove-it çevir, tahtayı tut, 180'den 540'a dön, raylarda ve banklarda grind yap, manuelle hareketleri birbirine bağla. Kombo puanı, hareket puanlarının toplamı çarpı hareket sayısıdır; ama sadece temiz inersen sayılır. Özel çubuğu dolunca Kuyruklu Yıldız gibi gösterişli özel hareketler açılır. Üç park: okul meydanı, ahşap U-rampalı avlu ve şehrin çatıları. Puan barajlarını aş, büyük kombolar indir, kayıp kasetleri bul, boşlukları atla; hedefler yeni parkları, kaykay tahtalarını ve teker renklerini açar.",
+      en: "A 3D skateboarding trick game! Roam a skate park in two-minute sessions: ollie, flip kickflips, heelflips and shove-its in the air, grab the board, spin 180s to 540s, grind rails and ledges and link it all with manuals. A combo scores its tricks' points times the number of tricks, but only if you land clean. Fill the special meter to unlock flashy specials like the Comet Twist. Three parks: a schoolyard plaza, a wooden yard with a half-pipe and a skyline of rooftops. Perfect landings grow a combo, sketchy ones shrink it. Beat score tiers, land big combos, find the lost mixtapes and clear the gaps; goals and best scores open new parks and 19 boards.",
+      tr: "Bir 3D kaykay hareketi oyunu! İki dakikalık seanslarda parkı istediğin gibi gez: ollie yap, havada kickflip, heelflip ve shove-it çevir, tahtayı tut, 180'den 540'a dön, raylarda ve banklarda grind yap, manuelle hareketleri birbirine bağla. Kombo puanı, hareket puanlarının toplamı çarpı hareket sayısıdır; ama sadece temiz inersen sayılır. Özel çubuğu dolunca Kuyruklu Yıldız gibi gösterişli özel hareketler açılır. Üç park: okul meydanı, ahşap U-rampalı avlu ve şehrin çatıları. Mükemmel inişler komboyu büyütür, sallantılı inişler küçültür. Puan barajlarını aş, büyük kombolar indir, kayıp kasetleri bul, boşlukları atla; hedefler ve rekorlar yeni parkları ve 19 kaykayı açar.",
     },
     category: 'sports',
     categories: ['sports', 'action'],
     tags: ['kickflip', 'park', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-11-13',
   }),
   arcadeGame({
@@ -1177,6 +1178,20 @@ export const ARCADE_GAMES: SeedGame[] = [
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
     addedAt: '2026-11-12',
+  }),
+  arcadeGame({
+    slug: 'snow-express',
+    title: { en: 'Snow Express', tr: 'Kar Ekspresi' },
+    description: {
+      en: "A cozy 3D rail-switching puzzle in a snowy mountain village! Trains roll out of the tunnel with coloured presents; tap the switches to send every train to the cabin of its colour. A good delivery lights up the cabin's windows and pops the presents inside; a wrong stop costs a heart, and two trains colliding ends it all. The Journey takes you through 24 levels across the Snowy Village, the Frozen Lake and the Mountain Pass: tunnels, crossings, signals, passing loops, express trains, overpasses and a snowplow that clears the drifts. In Holiday Rush the trains keep speeding up as evening falls and the lights come on; chain deliveries to multiply your score. Hot Cocoa slows time and the Snow Globe freezes every train.",
+      tr: "Karlı bir dağ köyünde 3D bir demiryolu makas bulmacası! Trenler tünelden renkli hediyelerle çıkar; makaslara dokunarak her treni kendi rengindeki kulübeye gönder. Doğru teslimat kulübenin pencerelerini yakar ve hediyeleri içeri uçurur; yanlış durak bir can götürür, iki treni çarpıştırmak ise her şeyi bitirir. Yolculuk modunda Karlı Köy, Donmuş Göl ve Dağ Geçidi'nden geçen 24 seviye seni bekliyor: tüneller, kesişen raylar, sinyaller, bekleme döngüleri, ekspres trenler, üst geçitler ve yolu açan kar küreme treni. Yılbaşı Telaşı'nda trenler durmadan hızlanır, akşam çöker, ışıklar yanar; kombo yaparak puanını katla. Sıcak Kakao zamanı yavaşlatır, Kar Küresi trenleri dondurur.",
+    },
+    category: 'puzzle',
+    categories: ['puzzle', 'casual'],
+    tags: ['snow', 'express', 'retro'],
+    orientation: 'portrait',
+    input: ['touch', 'keyboard', 'mouse'],
+    addedAt: '2026-11-13',
   }),
   arcadeGame({
     slug: 'sokoban',
