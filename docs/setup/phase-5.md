@@ -381,6 +381,20 @@ the web app, and the usual **"Deploy Cloud Functions"** workflow publishes the u
   3. On a computer, the slogan next to the logo shows a quote with its author (for example
      "Pratik her şeydir. — Periandros") after every two slogans.
 
+## 5.28 One window in the play report
+Nothing to set up by hand: no secrets, env vars, rules, indexes or studio changes. Merging deploys
+the web app, and the usual **"Deploy Cloud Functions"** workflow publishes the updated
+`getPlayReport` (same callable, no new function, no IAM change). The new-profile count uses the
+automatic single-field index on `users.createdAt`, so no index is added.
+
+- Until the functions deploy has run, the report keeps working: the page shows the new layout with
+  the old function's numbers (the profile column still counts every profile).
+- ⏳ **Optional check after the deploy:** in **Yönetim paneli → Oyuncular ve oynanma**, run the
+  report. Above the tables a small line reads "7 Kasım 2026 tarihinden itibaren listelenmiştir.
+  * 10 Kasım 2026 tarihinden itibaren sayılır."; there are no "Tüm zamanlar" columns, and the
+  downloaded files are named `ayvago-games-from-2026-11-07-….csv` and
+  `ayvago-players-from-2026-11-07-….csv`.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,
