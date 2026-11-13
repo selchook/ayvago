@@ -207,21 +207,6 @@ export const ARCADE_GAMES: SeedGame[] = [
     addedAt: '2026-10-29',
   }),
   arcadeGame({
-    slug: 'bowling-strike',
-    title: { en: 'Bowling Strike', tr: 'Bowling' },
-    description: {
-      en: 'Ten frames of real bowling: position, aim, set power and spin. Chain strikes and spares on your way to a perfect 300!',
-      tr: 'On karelik gerçek bowling: topu konumla, nişan al, gücünü ve falsosunu ayarla. Strike ve spare ile 300 sayıya uzan!',
-    },
-    category: 'sports',
-    categories: ['sports', 'casual', 'arcade'],
-    tags: ['multiplayer', 'bowling', 'strike', 'retro'],
-    orientation: 'portrait',
-    input: ['touch', 'keyboard', 'mouse'],
-    addedAt: '2026-10-28',
-    multiplayer: true,
-  }),
-  arcadeGame({
     slug: 'brick-breaker',
     title: { en: 'Brick Breaker', tr: 'Tuğla Kırıcı' },
     description: {
@@ -424,21 +409,6 @@ export const ARCADE_GAMES: SeedGame[] = [
     multiplayer: true,
   }),
   arcadeGame({
-    slug: 'dungeon-dash',
-    title: { en: 'Dungeon Dash', tr: 'Zindan Koşusu' },
-    description: {
-      en: 'A turn-based micro roguelike: fight monsters, grab potions and chests, take the stairs ever deeper.',
-      tr: 'Sıra tabanlı mini zindan macerası: canavarlarla savaş, iksir ve sandık topla, merdivenden aşağı in.',
-    },
-    category: 'strategy',
-    categories: ['strategy', 'retro', 'puzzle'],
-    tags: ['dungeon', 'dash', 'retro'],
-    orientation: 'portrait',
-    input: ['touch', 'keyboard', 'mouse'],
-    version: '1.2.0',
-    addedAt: '2026-10-28',
-  }),
-  arcadeGame({
     slug: 'fish-frenzy',
     title: { en: 'Fish Frenzy', tr: 'Balık Çılgınlığı' },
     description: {
@@ -521,22 +491,6 @@ export const ARCADE_GAMES: SeedGame[] = [
     multiplayer: true,
   }),
   arcadeGame({
-    slug: 'head-soccer',
-    title: { en: 'Head Soccer', tr: 'Kafa Topu' },
-    description: {
-      en: 'Big-headed one-on-one football! Run, jump, head the ball and shoot with your own character. Matches last 60 seconds and a draw goes to golden goal. Every win brings a faster, smarter rival. Play a friend online too.',
-      tr: 'Koca kafalı birebir futbol! Kendi karakterinle koş, zıpla, kafa vur ve şut çek. Maçlar 60 saniye sürer, beraberlikte altın gol kazandırır. Her galibiyette rakibin daha hızlı ve daha zeki olur. Çevrimiçi bir arkadaşınla da oyna.',
-    },
-    category: 'sports',
-    categories: ['sports', 'action', 'arcade'],
-    tags: ['multiplayer', 'head', 'soccer', 'retro'],
-    orientation: 'landscape',
-    input: ['touch', 'keyboard', 'mouse'],
-    version: '1.3.0',
-    addedAt: '2026-10-30',
-    multiplayer: true,
-  }),
-  arcadeGame({
     slug: 'hex-bridge',
     title: { en: 'Hex', tr: 'Hex Köprüsü' },
     description: {
@@ -598,15 +552,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'kickflip-park',
     title: { en: 'Kickflip Park', tr: 'Kaykay Parkı' },
     description: {
-      en: "A 3D skateboarding trick game! Roam a skate park in two-minute sessions: ollie, flip kickflips, heelflips and shove-its in the air, grab the board, spin 180s to 540s, grind rails and ledges and link it all with manuals. A combo scores its tricks' points times the number of tricks, but only if you land clean. Fill the special meter to unlock flashy specials like the Comet Twist. Three parks: a schoolyard plaza, a wooden yard with a half-pipe and a skyline of rooftops. Perfect landings grow a combo, sketchy ones shrink it. Beat score tiers, land big combos, find the lost mixtapes and clear the gaps; goals and best scores open new parks and 19 boards.",
-      tr: "Bir 3D kaykay hareketi oyunu! İki dakikalık seanslarda parkı istediğin gibi gez: ollie yap, havada kickflip, heelflip ve shove-it çevir, tahtayı tut, 180'den 540'a dön, raylarda ve banklarda grind yap, manuelle hareketleri birbirine bağla. Kombo puanı, hareket puanlarının toplamı çarpı hareket sayısıdır; ama sadece temiz inersen sayılır. Özel çubuğu dolunca Kuyruklu Yıldız gibi gösterişli özel hareketler açılır. Üç park: okul meydanı, ahşap U-rampalı avlu ve şehrin çatıları. Mükemmel inişler komboyu büyütür, sallantılı inişler küçültür. Puan barajlarını aş, büyük kombolar indir, kayıp kasetleri bul, boşlukları atla; hedefler ve rekorlar yeni parkları ve 19 kaykayı açar.",
+      en: "A 3D skateboarding trick game! Roam a skate park in two-minute sessions: ollie, flip kickflips, heelflips and shove-its in the air, grab the board, spin 180s to 540s, grind rails and ledges and link it all with manuals. A combo scores its tricks' points times the number of tricks, but only if you land clean. Fill the special meter to unlock flashy specials like the Comet Twist. Three parks: a schoolyard plaza, a wooden yard with a half-pipe and a skyline of rooftops. Perfect landings grow a combo, sketchy ones shrink it. Beat score tiers, land big combos, find the lost mixtapes and clear the gaps; goals and best scores open new parks and 14 board skins. Pick your park and board before every session.",
+      tr: "Bir 3D kaykay hareketi oyunu! İki dakikalık seanslarda parkı istediğin gibi gez: ollie yap, havada kickflip, heelflip ve shove-it çevir, tahtayı tut, 180'den 540'a dön, raylarda ve banklarda grind yap, manuelle hareketleri birbirine bağla. Kombo puanı, hareket puanlarının toplamı çarpı hareket sayısıdır; ama sadece temiz inersen sayılır. Özel çubuğu dolunca Kuyruklu Yıldız gibi gösterişli özel hareketler açılır. Üç park: okul meydanı, ahşap U-rampalı avlu ve şehrin çatıları. Mükemmel inişler komboyu büyütür, sallantılı inişler küçültür. Puan barajlarını aş, büyük kombolar indir, kayıp kasetleri bul, boşlukları atla; hedefler ve rekorlar yeni parkları ve 14 kaykay tasarımını açar. Her seanstan önce parkını ve kaykayını seç.",
     },
     category: 'sports',
     categories: ['sports', 'action'],
     tags: ['kickflip', 'park', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     addedAt: '2026-11-13',
   }),
   arcadeGame({
@@ -764,21 +718,6 @@ export const ARCADE_GAMES: SeedGame[] = [
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
     addedAt: '2026-10-28',
-  }),
-  arcadeGame({
-    slug: 'mini-golf',
-    title: { en: 'Mini Golf', tr: 'Mini Golf' },
-    description: {
-      en: 'A nine-hole mini golf course: bank off walls, avoid water, ride the bumpers and slip past moving blocks. Finish under par!',
-      tr: 'Dokuz delikli mini golf parkuru: duvarlardan sektir, sudan kaçın, tamponlarla oyna ve hareketli engellerin arasından geç. Pardan az vuruşla bitir!',
-    },
-    category: 'sports',
-    categories: ['sports', 'casual', 'puzzle'],
-    tags: ['multiplayer', 'mini', 'golf', 'retro'],
-    orientation: 'portrait',
-    input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
-    multiplayer: true,
   }),
   arcadeGame({
     slug: 'mud-rally',
