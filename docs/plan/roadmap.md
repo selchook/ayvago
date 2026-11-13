@@ -198,7 +198,7 @@ presence/site/{uid}                    { name, character?, level?, state: online
 matchQueue/{gameId}/{uid}              { rating, joinedAt }                       ← quick match (later)
 ```
 
-RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md), the "Leave table" marker `tables/{code}/hostLeft` (slice 5.20) there too, and site-wide presence and invites to anyone online (slice 5.21) in [ADR 0021](../adr/0021-site-presence-recent-players.md). Details: [multiplayer spec](../specs/multiplayer.md).
+RTDB rules: only the two players of a room can use its signals and relay; anyone signed in can read a room by its code (to join it). Rooms are deleted after two hours by `cleanupRooms`. The table lobby's paths (slice 5.18) are described in [ADR 0019](../adr/0019-table-lobby-presence-invites.md), quick play, table settings and host hand-over (slice 5.19) in [ADR 0020](../adr/0020-quick-play-settings-host-handover.md), the "Leave table" marker `tables/{code}/hostLeft` (slice 5.20) there too, two-seat tables for Tavla (slice 5.29, no rule change) in [ADR 0026](../adr/0026-two-seat-tables.md), and site-wide presence and invites to anyone online (slice 5.21) in [ADR 0021](../adr/0021-site-presence-recent-players.md). Details: [multiplayer spec](../specs/multiplayer.md).
 
 ### 2.4 Cloud Functions
 
@@ -554,6 +554,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Mobile menu drawer: a ☰ button and a slide-in drawer with the full side menu (every category) replace the bottom tab bar on phones; tablets get a collapsible icon rail that remembers its state; desktop unchanged (slice 5.26, [ADR 0025](../adr/0025-phone-menu-drawer.md))
 - [x] Most played page (This week, All time and Yours tabs; `plays7d` and the all-time `playsTotal` in `rankings/catalog` from the hourly `recomputeRankings`) instead of Recently played; a ten-slide home spotlight with in-game card art, a progress bar and thumbnails; sourced thinkers' quotes in the top-bar ticker (slice 5.27)
 - [x] One window in the "Players and plays" report: every number from 7 November 2026 (UTC), named by one small note; no all-time columns; the columns counted from 10 November keep a `*`; CSV columns and file names follow (slice 5.28)
+- [x] Tavla in the lobby: two-seat tables without bots give Tavla the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables); the studio flags which two-player games play at tables (slice 5.29, [ADR 0026](../adr/0026-two-seat-tables.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

@@ -19,7 +19,7 @@ import {
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { syncLobbyTable } from '../functions/src/lobby';
 
-// Slice 5.28 (docs/adr/0026-two-seat-tables.md): Tavla plays at two-seat tables in the lobby,
+// Slice 5.29 (docs/adr/0026-two-seat-tables.md): Tavla plays at two-seat tables in the lobby,
 // without bots. No rule changed: these tests pin down that the existing table, move, invite and
 // quick-play rules (ADR 0015, 0019, 0020) carry a two-seat table from opening to playing.
 

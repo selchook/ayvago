@@ -1,11 +1,12 @@
 # Spec — Online two-player matches
 
 - Status: Implemented (2026-10-28); tables for up to four added 2026-11-06, their lobby
-  2026-11-09 — see §7a, §7b and §8
+  2026-11-09, two-seat tables for Tavla 2026-11-13 — see §7a, §7b and §8
 - Related: [Roadmap §10](../plan/roadmap.md#10-multiplayer--cloudflare-turn--firebase-signaling),
   [ADR 0003](../adr/0003-cloudflare-turn.md), [ADR 0010](../adr/0010-online-matches.md),
   [ADR 0015](../adr/0015-tables-for-four-with-bots.md) (tables),
   [ADR 0019](../adr/0019-table-lobby-presence-invites.md) (lobby, presence, invites),
+  [ADR 0026](../adr/0026-two-seat-tables.md) (two-seat tables),
   [Phase 4 plan](../plan/phase-4.md)
 
 ## 1. Goals
@@ -104,8 +105,8 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
   platform's part.
 
 ## 7a. Tables for up to four (protocol 2.3)
-- Games with `players.max > 2` are played at a table, not in a room
-  ([ADR 0015](../adr/0015-tables-for-four-with-bots.md)):
+- Games with `players.max > 2`, and two-player games flagged for tables (Tavla, below), are
+  played at a table, not in a room ([ADR 0015](../adr/0015-tables-for-four-with-bots.md)):
   - `tables/{code}` holds 2–4 seats (players or bots), `status` and presence;
   - `/games/{slug}/table` opens one, and `/table/{code}` is the invite link.
 - The host sits in seat 0, adds or removes bots on empty seats and starts the game once every seat
@@ -120,11 +121,26 @@ Rules (`firebase/database.rules.json`, emulator tests in `firebase/tests/databas
   - the adapter's `multiplayer.seats` and seat-aware callbacks.
 - The host's game plays the bot seats and sends their moves.
 
+**Two-seat tables (Tavla).** Decision and reasons: [ADR 0026](../adr/0026-two-seat-tables.md).
+- A two-player game the studio flags (`SeedGame.tables`, from `"multiplayer": 2` in the game's
+  `game.json`) is a table game too: lobby, quick play, invites, recent players and private
+  tables, with tables of two seats. Other two-player games keep rooms.
+- **No bots and no hands or turn settings** at a table of two: every two-seat table is stored with
+  `bots: false`, and the forms show only "Who can sit down". The host starts once the opponent sits
+  down; an auto-start table starts by itself then.
+- **`GHA_START`** carries the seats and `table` as at any table, plus `peerName` and
+  `peerCharacter` set to the other seat, so code written for rooms finds the opponent.
+- **Leaving during a game:** nobody can play the empty seat, so the game ends the round as a win
+  for the player who stayed, as in a room. The leaver's seat stays theirs; they come back with the
+  link and the host starts a rematch.
+- Old room links (`/room/{code}`) keep working; the game page shows the table entry points.
+
 ## 7b. The lobby of a table game
 Decision and reasons: [ADR 0019](../adr/0019-table-lobby-presence-invites.md).
 
 **Pages.**
-- `/{locale}/games/{slug}/lobby` for every live table game (`noindex`). The game page leads there
+- `/{locale}/games/{slug}/lobby` for every live table game (`noindex`): Okey, and Tavla with
+  two-seat tables (§7a). The game page leads there
   ("Go to the lobby") and keeps "Open a private table" for the invite-link flow.
 - **Tables.** The public tables of the game, live:
   - each with the host's name and character, the table code, how long ago it opened, one marker
@@ -388,4 +404,7 @@ settings, auto start, host hand-over and protocol 2.7 (§7c) shipped with slice 
 platform; the studio adds `table` and `GHA_HOST_CHANGE` to Okey. The "Leave table" button (§7d)
 shipped with slice 5.20 ([plan](../plan/phase-5.md#520-leave-table--code)). Site-wide presence,
 recent players and invites from anywhere (§7e) shipped with slice 5.21
-([plan](../plan/phase-5.md#521-site-wide-online-status-and-recent-players--code)).
+([plan](../plan/phase-5.md#521-site-wide-online-status-and-recent-players--code)). Two-seat
+tables and the lobby for Tavla (§7a) shipped with slice 5.29
+([plan](../plan/phase-5.md#529-tavla-in-the-lobby-two-seat-tables--code)) on the platform; the
+studio flags Tavla with `"multiplayer": 2` and ends its round when the opponent leaves.

@@ -1,7 +1,9 @@
 # ADR 0019 — A lobby for table games: public tables, presence and invites
 
 - Status: Accepted (2026-11-09). Who can be invited and when the notifier listens were widened by
-  [ADR 0021](0021-site-presence-recent-players.md) (site-wide presence).
+  [ADR 0021](0021-site-presence-recent-players.md) (site-wide presence). Which games get a lobby
+  was widened by [ADR 0026](0026-two-seat-tables.md): two-player games the studio flags (Tavla)
+  play at two-seat tables.
 - Related: [ADR 0015](0015-tables-for-four-with-bots.md) (tables), [ADR 0010](0010-online-matches.md)
   (rooms), [Multiplayer spec §7b](../specs/multiplayer.md#7b-the-lobby-of-a-table-game),
   [Phase 5 plan §5.18](../plan/phase-5.md#518-a-lobby-for-table-games-okey-first--code)
@@ -17,6 +19,7 @@ code; nobody can list tables.
 
 ### One lobby per table game
 - `/{locale}/games/{slug}/lobby` for every live game with `players.max > 2` (Okey only today).
+  Since [ADR 0026](0026-two-seat-tables.md) also for flagged two-player games (Tavla).
   The game page links to it first ("Go to the lobby") and keeps "Open a private table" (the old
   invite-link flow). The table page links back to it.
 - **Public and private tables.** `tables/{code}/visibility` is `public` or `private`.
