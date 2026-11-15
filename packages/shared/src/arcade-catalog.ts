@@ -282,6 +282,20 @@ export const ARCADE_GAMES: SeedGame[] = [
     version: '1.1.0',
   }),
   arcadeGame({
+    slug: 'coaster-rush',
+    title: { en: 'Coaster Rush', tr: 'Hız Treni' },
+    description: {
+      en: "You drive the roller coaster of a festive fair built among timber houses, windmills, watermills and market stalls! Climb the chain lift, fly down the drops, loop the loops, float in airtime and skim the rooftops. Take a corner too fast and the train leans and derails; run out of speed on a hill and it rolls back. Stop right in each station's glowing bay to let riders off and new ones on. Pick the safe or the thrill route at every junction, collect tokens and grab power-ups: turbo, magnet, safety bar, slow-mo brakes, golden ticket and balloon lift. Six areas, six track styles: wooden, steel, wild mouse, hanging, monorail and log flume. Upgrade and paint your train in the workshop!",
+      tr: 'Ahşap evlerin, yel değirmenlerinin, su değirmenlerinin ve pazar tezgâhlarının arasına kurulmuş şenlikli bir lunaparkta hız trenini sen sürüyorsun! Zincirle tepeye tırman, inişlerde uç, takla at, havada süzül ve çatıların kıl payı üstünden geç. Virajlara fazla hızlı girersen tren yatar ve raydan çıkar; tepeye yetecek hızın yoksa geri kayar. İstasyonlarda tam parlayan alanda dur, yolcuları indir ve yenilerini al. Makaslarda sakin ya da heyecanlı yolu seç, jeton topla, turbo, mıknatıs, emniyet barı, ağır çekim fren, altın bilet ve uçan balon güçlerini kap. Altı bölge, altı ray türü: ahşap, çelik, çılgın fare, asılı, monoray ve kütük kanalı. Atölyede treni geliştir ve boya!',
+    },
+    category: 'arcade',
+    categories: ['arcade', 'action', 'casual'],
+    tags: ['coaster', 'rush', 'retro'],
+    orientation: 'portrait',
+    input: ['touch', 'keyboard', 'mouse'],
+    addedAt: '2026-11-15',
+  }),
+  arcadeGame({
     slug: 'coin-catcher',
     title: { en: 'Coin Catcher', tr: 'Altın Avcısı' },
     description: {
@@ -749,7 +763,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['mud', 'rally', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.5.0',
+    version: '1.5.1',
     addedAt: '2026-11-07',
   }),
   arcadeGame({
@@ -1099,14 +1113,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'skull-isle',
     title: { en: 'Skull Isle', tr: 'Kurukafa Adası' },
     description: {
-      en: 'Raid island after island in a 3D pirate brawler: chain sword combos, roll out of the red warnings, grab rum, powder kegs and a parrot, and beat the Kraken and Captain Bonebeard.',
-      tr: "3B korsan dövüşünde adaları tek tek yağmala: kılıç kombolarını zincirle, kırmızı uyarılardan yuvarlanarak kaç, rom, barut fıçısı ve papağan topla, dokunaçlarıyla Kraken'ı ve Kaptan Kemiksakal'ı yen.",
+      en: 'Raid island after island in a 3D pirate brawler and sail your ship between them: chain sword combos, dodge the red warnings, set your sails, fire broadsides at skeleton rowboats and a ghost ship, swim out to hidden islets, and beat the Kraken and Captain Bonebeard.',
+      tr: "3B korsan dövüşünde adaları tek tek yağmala, aralarda gemini sür: kılıç kombolarını zincirle, kırmızı uyarılardan kaç, yelkenleri ayarla, bordaları ateşle, iskelet sandallarını ve hayalet gemiyi batır, gizli adacıklara yüz, Kraken'ı ve Kaptan Kemiksakal'ı yen.",
     },
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['skull', 'isle', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.2.2',
     addedAt: '2026-11-14',
   }),
   arcadeGame({
@@ -1481,15 +1496,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'zombie-grove',
     title: { en: 'Zombie Grove', tr: 'Zombi Korusu' },
     description: {
-      en: 'Night falls on a forest camp and zombie hordes shamble out of the trees! A 3D survival game where you only run: your weapons fire on their own. Collect gems, level up and pick one of three cards from eight weapons, each evolving with its paired trinket. Grab the power-ups the horde drops: a heal stew, the gem vacuum, a nuke flare, a freeze bell, a rage tonic and speed boots; mini-bosses drop gold chests full of free upgrades. Hold out until dawn, or keep going into the endless night under a blood moon! At the camp, eight 3D heroes, fifteen lasting upgrades and new weapons are waiting.',
-      tr: 'Ormandaki kampa gece çöküyor ve zombi sürüleri ağaçların arasından çıkıp geliyor! Bir 3D hayatta kalma oyunu: sen sadece koşarsın, silahların kendiliğinden ateş eder. Kristalleri topla, seviye atla ve sekiz silah arasından üç karttan birini seç; her silah eşi olan eşyayla evrimleşir. Sürünün düşürdüğü güçlendirmeleri kap: şifalı güveç, kristal girdabı, işaret fişeği, buz çanı, öfke iksiri ve rüzgâr çizmeleri; mini bossların altın sandıkları bedava geliştirmelerle dolu. Şafağa kadar dayan ya da kanlı ayın altında sonsuz geceye devam et! Kampta sekiz 3D kahraman, on beş kalıcı geliştirme ve yeni silahlar seni bekliyor.',
+      en: 'Night falls on a forest camp and zombie hordes shamble out of the trees! A 3D survival game: run and hold ATTACK; your weapons aim themselves. Collect gems, level up and pick one of three cards from eight weapons, each evolving with its paired trinket. Grab the power-ups the horde drops: a heal stew, the gem vacuum, a nuke flare, a freeze bell, a rage tonic and speed boots; mini-bosses drop gold chests full of free upgrades. Hold out until dawn, or keep going into the endless night under a blood moon! At the camp, eight 3D heroes, fifteen lasting upgrades and new weapons are waiting.',
+      tr: "Ormandaki kampa gece çöküyor ve zombi sürüleri ağaçların arasından çıkıp geliyor! Bir 3D hayatta kalma oyunu: koş ve SALDIR'ı basılı tut; silahların kendiliğinden nişan alır. Kristalleri topla, seviye atla ve sekiz silah arasından üç karttan birini seç; her silah eşi olan eşyayla evrimleşir. Sürünün düşürdüğü güçlendirmeleri kap: şifalı güveç, kristal girdabı, işaret fişeği, buz çanı, öfke iksiri ve rüzgâr çizmeleri; mini bossların altın sandıkları bedava geliştirmelerle dolu. Şafağa kadar dayan ya da kanlı ayın altında sonsuz geceye devam et! Kampta sekiz 3D kahraman, on beş kalıcı geliştirme ve yeni silahlar seni bekliyor.",
     },
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['zombie', 'grove', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     addedAt: '2026-11-13',
   }),
   arcadeGame({
