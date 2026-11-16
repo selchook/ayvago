@@ -394,6 +394,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['crypt', 'crawler', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-12',
   }),
   arcadeGame({
@@ -408,7 +409,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['crystal', 'keep', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.2.0',
+    version: '1.2.1',
     addedAt: '2026-11-11',
   }),
   arcadeGame({
@@ -506,6 +507,7 @@ export const ARCADE_GAMES: SeedGame[] = [
       maxPerSecond: 1000,
       maxScore: 10000,
     },
+    version: '1.0.1',
     addedAt: '2026-11-09',
   }),
   arcadeGame({
@@ -558,14 +560,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'hex-realm',
     title: { en: 'Hex Realm', tr: 'Altıgen Diyar' },
     description: {
-      en: 'A 3D action RPG on a hex map: pick one of six classes, explore the realm as the fog lifts, take quests in the village, buy potions at the market and upgrade your gear at the smithy. Chain combos, roll out of the red warnings, use your two skills, and defeat the mine troll, the dark mage of the spire and the castle lord.',
-      tr: 'Altıgen bir haritada 3B aksiyon RPG: altı sınıftan birini seç, sisi açarak diyarı keşfet, köyden görev al, pazardan iksir al, demircide silahını güçlendir. Kombo yap, kırmızı uyarılardan yuvarlanarak kaç, iki yeteneğini kullan; madendeki trolü, kuledeki kara büyücüyü ve kaledeki lordu yen.',
+      en: "A 3D action RPG on a hex map: pick one of six classes, explore the realm as the fog lifts, take quests in the village, buy potions at the market and upgrade your gear at the smithy. Chain each class's three combos, empower your moves with Sigils at the Shrine, draft power cards for the journey, roll out of the red warnings, use your two skills, and defeat the mine troll, the dark mage of the spire and the castle lord.",
+      tr: "Altıgen bir haritada 3B aksiyon RPG: altı sınıftan birini seç, sisi açarak diyarı keşfet, köyden görev al, pazardan iksir al, demircide silahını güçlendir. Her sınıfın üç kombosunu zincirle, Tapınak'ta güçlerini Mühürlerle geliştir, yolculuk boyunca güç kartları seç; kırmızı uyarılardan yuvarlanarak kaç, iki yeteneğini kullan; madendeki trolü, kuledeki kara büyücüyü ve kaledeki lordu yen.",
     },
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['hex', 'realm', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.1.0',
     addedAt: '2026-11-16',
   }),
   arcadeGame({
@@ -709,6 +712,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['marble', 'maze', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-10',
   }),
   arcadeGame({
@@ -779,7 +783,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['mud', 'rally', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.5.1',
+    version: '1.5.2',
     addedAt: '2026-11-07',
   }),
   arcadeGame({
@@ -928,6 +932,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['pirate', 'cove', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-11',
   }),
   arcadeGame({
@@ -995,6 +1000,7 @@ export const ARCADE_GAMES: SeedGame[] = [
       maxPerSecond: 1000,
       maxScore: 5400,
     },
+    version: '1.0.1',
     addedAt: '2026-11-10',
   }),
   arcadeGame({
@@ -1165,7 +1171,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['sky', 'road', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.2',
+    version: '1.1.3',
     addedAt: '2026-11-07',
   }),
   arcadeGame({
@@ -1194,6 +1200,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['snack', 'shack', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-12',
   }),
   arcadeGame({
@@ -1303,6 +1310,7 @@ export const ARCADE_GAMES: SeedGame[] = [
       maxPerSecond: 1000,
       maxScore: 300,
     },
+    version: '1.0.1',
     addedAt: '2026-11-11',
   }),
   arcadeGame({
