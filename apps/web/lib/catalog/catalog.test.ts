@@ -337,10 +337,16 @@ describe('game logos', () => {
           },
         },
       });
+      const withoutLogo = (seed: SeedGame): SeedGame => {
+        const { logo: _logo, ...rest } = seed.manifest.assets;
+        return { ...seed, manifest: { ...seed.manifest, assets: rest } };
+      };
       return {
         ...shared,
+        // Other games without a logo, whatever the synced catalog ships, so the text fallback is
+        // checked on real data independently of the studio's assets.
         SEED_GAMES: shared.SEED_GAMES.map((seed) =>
-          seed.slug === 'alien-invaders' ? withLogo(seed) : seed,
+          seed.slug === 'alien-invaders' ? withLogo(seed) : withoutLogo(seed),
         ),
       };
     });

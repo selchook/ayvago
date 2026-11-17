@@ -2442,6 +2442,11 @@ outline.
 Deviations: none from the brief. `arcade-catalog.ts` is not touched: the example entries live in
 the tests.
 
+Follow-up fix: the mocked-catalog test asserted that Bubble Pop has no logo on the real catalog,
+which broke the first logo sync (the studio ships a logo for every game). The mock now strips the
+logo from every game but Alien Invaders, so the text fallback is checked whatever the synced
+catalog contains; the test passes on the catalog before and after the logo sync.
+
 Tests:
 - shared `manifest.test.ts` (+3): a logo with both locales or English alone is valid, a manifest
   without one too; a logo without English, with an unknown locale, as a plain string, with an http
