@@ -13,7 +13,7 @@ import { RAIL_BOOTSTRAP_SCRIPT } from '@/lib/shell/rail';
 // Self-hosted fonts (Latin + Latin Extended for Turkish); each face downloads only when used.
 import '@fontsource-variable/inter';
 import '@fontsource/press-start-2p';
-// Full-height Turkish İ for Press Start 2P (SIL OFL 1.1, see fonts/ayvago-pixel-tr/OFL.txt).
+// Full-height Turkish İ, Ö and Ü for Press Start 2P (SIL OFL 1.1, see fonts/ayvago-pixel-tr/OFL.txt).
 import '@/fonts/ayvago-pixel-tr/ayvago-pixel-tr.css';
 import '@fontsource/vt323';
 import '@fontsource/pixelify-sans/400.css';

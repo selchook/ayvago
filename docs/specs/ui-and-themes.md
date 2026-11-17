@@ -154,7 +154,7 @@ Selection is expressed as `<html data-theme="minimal" data-mode="dark">`.
 
 Fonts load through `next/font` with `latin` + `latin-ext` subsets. A glyph test page (`/dev/glyphs`) renders `ç ğ ı İ ö ş ü Ç Ğ Ö Ş Ü` in every font; fonts that fail are replaced.
 
-*Implementation note:* the fonts are self-hosted through `@fontsource` packages (Latin + Latin Extended), not `next/font`. Press Start 2P draws the capital İ squashed like a lowercase i, so every Press Start 2P stack starts with "Ayvago Pixel TR", a one-glyph face (U+0130 only) from the studio with a full-height İ (slice 5.7, `packages/themes` `PIXEL_FONT`). Its dot sits a quarter em above the cap height: pixel-font text in a clipping box needs a line height of at least 1.5. Every bundled font and its license is listed in [docs/assets/LICENSES.md](../assets/LICENSES.md).
+*Implementation note:* the fonts are self-hosted through `@fontsource` packages (Latin + Latin Extended), not `next/font`. Press Start 2P draws the capitals İ, Ö and Ü squashed like a lowercase i, ö and ü, so every Press Start 2P stack starts with "Ayvago Pixel TR", a three-glyph face (U+0130, U+00D6, U+00DC only) from the studio with full-height İ, Ö and Ü (slices 5.7 and 5.31, `packages/themes` `PIXEL_FONT`). Their marks sit a quarter em above the cap height: pixel-font text in a clipping box needs a line height of at least 1.5. Every bundled font and its license is listed in [docs/assets/LICENSES.md](../assets/LICENSES.md).
 
 ### 5.4 Theme effects
 Optional layers that never change layout:
