@@ -29,10 +29,20 @@ jobs:
 
       - name: Fetch the catalog from ayvago-games main
         id: fetch
+        # Authenticated calls: anonymous GitHub API requests share the runner's IP rate limit and
+        # failed with 403 (then a 404 for the "null" commit). The studio repo is public, so this
+        # workflow's own token can read it.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          sha=$(curl -fsSL -H "Accept: application/vnd.github+json" https://api.github.com/repos/selchook/ayvago-games/commits/main | jq -r .sha)
-          curl -fsSL "https://raw.githubusercontent.com/selchook/ayvago-games/$sha/platform/arcade-catalog.ts" \
-            -o packages/shared/src/arcade-catalog.ts
+          sha=$(gh api repos/selchook/ayvago-games/commits/main --jq .sha)
+          if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not read the commit of selchook/ayvago-games main (got '$sha')."
+            exit 1
+          fi
+          gh api -H "Accept: application/vnd.github.raw" \
+            "repos/selchook/ayvago-games/contents/platform/arcade-catalog.ts?ref=$sha" \
+            > packages/shared/src/arcade-catalog.ts
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"

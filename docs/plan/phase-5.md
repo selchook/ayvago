@@ -2447,6 +2447,11 @@ which broke the first logo sync (the studio ships a logo for every game). The mo
 logo from every game but Alien Invaders, so the text fallback is checked whatever the synced
 catalog contains; the test passes on the catalog before and after the logo sync.
 
+Second follow-up: the "Sync arcade catalog" workflow read the studio's commit through an
+anonymous GitHub API call, which hit the runner's shared rate limit (403, then a 404 for the
+"null" commit) twice in a row. It now uses `gh api` with the workflow's own token (the studio
+repository is public) and stops with a clear error when the commit cannot be read.
+
 Tests:
 - shared `manifest.test.ts` (+3): a logo with both locales or English alone is valid, a manifest
   without one too; a logo without English, with an unknown locale, as a plain string, with an http
