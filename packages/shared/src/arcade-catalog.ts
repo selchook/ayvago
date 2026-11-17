@@ -575,7 +575,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['hex', 'realm', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.2.0',
+    version: '1.2.1',
     addedAt: '2026-11-16',
   }),
   arcadeGame({
@@ -1148,9 +1148,9 @@ export const ARCADE_GAMES: SeedGame[] = [
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['skull', 'isle', 'retro'],
-    orientation: 'portrait',
+    orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.2.4',
+    version: '1.3.0',
     addedAt: '2026-11-14',
   }),
   arcadeGame({
