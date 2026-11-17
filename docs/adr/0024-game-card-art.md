@@ -78,3 +78,24 @@ generic font ([Phase 5 plan §5.30](../plan/phase-5.md#530-game-logos-on-the-pla
   overlays keep the card, whose logo is part of the art.
 - **Consequences.** The same merge order as the card: the platform first, then the studio's
   catalog sync. Third-party games may ship a logo; without one they get the text logo.
+
+## Amendment: card art per language (slice 5.32)
+The owner asked that the logos on the game cards follow the language
+([Phase 5 plan §5.32](../plan/phase-5.md#532-card-art-per-language--code)). The card has the
+game's logo baked in, so a Turkish logo needs a Turkish card.
+
+- **Manifest.** `assets.card` and `assets.card2x` take either a single asset ref (as before,
+  still valid) or the localized map of `assets.logo`: a strict `{ en, tr? }` map with English
+  required and the fallback. The two fields may use different shapes. `card2x` stays a sharper
+  copy, only used together with `card`. The change again stays inside `manifest.ts`.
+- **Studio paths:** the English cards keep their names; the Turkish ones are
+  `/games/<slug>/ayvago/card-tr-640x360.webp` and `card-tr-1280x720.webp`. `arcadeGame()` writes
+  `card: { en, tr }` and `card2x: { en, tr }`.
+- **Platform.** The catalog resolves both shapes into `{ en, tr? }` maps of URLs (a single ref is
+  the English card). Every place that shows a card (Minimal and Cartoon tiles, the spotlight, the
+  landscape player overlay) picks the player's locale, else English. The 2x copy is the one in
+  the language of the chosen card, so a `srcset` never mixes two languages; a Turkish card
+  without a Turkish 2x copy is used alone.
+- **Consequences.** The same merge order as before: the platform first, then the studio's catalog
+  sync. Third-party games may ship one card or a card per language; the developer docs (Phase 6)
+  list both shapes ([roadmap §11.4](../plan/roadmap.md#114-manifest-images)).

@@ -1,7 +1,7 @@
 import { gameCategories, SUPPORTED_LOCALES, type Locale } from '@ayvago/shared';
 import { getTranslations } from 'next-intl/server';
 import type { TileData, TileLabels } from '@/components/catalog/game-tile';
-import { gameTitle, type CatalogGame } from './index';
+import { gameCardArt, gameTitle, type CatalogGame } from './index';
 import { gameLikePercent, getRankings } from './rankings';
 import { normalizeSearch } from './search';
 
@@ -29,6 +29,8 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
   const now = Date.now();
   return games.map((game) => {
     const categoryLabels = gameCategories(game.manifest).map((category) => tc(category));
+    // The card's baked-in logo is localized: the player's language, else English.
+    const { card, card2x } = gameCardArt(game, locale);
     return {
       slug: game.slug,
       id: game.manifest.id,
@@ -41,8 +43,8 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
       multiplayer: game.multiplayer,
       cover: game.coverUrl,
       screenshot: game.screenshotUrl,
-      card: game.cardUrl,
-      card2x: game.card2xUrl,
+      card,
+      card2x,
       landscape: game.manifest.orientation === 'landscape',
       likePercent: gameLikePercent(game, rankings),
       search: gameSearchText(game, categoryLabels),

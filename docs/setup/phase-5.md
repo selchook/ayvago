@@ -445,6 +445,27 @@ Nothing to configure: merging deploys the web app with the updated font. Optiona
 Arcade theme, Turkish headings with Ö or Ü (for example a game named "Göktaşı Fırtınası") show
 full-height capitals with the dots above.
 
+## 5.32 Card art per language
+Nothing to configure: no secrets, env vars, functions or rules. Merging deploys the web app. Until
+the studio's Turkish cards arrive, the tiles look as they do today (the English card in every
+language). The one owner step is the merge order, as with the logos (5.30):
+
+- ⏳ **Merge this platform PR before the catalog sync that adds the Turkish cards.** The studio's
+  change turns `card` and `card2x` of every game in `arcade-catalog.ts` into `{ en, tr }` maps. A
+  platform without this change rejects those manifests: that "Sync arcade catalog" PR would fail
+  CI. Order:
+  1. Merge this PR.
+  2. Merge the studio PR. It copies the new `packages/shared/src/manifest.ts` verbatim into
+     `scripts/vendor/manifest.ts`, serves the Turkish cards at
+     `/games/<slug>/ayvago/card-tr-640x360.webp` and `card-tr-1280x720.webp`, and writes
+     `card: { en, tr }` and `card2x: { en, tr }` in `arcadeGame()`.
+  3. Run **Actions → Sync arcade catalog → Run workflow** (or wait for the hourly run), then
+     merge the PR it opens.
+- ⏳ **Optional check after the sync is deployed:** open `https://ayvago.com/tr` in the Minimal or
+  Cartoon theme. The logos in the tile pictures and the spotlight are Turkish; `/en` shows the
+  English ones. A landscape game such as `https://ayvago.com/tr/games/mud-rally` shows the
+  Turkish card behind **Oyna**.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

@@ -5,6 +5,7 @@ import {
   SEED_GAMES,
   categorySlug,
   gameCategories,
+  localizedAssetMap,
   parseGameManifest,
   pickLocalized,
   resolveAssetUrl,
@@ -12,6 +13,7 @@ import {
   type GameManifest,
   type CatalogRankings,
   type LocalizedAsset,
+  type MaybeLocalizedAsset,
   type CatalogStatus,
   type Locale,
   type SeedGame,
@@ -35,10 +37,13 @@ export type CatalogGame = {
   coverUrl: string | null;
   // Absolute URL of an in-game screenshot (Arcade theme tiles); null falls back to the cover.
   screenshotUrl: string | null;
-  // Absolute URLs of the card art (Minimal and Cartoon tiles, 640×360 and 1280×720); a null
-  // cardUrl falls back to the cover, and card2xUrl is only set together with cardUrl.
-  cardUrl: string | null;
-  card2xUrl: string | null;
+  // Absolute URLs of the card art per locale (Minimal and Cartoon tiles, the landscape player
+  // overlay; 640×360 and 1280×720). The art has the game's logo baked in, so a game may ship a
+  // card per language; a single manifest ref becomes the English one (the fallback). A null
+  // cardUrl falls back to the cover, and card2xUrl is only set together with cardUrl. Pick the
+  // pair for a locale with gameCardArt().
+  cardUrl: LocalizedAsset | null;
+  card2xUrl: LocalizedAsset | null;
   // Absolute URLs of the game's own logo per locale (English required, the fallback); null draws
   // the title as text where the logo would go (the portrait player overlay). Pick one with
   // gameLogoUrl().
@@ -64,19 +69,22 @@ export function resolveGameArt(
   }
   const { cover, screenshot, card, card2x, logo } = manifest.assets;
   const resolve = (ref: string | undefined) => (ref ? resolveAssetUrl(manifest, ref) : null);
-  const cardUrl = resolve(card);
+  const resolveLocalized = (ref: MaybeLocalizedAsset | undefined): LocalizedAsset | null => {
+    if (!ref) return null;
+    const { en, tr } = localizedAssetMap(ref);
+    return {
+      en: resolveAssetUrl(manifest, en),
+      ...(tr ? { tr: resolveAssetUrl(manifest, tr) } : {}),
+    };
+  };
+  const cardUrl = resolveLocalized(card);
   return {
     coverUrl: resolve(cover),
     screenshotUrl: resolve(screenshot),
     cardUrl,
     // The 2x art is only a sharper copy of the card: without the card there is nothing to sharpen.
-    card2xUrl: cardUrl ? resolve(card2x) : null,
-    logoUrl: logo
-      ? {
-          en: resolveAssetUrl(manifest, logo.en),
-          ...(logo.tr ? { tr: resolveAssetUrl(manifest, logo.tr) } : {}),
-        }
-      : null,
+    card2xUrl: cardUrl ? resolveLocalized(card2x) : null,
+    logoUrl: resolveLocalized(logo),
   };
 }
 
@@ -226,6 +234,20 @@ export function gameDescription(game: CatalogGame, locale: Locale): string {
 /** The game's logo for a locale (English when the locale has none), or null without a logo. */
 export function gameLogoUrl(game: Pick<CatalogGame, 'logoUrl'>, locale: Locale): string | null {
   return game.logoUrl ? pickLocalized(game.logoUrl, locale) : null;
+}
+
+/**
+ * The card art for a locale: the locale's card, else the English one; null shows the cover. The
+ * 2x copy is the one in the same language as the card, so a srcset never mixes two languages (a
+ * Turkish card without a Turkish 2x copy is used on its own).
+ */
+export function gameCardArt(
+  game: Pick<CatalogGame, 'cardUrl' | 'card2xUrl'>,
+  locale: Locale,
+): { card: string | null; card2x: string | null } {
+  if (!game.cardUrl) return { card: null, card2x: null };
+  const language = game.cardUrl[locale] ? locale : 'en';
+  return { card: game.cardUrl[language] ?? null, card2x: game.card2xUrl?.[language] ?? null };
 }
 
 export function gamePath(game: CatalogGame): string {

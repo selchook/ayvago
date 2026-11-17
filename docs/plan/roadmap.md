@@ -467,8 +467,8 @@ https URL (plain http only for localhost). The platform reads:
 | `icon` | yes | App icon | 512×512 PNG |
 | `cover` | yes | Store cover for the game page and the home spotlight | 1920×1080 JPEG |
 | `screenshot` | no | In-game frame in the game's orientation (Arcade tiles, portrait player overlay) | JPEG, e.g. 540×960 (portrait) |
-| `card` | no | Catalog card for the Minimal and Cartoon tiles: in-game frames, a small logo, no text block | 640×360 WebP |
-| `card2x` | no | The same card for dense screens, used only with `card` | 1280×720 WebP |
+| `card` | no | Catalog card for the Minimal and Cartoon tiles, the spotlight and the landscape player overlay: in-game frames, a small logo, no text block. One ref, or `{ en, tr? }` with English required when the logo is localized | 640×360 WebP |
+| `card2x` | no | The same card for dense screens, used only with `card`, in the same shape (the 2x copy of the card's own language) | 1280×720 WebP |
 | `logo` | no | The game's own logo per locale, `{ en, tr? }` with English required; drawn over in-game art (player overlay) | transparent PNG, at most 640×320 |
 
 Without the optional images the platform falls back: tiles show the cover, the overlay writes the
@@ -574,6 +574,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Tavla in the lobby: two-seat tables without bots give Tavla the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables); the studio flags which two-player games play at tables (slice 5.29, [ADR 0026](../adr/0026-two-seat-tables.md))
 - [x] Game logos on the player overlay: optional `assets.logo` (`{ en, tr? }` transparent PNGs, at most 640×320) replaces the title text over portrait games' art before Play and while loading, in the player's language with English as the fallback (slice 5.30)
 - [x] Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (slice 5.31)
+- [x] Card art per language: `assets.card` / `card2x` may be `{ en, tr? }` maps, so the logo baked into the card follows the player's language on the Minimal and Cartoon tiles, the spotlight and the landscape player overlay, with English as the fallback; single refs still work (slice 5.32)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

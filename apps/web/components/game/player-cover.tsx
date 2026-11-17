@@ -1,12 +1,13 @@
 import type { Locale } from '@ayvago/shared';
 import { CoverArt } from '@/components/catalog/cover-art';
-import { gameLogoUrl, type CatalogGame } from '@/lib/catalog';
+import { gameCardArt, gameLogoUrl, type CatalogGame } from '@/lib/catalog';
 import styles from './game.module.css';
 
 /**
  * The art behind the player's Play button (game, room and table pages).
  *
- * Landscape games show their 16:9 card art (slice 5.24), which fits the 16:9 stage with its logo.
+ * Landscape games show their 16:9 card art (slice 5.24), which fits the 16:9 stage with its logo:
+ * the card in the player's language when the game ships one (slice 5.32), else the English card.
  * A portrait game's stage is tall or square, so its card would be cropped to the middle and lose
  * the logo; there the Minimal and Cartoon themes compose the art from the in-game screenshot
  * instead (blurred backdrop, the sharp frame in the middle) with the game's own logo
@@ -25,6 +26,7 @@ export function PlayerCover({
 }) {
   const { manifest } = game;
   const shot = game.screenshotUrl;
+  const art = gameCardArt(game, locale);
   const card = (
     <CoverArt
       id={manifest.id}
@@ -33,11 +35,11 @@ export function PlayerCover({
       size="hero"
       plain
       image={game.coverUrl}
-      card={game.cardUrl}
-      card2x={game.card2xUrl}
+      card={art.card}
+      card2x={art.card2x}
     />
   );
-  if (manifest.orientation !== 'portrait' || !shot || !game.cardUrl) return card;
+  if (manifest.orientation !== 'portrait' || !shot || !art.card) return card;
 
   const retro = (manifest.categories ?? [manifest.category]).includes('retro');
   const logo = gameLogoUrl(game, locale);
