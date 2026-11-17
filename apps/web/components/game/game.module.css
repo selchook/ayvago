@@ -893,6 +893,18 @@
   border-color: var(--border);
 }
 
+/* The player overlay's "Reload game" button sits on the dark scrim in every theme: white text and
+   a light outline there, so the panel button styles above (dark text and a dark accent outline in
+   light themes) do not hide it. Arcade keeps its accent outline, which reads on the scrim. */
+.overlayContent .secondaryButton {
+  color: #fff;
+  border-color: rgb(255 255 255 / 0.6);
+}
+
+[data-theme='arcade'] .overlayContent .secondaryButton {
+  border-color: var(--accent);
+}
+
 /* Leave table (slice 5.20): a quiet button in the table header and its confirmation dialog. */
 .meta:has(.leaveButton) {
   align-items: center;
@@ -1068,6 +1080,24 @@
   -webkit-text-stroke: 0.22em #1b1d2a;
 }
 
+/* The game's own logo (`assets.logo`, a transparent PNG up to 640×320) in the text logo's place:
+   a fixed box the logo is fitted into (never stretched, anchored bottom-left), so trimmed logos of
+   any shape come out about the same size, and the box stays clear of the middle, where the Play
+   button and the loading state sit. A soft shadow keeps it apart from bright screenshots. */
+.overlay .playerArtLogoImage {
+  position: absolute;
+  left: 5cqw;
+  bottom: 5cqh;
+  z-index: 2;
+  width: 40cqw;
+  height: 22cqh;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.65));
+  transform: none;
+  pointer-events: none;
+}
+
 /* A tall stage (phones): the frame fills the width, so the logo runs along the bottom. */
 @container (max-aspect-ratio: 3 / 4) {
   .playerArtLogo {
@@ -1078,5 +1108,11 @@
 
   .playerArtLogo[data-retro] {
     font-size: clamp(14px, 5.4cqw, 26px);
+  }
+
+  .overlay .playerArtLogoImage {
+    bottom: 4cqh;
+    width: 84cqw;
+    height: 18cqh;
   }
 }

@@ -1,5 +1,6 @@
+import type { Locale } from '@ayvago/shared';
 import { CoverArt } from '@/components/catalog/cover-art';
-import type { CatalogGame } from '@/lib/catalog';
+import { gameLogoUrl, type CatalogGame } from '@/lib/catalog';
 import styles from './game.module.css';
 
 /**
@@ -8,11 +9,20 @@ import styles from './game.module.css';
  * Landscape games show their 16:9 card art (slice 5.24), which fits the 16:9 stage with its logo.
  * A portrait game's stage is tall or square, so its card would be cropped to the middle and lose
  * the logo; there the Minimal and Cartoon themes compose the art from the in-game screenshot
- * instead (blurred backdrop, the sharp frame in the middle) and draw the game's name as a logo in
- * the game's own display font (Fredoka, or the pixel font for retro games). Every theme shows it,
- * Arcade included.
+ * instead (blurred backdrop, the sharp frame in the middle) with the game's own logo
+ * (`assets.logo`, the locale's version or English) bottom-left. A game without a logo gets its
+ * name written there in a display font (Fredoka, or the pixel font for retro games). Every theme
+ * shows it, Arcade included. The art is decorative: the page names the game elsewhere.
  */
-export function PlayerCover({ game, title }: { game: CatalogGame; title: string }) {
+export function PlayerCover({
+  game,
+  title,
+  locale,
+}: {
+  game: CatalogGame;
+  title: string;
+  locale: Locale;
+}) {
   const { manifest } = game;
   const shot = game.screenshotUrl;
   const card = (
@@ -30,6 +40,7 @@ export function PlayerCover({ game, title }: { game: CatalogGame; title: string 
   if (manifest.orientation !== 'portrait' || !shot || !game.cardUrl) return card;
 
   const retro = (manifest.categories ?? [manifest.category]).includes('retro');
+  const logo = gameLogoUrl(game, locale);
   return (
     <div className={styles.playerArt} aria-hidden="true">
       <img className={styles.playerArtBlur} src={shot} alt="" loading="lazy" decoding="async" />
@@ -41,9 +52,20 @@ export function PlayerCover({ game, title }: { game: CatalogGame; title: string 
         loading="lazy"
         decoding="async"
       />
-      <span className={styles.playerArtLogo} data-retro={retro || undefined}>
-        {title}
-      </span>
+      {logo ? (
+        // Lazy like the shots above, so prefetching the page from a tile link never preloads it.
+        <img
+          className={styles.playerArtLogoImage}
+          src={logo}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span className={styles.playerArtLogo} data-retro={retro || undefined}>
+          {title}
+        </span>
+      )}
     </div>
   );
 }

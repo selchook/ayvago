@@ -111,7 +111,7 @@ export default async function GamePage({ params }: Props) {
             orientation={manifest.orientation}
             scoreOrder={manifest.scoring.order}
             scoreFormat={manifest.scoring.format}
-            cover={<PlayerCover game={game} title={title} />}
+            cover={<PlayerCover game={game} title={title} locale={locale} />}
           />
 
           <div className={styles.details}>

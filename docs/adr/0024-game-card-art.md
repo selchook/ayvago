@@ -60,3 +60,21 @@ path on the game's origin or an https URL; plain http only for localhost):
   look as they do today. The developer docs (Phase 6) list the two fields and their sizes.
 - **Weight.** A 640×360 WebP is a few tens of KB instead of about 200 KB per tile. Phones with
   dense screens get the 1280×720 copy.
+
+## Amendment: game logo (slice 5.30)
+The owner asked that the player overlay show each game's own logo instead of its name in a
+generic font ([Phase 5 plan §5.30](../plan/phase-5.md#530-game-logos-on-the-player-overlay-)).
+
+- **Manifest.** `assets.logo` is an optional, strict `{ en, tr? }` map of asset refs: English is
+  required and the fallback, like the manifest's text. Each is a transparent PNG of the game's
+  own logo (title art, may include an emblem), at most 640×320, trimmed to its content. It is
+  drawn over in-game art, so it must read on dark and busy backgrounds by itself (outline or
+  shadow in the art); the platform only adds a soft drop shadow.
+- **Studio paths:** `/games/<slug>/ayvago/logo-en.png` and `logo-tr.png`; `arcadeGame()` adds
+  `logo: { en, tr }` to every game. The change again stays inside `manifest.ts`.
+- **Platform.** The catalog resolves `logoUrl` like the card (same own-assets rule). The portrait
+  player overlay shows the locale's logo, else the English one, in a fixed box bottom-left (along
+  the bottom on phones), scaled to fit; without a logo it writes the title as before. Landscape
+  overlays keep the card, whose logo is part of the art.
+- **Consequences.** The same merge order as the card: the platform first, then the studio's
+  catalog sync. Third-party games may ship a logo; without one they get the text logo.

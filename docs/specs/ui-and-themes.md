@@ -1,6 +1,6 @@
 # Spec — UI Components and Theme System
 
-- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24; phone drawer and tablet rail: slice 5.26; Most played page, ten-slide spotlight, ticker quotes: slice 5.27)
+- Status: Draft (2026-10-18); implementation notes per section (app shell footer: slice 5.23; tile card art: slice 5.24; phone drawer and tablet rail: slice 5.26; Most played page, ten-slide spotlight, ticker quotes: slice 5.27; game logos on the player overlay: slice 5.30)
 - Related: [Roadmap §3–4](../plan/roadmap.md), [ADR 0005](../adr/0005-internationalization.md), [Accounts](accounts.md), [Leaderboards](leaderboards.md), [Voting](voting.md)
 
 ## 1. Goals
@@ -93,6 +93,7 @@ rank chip on each (gold, silver and bronze for the top three) and a compact play
 └──────────────────────────────────────────────┴───────────────────┘
 ```
 - **Theater mode** widens the player and hides the side column; **fullscreen** uses the Fullscreen API on the player container. A landscape game (manifest `orientation: landscape`) also locks the screen to landscape in fullscreen where the browser allows it (Chrome on Android), and unlocks on leaving; portrait games never lock. *Implemented in slice 5.8.*
+- **Player overlay art** (before Play and while loading). *Implementation status (slices 5.24 and 5.30, [ADR 0024](../adr/0024-game-card-art.md)):* landscape games show their 16:9 card, which carries the game's logo. Portrait games show art composed from the in-game `screenshot` (a blurred backdrop, the sharp frame in the middle) with the game's own logo bottom-left (along the bottom on phones): `assets.logo` in `ayvago.json`, a transparent PNG per locale (`{ en, tr? }`, at most 640×320), the player's locale with English as the fallback, fitted into a fixed box that stays clear of the Play button and the loading state. A game without a logo gets its title written there in a display font (Fredoka, or the pixel font for retro games). Every theme shows the art.
 - On phones the page shows a cover with a big Play button; playing opens an immersive view with a floating exit/pause control (respecting safe-area insets) and locks orientation when the manifest requires it.
 - Ads never overlay the iframe during gameplay. *Implemented in slice 3.1 ([ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)), switched **off** until the owner turns it on in the admin panel:* the "Ad slot (desktop)" is a labelled ("Advertisement / Reklam") 300×250 banner in the side column between the leaderboard and the related games, rendered only at 1100 px and wider (where the column exists), never on phones, never in theater mode (the column is hidden) and never for `remove_ads` owners. Interstitials come only between games (a game's `requestInterstitial`, leaving a game page after a finished run) and rewarded ads only when the player asks in a game; neither ever covers a run in progress or an online match. With the switch off nothing renders and no ad code loads.
 
