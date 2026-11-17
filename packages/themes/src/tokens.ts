@@ -75,10 +75,10 @@ export type ThemeDefinition = {
 const SYSTEM_SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const SYSTEM_MONO = "ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace";
 
-// Press Start 2P draws the Turkish capital İ (U+0130) squashed, the same shape as a lowercase i.
-// "Ayvago Pixel TR" (apps/web/fonts/ayvago-pixel-tr, SIL OFL 1.1, from the studio) holds only a
-// full-height İ; its @font-face is limited to U+0130, so it must come first and every other
-// character still uses Press Start 2P.
+// Press Start 2P draws the Turkish capitals İ, Ö and Ü squashed, the same shape as a lowercase i, ö
+// and ü. "Ayvago Pixel TR" (apps/web/fonts/ayvago-pixel-tr, SIL OFL 1.1, from the studio) holds only
+// full-height İ, Ö and Ü; its @font-face is limited to U+0130, U+00D6 and U+00DC, so it must come
+// first and every other character still uses Press Start 2P.
 export const PIXEL_FONT = `'Ayvago Pixel TR', 'Press Start 2P', ${SYSTEM_MONO}`;
 
 export const THEMES: Record<ThemeId, ThemeDefinition> = {

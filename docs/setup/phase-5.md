@@ -440,6 +440,11 @@ step is the merge order, as with the card art (5.24):
   the game's Turkish logo instead of its name in plain letters; `/en/` shows the English logo.
   Landscape games look as before (their card already carries the logo).
 
+## 5.31 Turkish Ö and Ü in the pixel font
+Nothing to configure: merging deploys the web app with the updated font. Optional check: in the
+Arcade theme, Turkish headings with Ö or Ü (for example a game named "Göktaşı Fırtınası") show
+full-height capitals with the dots above.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

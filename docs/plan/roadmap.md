@@ -573,6 +573,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] One window in the "Players and plays" report: every number from 7 November 2026 (UTC), named by one small note; no all-time columns; the columns counted from 10 November keep a `*`; CSV columns and file names follow (slice 5.28)
 - [x] Tavla in the lobby: two-seat tables without bots give Tavla the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables); the studio flags which two-player games play at tables (slice 5.29, [ADR 0026](../adr/0026-two-seat-tables.md))
 - [x] Game logos on the player overlay: optional `assets.logo` (`{ en, tr? }` transparent PNGs, at most 640×320) replaces the title text over portrait games' art before Play and while loading, in the player's language with English as the fallback (slice 5.30)
+- [x] Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (slice 5.31)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

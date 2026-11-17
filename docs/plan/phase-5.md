@@ -56,6 +56,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.28 | One window in the "Players and plays" report: every number counts from 7 November 2026 (UTC); the all-time columns are gone, one small note names the window, the columns counted only from 10 November keep a `*` (owner request) | ✅ code · ⏳ functions deploy |
 | 5.29 | Tavla in the lobby: the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables) for Tavla, at two-seat tables without bots; a catalog flag from the studio decides which two-player games get one (owner request, [ADR 0026](../adr/0026-two-seat-tables.md)) | ✅ code · ⏳ studio merge and catalog sync |
 | 5.30 | Game logos on the player overlay: a game's own designed logo (optional `assets.logo` in `ayvago.json`, `{ en, tr? }` transparent PNGs) replaces the title text over portrait games' art before Play and while loading, in the player's language (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-game-logo-slice-530)) | ✅ code · ⏳ merge before the logo sync |
+| 5.31 | Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (owner request) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -2484,3 +2485,27 @@ Still open:
 - Landscape cards keep their English baked-in logo in Turkish. A Turkish card (`card` as a
   `{ en, tr? }` map, or a logo-free card with `assets.logo` on top) would fix it.
 - The logo could replace the text name elsewhere (the spotlight, the Arcade tiles); not asked for.
+
+## 5.31 Turkish Ö and Ü in the pixel font ✅ code
+
+The owner asked to fix the pixel font's Ö. Press Start 2P squeezes the capitals Ö and Ü to five
+rows so their dots fit inside the cap height, which makes them the same shape as ö and ü: the
+Arcade theme's headings read "GöKTAŞI" or "SöNDüR", the problem slice 5.7 fixed for İ.
+
+What shipped:
+- **The face**, copied verbatim from the studio (`selchook/ayvago-games` `tools/build-tr-font.py`,
+  its PR "Ayvago Pixel TR: full-height Ö and Ü next to the İ"): `apps/web/fonts/ayvago-pixel-tr/`
+  `ayvago-pixel-tr.woff` (1.1 KB) now also holds full-height Ö (U+00D6) and Ü (U+00DC), copies of
+  Press Start 2P's own O and U with the dots one row above the cap height, where the İ's dot
+  sits. The İ glyph is unchanged; `OFL.txt` is unchanged.
+- **`ayvago-pixel-tr.css`**: `unicode-range: U+0130, U+00D6, U+00DC`. `PIXEL_FONT` already lists
+  the face first in every Press Start 2P stack, so nothing else changes.
+- Ç, Ş and Ğ keep Press Start 2P's glyphs: their marks sit below the line, and ğ has a descender.
+- The marks reach the same height as the İ's dot, so the existing line-height rule (at least 1.5
+  where the box clips) covers them.
+
+Deviations: none. Tests: the font is a static asset with no unit tests; `pnpm typecheck`,
+`pnpm --filter @ayvago/themes test` and `pnpm format:check` pass, and the glyphs were checked
+rendered (full height, dots unclipped) in the studio's games.
+
+Still open: nothing.
