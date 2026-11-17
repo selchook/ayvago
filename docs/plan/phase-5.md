@@ -57,6 +57,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.29 | Tavla in the lobby: the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables) for Tavla, at two-seat tables without bots; a catalog flag from the studio decides which two-player games get one (owner request, [ADR 0026](../adr/0026-two-seat-tables.md)) | ✅ code · ⏳ studio merge and catalog sync |
 | 5.30 | Game logos on the player overlay: a game's own designed logo (optional `assets.logo` in `ayvago.json`, `{ en, tr? }` transparent PNGs) replaces the title text over portrait games' art before Play and while loading, in the player's language (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-game-logo-slice-530)) | ✅ code · ⏳ merge before the logo sync |
 | 5.31 | Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (owner request) | ✅ code |
+| 5.32 | Card art per language: `assets.card` / `card2x` may be a `{ en, tr? }` map, so the logo baked into the card is Turkish on `/tr` on the Minimal and Cartoon tiles, the home spotlight and the landscape player overlay; a single ref still works (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-card-art-per-language-slice-532)) | ✅ code · ⏳ merge before the localized-card sync |
 
 ## 5.1 Player characters ✅
 
@@ -2483,7 +2484,8 @@ the catalog sync that adds `logo`. No rules, functions or secrets.
 
 Still open:
 - Landscape cards keep their English baked-in logo in Turkish. A Turkish card (`card` as a
-  `{ en, tr? }` map, or a logo-free card with `assets.logo` on top) would fix it.
+  `{ en, tr? }` map, or a logo-free card with `assets.logo` on top) would fix it. Done in slice
+  5.32 (a card per language).
 - The logo could replace the text name elsewhere (the spotlight, the Arcade tiles); not asked for.
 
 ## 5.31 Turkish Ö and Ü in the pixel font ✅ code
@@ -2509,3 +2511,75 @@ Deviations: none. Tests: the font is a static asset with no unit tests; `pnpm ty
 rendered (full height, dots unclipped) in the studio's games.
 
 Still open: nothing.
+
+## 5.32 Card art per language ✅ code
+
+The owner reported that the logos on the game cards stay English when the language changes ("oyun
+kartlarındaki logoları da Türkçe uyumlu yap"). The card art (`assets.card` 640×360 and
+`assets.card2x` 1280×720 WebP, slice 5.24) is an in-game frame with the game's logo baked in, and
+the manifest had one card per game. The studio (`selchook/ayvago-games`) now renders a Turkish
+card next to the English one. Contract:
+[ADR 0024, amendment](../adr/0024-game-card-art.md#amendment-card-art-per-language-slice-532).
+
+What shipped:
+- **Manifest** (`packages/shared/src/manifest.ts`): `assets.card` and `assets.card2x` take either
+  an asset ref, as before (unchanged and still valid), or the localized asset map of `assets.logo`
+  (slice 5.30): a strict `{ en, tr? }` map of asset refs with English required. A map without English, an
+  empty map or an array is rejected with "asset must be a path, an https URL or an { en, tr? }
+  map of them"; a bad ref is reported where it sits (`assets.card`, or `assets.card.tr` inside a
+  map), an unknown locale as an unrecognized key. `card2x` is still
+  only used together with `card`. New exports: the `MaybeLocalizedAsset` type and
+  `localizedAssetMap(ref)`, which reads a single ref as the English (fallback) version. The
+  change stays inside `manifest.ts`, the file the studio vendors verbatim.
+- **Catalog** (`apps/web/lib/catalog`): `CatalogGame.cardUrl` and `card2xUrl` are now
+  `{ en, tr? } | null` maps of absolute URLs, resolved against the entry URL with the same
+  own-assets rule as before; a single ref becomes `{ en }`. Pages pick the pair for a locale with
+  `gameCardArt(game, locale)`: the locale's card, else the English one, and the 2x copy **in the
+  same language as the card**, so a `srcset` never mixes two languages (a Turkish card without a
+  Turkish 2x copy is used on its own; a game without a Turkish card uses the English pair). A
+  map is not a string, so the types make every call site go through the helper.
+- **Call sites**, all in the player's locale:
+  - `toTiles` (`lib/catalog/tiles.ts`): the Minimal and Cartoon tiles of every list (home
+    shelves, Continue playing, categories, New, Most played, Favorites, search, related games);
+  - the home spotlight slides and their thumbnails (`app/[locale]/page.tsx`);
+  - `PlayerCover` (game, room and table pages): the landscape overlay's card before Play and
+    while loading. Portrait games still use their screenshot and `assets.logo`.
+
+  The game page heading's `visually-hidden` check (any card) and the OG / Twitter images (the
+  1920×1080 cover, no card) are unchanged.
+
+Deviations: none from the brief. `arcade-catalog.ts` is not touched; the studio's shape lives in
+typed test mocks.
+
+Tests:
+- shared `manifest.test.ts` (+4): a card and card2x per locale, English alone, the two shapes
+  mixed and a lone card2x map are valid; maps without English, with an unknown locale, empty,
+  arrays, and maps with an http (non-localhost), relative, empty or `javascript:` ref are
+  rejected (a bad Turkish ref at `assets.card.tr`); `localizedAssetMap` reads a single ref as
+  English; the exact studio entry shape (typed as `GameManifestInput`) parses and resolves the
+  Turkish card against the studio origin. The existing single-ref card tests pass unchanged.
+- web `lib/catalog/catalog.test.ts` (+3; three existing cases now expect `{ en }` maps): a card
+  map resolves like a single card (a missing locale stays missing, a lone card2x map is ignored,
+  nothing without own assets); `gameCardArt` picks Turkish, falls back to English, keeps single
+  refs English in every locale and never pairs a Turkish card with an English 2x copy; a mocked
+  `SEED_GAMES` with Mud Rally in the shape `arcadeGame()` will generate (typed as `SeedGame`) and
+  every other game with single refs gets the Turkish pair on `tr` and the English pair on `en`.
+  The pass-through check over the real catalog holds for both shapes, so it does not depend on
+  what the catalog sync ships.
+- Full run: shared 128, web 261, themes 16, adapter 30, firebase 240 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass (the first
+  build stopped at Next.js's one-time "known security vulnerability" notice; the retry passed).
+- **In the browser** (`next start` of a scratch copy of this branch whose `arcadeGame()` gave
+  every game the studio's card maps; the studio origin routed to local copies of the real cards,
+  stamped "EN CARD" and "TR KART" so the language is visible): the home page in Minimal light
+  and dark and Cartoon light and dark, `/en` and `/tr`, at 390×844 and 1280×800 (shelves and the
+  spotlight): on `/tr` every card shown and requested is the Turkish one, on `/en` none; no
+  horizontal overflow. Mud Rally's landscape overlay before Play in Minimal light, Cartoon dark
+  and Arcade at both sizes shows `card-tr-1280x720.webp` on `/tr` and the English card on `/en`.
+
+Owner steps ([setup](../setup/phase-5.md#532-card-art-per-language)): merge this before the
+catalog sync that adds the Turkish cards. No rules, functions or secrets.
+
+Still open:
+- Another locale needs only its key in the manifest's localized maps (they follow
+  `SUPPORTED_LOCALES`) and its cards from the studio.

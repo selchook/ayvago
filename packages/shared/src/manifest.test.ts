@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   gameCategories,
+  localizedAssetMap,
   parseGameManifest,
   pickLocalized,
   resolveAssetUrl,
@@ -115,6 +116,76 @@ describe('parseGameManifest', () => {
       issuePaths({ ...orbSurge, assets: { ...assets, card2x: 'javascript:alert(1)' } }),
     ).toContain('assets.card2x');
     expect(issuePaths({ ...orbSurge, assets: { ...assets, card: '' } })).toContain('assets.card');
+  });
+
+  it('accepts card art as a single ref or as a map per locale', () => {
+    const card = { en: '/ayvago/card-640x360.webp', tr: '/ayvago/card-tr-640x360.webp' };
+    const card2x = {
+      en: 'https://cdn.example.com/orb-surge/card-1280x720.webp',
+      tr: 'https://cdn.example.com/orb-surge/card-tr-1280x720.webp',
+    };
+    const result = parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, card, card2x } });
+    expect(result.ok && result.manifest.assets).toMatchObject({ card, card2x });
+    // English alone, and the two shapes mixed, are valid too.
+    const enOnly = { ...orbSurge.assets, card: { en: card.en }, card2x: card2x.en };
+    expect(parseGameManifest({ ...orbSurge, assets: enOnly }).ok).toBe(true);
+    // A map of card2x without card stays valid; the platform ignores it.
+    const lone = { ...orbSurge.assets, card2x };
+    expect(parseGameManifest({ ...orbSurge, assets: lone }).ok).toBe(true);
+  });
+
+  it('rejects card maps without English, with unknown locales or with bad refs', () => {
+    const assets = orbSurge.assets;
+    const paths = (card: unknown, field: 'card' | 'card2x' = 'card') =>
+      issuePaths({ ...orbSurge, assets: { ...assets, [field]: card } });
+    expect(paths({ tr: '/card-tr.webp' })).toContain('assets.card');
+    expect(paths({ en: '/card.webp', de: '/card-de.webp' })).toContain('assets.card');
+    expect(paths({ en: 'http://example.com/card.webp' })).toContain('assets.card.en');
+    expect(paths({ en: '/card.webp', tr: 'card-tr.webp' })).toContain('assets.card.tr');
+    expect(paths({ en: '/card.webp', tr: '' })).toContain('assets.card.tr');
+    expect(paths({})).toContain('assets.card');
+    expect(paths(['/card.webp'])).toContain('assets.card');
+    expect(paths({ en: '/card.webp', tr: 'javascript:alert(1)' }, 'card2x')).toContain(
+      'assets.card2x.tr',
+    );
+  });
+
+  it('reads a single card ref as the English one', () => {
+    expect(localizedAssetMap('/card.webp')).toEqual({ en: '/card.webp' });
+    const map = { en: '/card.webp', tr: '/card-tr.webp' };
+    expect(localizedAssetMap(map)).toBe(map);
+  });
+
+  it('accepts the studio arcade entry shape with a card per locale', () => {
+    // The shape the studio's generated arcade-catalog.ts will give every arcade game's cards.
+    const slug = 'mud-rally';
+    const manifest: GameManifestInput = {
+      ...orbSurge,
+      id: 'mudrally',
+      entry: `https://ayvago-games-nine.vercel.app/games/${slug}/`,
+      orientation: 'landscape',
+      assets: {
+        icon: `/games/${slug}/ayvago/icon-512.png`,
+        cover: `/games/${slug}/ayvago/cover-1920x1080.jpg`,
+        screenshot: `/games/${slug}/ayvago/screenshot.jpg`,
+        card: {
+          en: `/games/${slug}/ayvago/card-640x360.webp`,
+          tr: `/games/${slug}/ayvago/card-tr-640x360.webp`,
+        },
+        card2x: {
+          en: `/games/${slug}/ayvago/card-1280x720.webp`,
+          tr: `/games/${slug}/ayvago/card-tr-1280x720.webp`,
+        },
+        logo: { en: `/games/${slug}/ayvago/logo-en.png`, tr: `/games/${slug}/ayvago/logo-tr.png` },
+      },
+    };
+    const result = parseGameManifest(manifest);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.manifest.assets.card) return;
+    const card = localizedAssetMap(result.manifest.assets.card);
+    expect(resolveAssetUrl(result.manifest, pickLocalized(card, 'tr'))).toBe(
+      'https://ayvago-games-nine.vercel.app/games/mud-rally/ayvago/card-tr-640x360.webp',
+    );
   });
 
   it('accepts an optional localized logo with English required', () => {

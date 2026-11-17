@@ -6,6 +6,7 @@ import { SpotlightCarousel, type SpotlightSlide } from '@/components/catalog/spo
 import styles from '@/components/page.module.css';
 import {
   categoryPath,
+  gameCardArt,
   gameDescription,
   gamePath,
   gameTitle,
@@ -46,8 +47,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
     description: gameDescription(game, locale),
     category: game.manifest.category,
     cover: game.coverUrl,
-    card: game.cardUrl,
-    card2x: game.card2xUrl,
+    // The card in the player's language (its logo is baked in), else English.
+    ...gameCardArt(game, locale),
     categoryLabels: allTiles.find((tile) => tile.slug === game.slug)?.categoryLabels ?? [],
     badge: badges[reason](rank),
     reason,

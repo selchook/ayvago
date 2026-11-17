@@ -3,6 +3,7 @@ import {
   ARCADE_ORIGIN,
   GAME_CATEGORIES,
   PARKED_GAMES,
+  localizedAssetMap,
   resolveAssetUrl,
   type SeedGame,
 } from '@ayvago/shared';
@@ -221,13 +222,67 @@ describe('resolveGameArt', () => {
     expect(resolveGameArt({ entry, assets: { ...assets, card, card2x } }, true)).toEqual({
       coverUrl: 'https://games.example.com/games/orb-surge/ayvago/cover-1920x1080.jpg',
       screenshotUrl: null,
-      cardUrl: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp',
-      card2xUrl: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp',
+      // A single ref is the English card, the fallback of every locale.
+      cardUrl: { en: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp' },
+      card2xUrl: { en: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp' },
       logoUrl: null,
     });
     // Absolute https refs stay where they point.
     const cdn = 'https://cdn.example.com/card.webp';
-    expect(resolveGameArt({ entry, assets: { ...assets, card: cdn } }, true).cardUrl).toBe(cdn);
+    expect(resolveGameArt({ entry, assets: { ...assets, card: cdn } }, true).cardUrl).toEqual({
+      en: cdn,
+    });
+  });
+
+  it('resolves a card per locale like a single card', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    const cards = {
+      card: { en: card, tr: '/games/orb-surge/ayvago/card-tr-640x360.webp' },
+      card2x: { en: card2x, tr: 'https://cdn.example.com/card-tr-1280x720.webp' },
+    };
+    expect(resolveGameArt({ entry, assets: { ...assets, ...cards } }, true)).toMatchObject({
+      cardUrl: {
+        en: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp',
+        tr: 'https://games.example.com/games/orb-surge/ayvago/card-tr-640x360.webp',
+      },
+      card2xUrl: {
+        en: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp',
+        tr: 'https://cdn.example.com/card-tr-1280x720.webp',
+      },
+    });
+    // A missing locale stays missing; a map of card2x without card is still ignored.
+    const enOnly = resolveGameArt({ entry, assets: { ...assets, card: { en: card } } }, true);
+    expect(enOnly.cardUrl).toEqual({ en: new URL(card, entry).toString() });
+    const lone = resolveGameArt({ entry, assets: { ...assets, card2x: cards.card2x } }, true);
+    expect(lone).toMatchObject({ cardUrl: null, card2xUrl: null });
+    expect(resolveGameArt({ entry, assets: { ...assets, ...cards } }, false)).toMatchObject({
+      cardUrl: null,
+      card2xUrl: null,
+    });
+  });
+
+  it("picks the locale's card and its 2x copy, falling back to English", async () => {
+    const { gameCardArt, resolveGameArt } = await loadCatalog();
+    const url = (ref: string) => new URL(ref, entry).toString();
+    const trCard = '/games/orb-surge/ayvago/card-tr-640x360.webp';
+    const trCard2x = '/games/orb-surge/ayvago/card-tr-1280x720.webp';
+    const art = (more: object) => resolveGameArt({ entry, assets: { ...assets, ...more } }, true);
+
+    const both = art({ card: { en: card, tr: trCard }, card2x: { en: card2x, tr: trCard2x } });
+    expect(gameCardArt(both, 'tr')).toEqual({ card: url(trCard), card2x: url(trCard2x) });
+    expect(gameCardArt(both, 'en')).toEqual({ card: url(card), card2x: url(card2x) });
+    // Today's single refs: English in every locale.
+    const single = art({ card, card2x });
+    expect(gameCardArt(single, 'tr')).toEqual({ card: url(card), card2x: url(card2x) });
+    // No Turkish card: the English card with its English 2x copy.
+    const enOnly = art({ card: { en: card }, card2x: { en: card2x, tr: trCard2x } });
+    expect(gameCardArt(enOnly, 'tr')).toEqual({ card: url(card), card2x: url(card2x) });
+    // A Turkish card without a Turkish 2x copy is used alone, never with the English 2x copy.
+    const noTr2x = art({ card: { en: card, tr: trCard }, card2x });
+    expect(gameCardArt(noTr2x, 'tr')).toEqual({ card: url(trCard), card2x: null });
+    expect(gameCardArt(noTr2x, 'en')).toEqual({ card: url(card), card2x: url(card2x) });
+    // No card: the cover.
+    expect(gameCardArt(art({}), 'tr')).toEqual({ card: null, card2x: null });
   });
 
   it('keeps the cover when a game has no card art', async () => {
@@ -248,7 +303,7 @@ describe('resolveGameArt', () => {
   it('uses a card without card2x on its own', async () => {
     const { resolveGameArt } = await loadCatalog();
     expect(resolveGameArt({ entry, assets: { ...assets, card } }, true)).toMatchObject({
-      cardUrl: new URL(card, entry).toString(),
+      cardUrl: { en: new URL(card, entry).toString() },
       card2xUrl: null,
     });
   });
@@ -265,16 +320,91 @@ describe('resolveGameArt', () => {
   });
 
   it('passes the card art of every catalog game through to its tile data', async () => {
-    const { getAllGames } = await loadCatalog();
+    // Holds for single card refs and for cards per locale, whatever the synced catalog ships.
+    const { gameCardArt, getAllGames } = await loadCatalog();
     for (const game of getAllGames()) {
       const { card, card2x } = game.manifest.assets;
       const live = game.coverUrl !== null;
-      expect(game.cardUrl, game.slug).toBe(
-        live && card ? resolveAssetUrl(game.manifest, card) : null,
-      );
-      expect(game.card2xUrl, game.slug).toBe(
-        live && card && card2x ? resolveAssetUrl(game.manifest, card2x) : null,
-      );
+      const english = (ref: typeof card) =>
+        ref ? resolveAssetUrl(game.manifest, localizedAssetMap(ref).en) : null;
+      expect(game.cardUrl?.en ?? null, game.slug).toBe(live ? english(card) : null);
+      expect(game.card2xUrl?.en ?? null, game.slug).toBe(live && card ? english(card2x) : null);
+      // Every locale gets a card whenever English has one.
+      for (const locale of ['en', 'tr'] as const) {
+        expect(gameCardArt(game, locale).card === null, game.slug).toBe(game.cardUrl === null);
+      }
+    }
+  });
+
+  it('serves the cards of a studio entry in the shape arcadeGame() will generate', async () => {
+    vi.resetModules();
+    vi.doMock('@ayvago/shared', async (importOriginal) => {
+      const shared = await importOriginal<typeof import('@ayvago/shared')>();
+      // Typed as SeedGame, so the studio's shape must type-check against GameManifestInput.
+      const withCards = (seed: SeedGame): SeedGame => ({
+        ...seed,
+        status: 'live',
+        generatedCover: false,
+        manifest: {
+          ...seed.manifest,
+          assets: {
+            ...seed.manifest.assets,
+            card: {
+              en: `/games/${seed.slug}/ayvago/card-640x360.webp`,
+              tr: `/games/${seed.slug}/ayvago/card-tr-640x360.webp`,
+            },
+            card2x: {
+              en: `/games/${seed.slug}/ayvago/card-1280x720.webp`,
+              tr: `/games/${seed.slug}/ayvago/card-tr-1280x720.webp`,
+            },
+          },
+        },
+      });
+      // Every other game gets today's single refs, whatever the synced catalog ships.
+      const singleCards = (seed: SeedGame): SeedGame => ({
+        ...seed,
+        status: 'live',
+        generatedCover: false,
+        manifest: {
+          ...seed.manifest,
+          assets: {
+            ...seed.manifest.assets,
+            card: `/games/${seed.slug}/ayvago/card-640x360.webp`,
+            card2x: `/games/${seed.slug}/ayvago/card-1280x720.webp`,
+          },
+        },
+      });
+      return {
+        ...shared,
+        SEED_GAMES: shared.SEED_GAMES.map((seed) =>
+          seed.slug === 'mud-rally' ? withCards(seed) : singleCards(seed),
+        ),
+      };
+    });
+    try {
+      const { gameCardArt, getGameBySlug } = await import('./index');
+      const base = `${ARCADE_ORIGIN}/games/mud-rally/ayvago`;
+      const game = getGameBySlug('mud-rally')!;
+      expect(game.cardUrl).toEqual({
+        en: `${base}/card-640x360.webp`,
+        tr: `${base}/card-tr-640x360.webp`,
+      });
+      expect(gameCardArt(game, 'tr')).toEqual({
+        card: `${base}/card-tr-640x360.webp`,
+        card2x: `${base}/card-tr-1280x720.webp`,
+      });
+      expect(gameCardArt(game, 'en')).toEqual({
+        card: `${base}/card-640x360.webp`,
+        card2x: `${base}/card-1280x720.webp`,
+      });
+      // A game with single refs shows its English card in Turkish.
+      const other = getGameBySlug('bubble-pop')!;
+      expect(gameCardArt(other, 'tr')).toEqual({
+        card: `${ARCADE_ORIGIN}/games/bubble-pop/ayvago/card-640x360.webp`,
+        card2x: `${ARCADE_ORIGIN}/games/bubble-pop/ayvago/card-1280x720.webp`,
+      });
+    } finally {
+      vi.doUnmock('@ayvago/shared');
     }
   });
 });
