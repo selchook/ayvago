@@ -457,6 +457,23 @@ The soft-launch traffic share is managed with Remote Config.
 ### 11.3 Hosting
 Developers provide their own HTTPS URL **or** upload a zip → Cloud Storage → served from a **second Firebase Hosting site** on a separate domain, isolated from `ayvago.com` cookies. Initially Firebase's free `ayvago-play.web.app` address is enough (`web.app` counts as a separate site, so it cannot read `ayvago.com` cookies). A subdomain such as `play.ayvago.com` is **not suitable**: it counts as the same site and weakens isolation. A branded separate domain (e.g. `ayvagoplay.com`) can be added later.
 
+
+### 11.4 Manifest images
+Every image a game lists under `assets` in `ayvago.json` is a path on the game's origin or an
+https URL (plain http only for localhost). The platform reads:
+
+| Field | Required | What | Size and format |
+|---|---|---|---|
+| `icon` | yes | App icon | 512×512 PNG |
+| `cover` | yes | Store cover for the game page and the home spotlight | 1920×1080 JPEG |
+| `screenshot` | no | In-game frame in the game's orientation (Arcade tiles, portrait player overlay) | JPEG, e.g. 540×960 (portrait) |
+| `card` | no | Catalog card for the Minimal and Cartoon tiles: in-game frames, a small logo, no text block | 640×360 WebP |
+| `card2x` | no | The same card for dense screens, used only with `card` | 1280×720 WebP |
+| `logo` | no | The game's own logo per locale, `{ en, tr? }` with English required; drawn over in-game art (player overlay) | transparent PNG, at most 640×320 |
+
+Without the optional images the platform falls back: tiles show the cover, the overlay writes the
+title as text. Decisions: [ADR 0024](../adr/0024-game-card-art.md).
+
 ---
 
 ## 12. Phases and Timeline
@@ -555,6 +572,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Most played page (This week, All time and Yours tabs; `plays7d` and the all-time `playsTotal` in `rankings/catalog` from the hourly `recomputeRankings`) instead of Recently played; a ten-slide home spotlight with in-game card art, a progress bar and thumbnails; sourced thinkers' quotes in the top-bar ticker (slice 5.27)
 - [x] One window in the "Players and plays" report: every number from 7 November 2026 (UTC), named by one small note; no all-time columns; the columns counted from 10 November keep a `*`; CSV columns and file names follow (slice 5.28)
 - [x] Tavla in the lobby: two-seat tables without bots give Tavla the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables); the studio flags which two-player games play at tables (slice 5.29, [ADR 0026](../adr/0026-two-seat-tables.md))
+- [x] Game logos on the player overlay: optional `assets.logo` (`{ en, tr? }` transparent PNGs, at most 640×320) replaces the title text over portrait games' art before Play and while loading, in the player's language with English as the fallback (slice 5.30)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

@@ -11,6 +11,7 @@ import {
   type GameCategory,
   type GameManifest,
   type CatalogRankings,
+  type LocalizedAsset,
   type CatalogStatus,
   type Locale,
   type SeedGame,
@@ -38,9 +39,16 @@ export type CatalogGame = {
   // cardUrl falls back to the cover, and card2xUrl is only set together with cardUrl.
   cardUrl: string | null;
   card2xUrl: string | null;
+  // Absolute URLs of the game's own logo per locale (English required, the fallback); null draws
+  // the title as text where the logo would go (the portrait player overlay). Pick one with
+  // gameLogoUrl().
+  logoUrl: LocalizedAsset | null;
 };
 
-export type GameArt = Pick<CatalogGame, 'coverUrl' | 'screenshotUrl' | 'cardUrl' | 'card2xUrl'>;
+export type GameArt = Pick<
+  CatalogGame,
+  'coverUrl' | 'screenshotUrl' | 'cardUrl' | 'card2xUrl' | 'logoUrl'
+>;
 
 /**
  * Resolves a game's images against its entry URL. `ownAssets` is false for games that are not
@@ -51,8 +59,10 @@ export function resolveGameArt(
   manifest: Pick<GameManifest, 'entry' | 'assets'>,
   ownAssets: boolean,
 ): GameArt {
-  if (!ownAssets) return { coverUrl: null, screenshotUrl: null, cardUrl: null, card2xUrl: null };
-  const { cover, screenshot, card, card2x } = manifest.assets;
+  if (!ownAssets) {
+    return { coverUrl: null, screenshotUrl: null, cardUrl: null, card2xUrl: null, logoUrl: null };
+  }
+  const { cover, screenshot, card, card2x, logo } = manifest.assets;
   const resolve = (ref: string | undefined) => (ref ? resolveAssetUrl(manifest, ref) : null);
   const cardUrl = resolve(card);
   return {
@@ -61,6 +71,12 @@ export function resolveGameArt(
     cardUrl,
     // The 2x art is only a sharper copy of the card: without the card there is nothing to sharpen.
     card2xUrl: cardUrl ? resolve(card2x) : null,
+    logoUrl: logo
+      ? {
+          en: resolveAssetUrl(manifest, logo.en),
+          ...(logo.tr ? { tr: resolveAssetUrl(manifest, logo.tr) } : {}),
+        }
+      : null,
   };
 }
 
@@ -205,6 +221,11 @@ export function gameTitle(game: CatalogGame, locale: Locale): string {
 
 export function gameDescription(game: CatalogGame, locale: Locale): string {
   return pickLocalized(game.manifest.description, locale);
+}
+
+/** The game's logo for a locale (English when the locale has none), or null without a logo. */
+export function gameLogoUrl(game: Pick<CatalogGame, 'logoUrl'>, locale: Locale): string | null {
+  return game.logoUrl ? pickLocalized(game.logoUrl, locale) : null;
 }
 
 export function gamePath(game: CatalogGame): string {

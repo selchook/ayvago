@@ -117,6 +117,64 @@ describe('parseGameManifest', () => {
     expect(issuePaths({ ...orbSurge, assets: { ...assets, card: '' } })).toContain('assets.card');
   });
 
+  it('accepts an optional localized logo with English required', () => {
+    const logo = { en: '/ayvago/logo-en.png', tr: 'https://cdn.example.com/orb-surge/logo-tr.png' };
+    const result = parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, logo } });
+    expect(result.ok && result.manifest.assets.logo).toEqual(logo);
+    // English alone is enough; other locales fall back to it.
+    const enOnly = { ...orbSurge.assets, logo: { en: logo.en } };
+    expect(parseGameManifest({ ...orbSurge, assets: enOnly }).ok).toBe(true);
+    // Without a logo the manifest stays valid.
+    const plain = parseGameManifest(orbSurge);
+    expect(plain.ok && plain.manifest.assets.logo).toBeUndefined();
+  });
+
+  it('rejects a logo without English, with unknown locales or with bad refs', () => {
+    const assets = orbSurge.assets;
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, logo: { tr: '/logo-tr.png' } } }),
+    ).toContain('assets.logo.en');
+    expect(
+      issuePaths({
+        ...orbSurge,
+        assets: { ...assets, logo: { en: '/logo.png', de: '/logo.png' } },
+      }),
+    ).toContain('assets.logo');
+    expect(issuePaths({ ...orbSurge, assets: { ...assets, logo: '/logo.png' } })).toContain(
+      'assets.logo',
+    );
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, logo: { en: 'http://example.com/l.png' } } }),
+    ).toContain('assets.logo.en');
+    expect(
+      issuePaths({ ...orbSurge, assets: { ...assets, logo: { en: '/l.png', tr: 'logo.png' } } }),
+    ).toContain('assets.logo.tr');
+  });
+
+  it('accepts the studio arcade entry shape with a logo per locale', () => {
+    // The shape the studio's generated arcade-catalog.ts adds to every arcade game's assets.
+    const slug = 'alien-invaders';
+    const manifest: GameManifestInput = {
+      ...orbSurge,
+      id: 'alieninvaders',
+      entry: `https://ayvago-games-nine.vercel.app/games/${slug}/`,
+      assets: {
+        icon: `/games/${slug}/ayvago/icon-512.png`,
+        cover: `/games/${slug}/ayvago/cover-1920x1080.jpg`,
+        screenshot: `/games/${slug}/ayvago/screenshot.jpg`,
+        card: `/games/${slug}/ayvago/card-640x360.webp`,
+        card2x: `/games/${slug}/ayvago/card-1280x720.webp`,
+        logo: { en: `/games/${slug}/ayvago/logo-en.png`, tr: `/games/${slug}/ayvago/logo-tr.png` },
+      },
+    };
+    const result = parseGameManifest(manifest);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.manifest.assets.logo) return;
+    expect(resolveAssetUrl(result.manifest, pickLocalized(result.manifest.assets.logo, 'tr'))).toBe(
+      'https://ayvago-games-nine.vercel.app/games/alien-invaders/ayvago/logo-tr.png',
+    );
+  });
+
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');

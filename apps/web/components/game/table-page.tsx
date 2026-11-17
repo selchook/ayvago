@@ -49,7 +49,7 @@ export function TablePage({
       orientation={manifest.orientation}
       scoreOrder={manifest.scoring.order}
       scoreFormat={manifest.scoring.format}
-      cover={<PlayerCover game={game} title={title} />}
+      cover={<PlayerCover game={game} title={title} locale={locale} />}
     />
   );
 }

@@ -420,6 +420,26 @@ Optional check after the sync deploys:
 4. A room link shared before the change (`/tr/games/backgammon/room/…`) still opens the room
    while it lasts.
 
+## 5.30 Game logos on the player overlay
+Nothing to configure: no secrets, env vars, functions or rules. Merging deploys the web app. Until
+the studio's logos arrive, the overlay looks as it does today (the title as text). The one owner
+step is the merge order, as with the card art (5.24):
+
+- ⏳ **Merge this platform PR before the catalog sync that adds the logos.** The studio's change
+  adds `logo: { en, tr }` to every game in `arcade-catalog.ts`. The manifest schema is strict, so
+  a platform without this change rejects those manifests: that "Sync arcade catalog" PR would
+  fail CI. Order:
+  1. Merge this PR.
+  2. Merge the studio PR. It copies the new `packages/shared/src/manifest.ts` verbatim into
+     `scripts/vendor/manifest.ts`, serves the logos at `/games/<slug>/ayvago/logo-en.png` and
+     `logo-tr.png`, and adds `logo` to `arcadeGame()` in the generated `arcade-catalog.ts`.
+  3. Run **Actions → Sync arcade catalog → Run workflow** (or wait for the hourly run), then
+     merge the PR it opens.
+- ⏳ **Optional check after the sync is deployed:** open a portrait game, for example
+  `https://ayvago.com/tr/games/bubble-pop`. Before **Oyna** the bottom-left of the player shows
+  the game's Turkish logo instead of its name in plain letters; `/en/` shows the English logo.
+  Landscape games look as before (their card already carries the logo).
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,

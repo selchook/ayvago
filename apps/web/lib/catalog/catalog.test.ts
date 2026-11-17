@@ -4,6 +4,7 @@ import {
   GAME_CATEGORIES,
   PARKED_GAMES,
   resolveAssetUrl,
+  type SeedGame,
 } from '@ayvago/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -222,6 +223,7 @@ describe('resolveGameArt', () => {
       screenshotUrl: null,
       cardUrl: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp',
       card2xUrl: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp',
+      logoUrl: null,
     });
     // Absolute https refs stay where they point.
     const cdn = 'https://cdn.example.com/card.webp';
@@ -258,6 +260,7 @@ describe('resolveGameArt', () => {
       screenshotUrl: null,
       cardUrl: null,
       card2xUrl: null,
+      logoUrl: null,
     });
   });
 
@@ -271,6 +274,100 @@ describe('resolveGameArt', () => {
       );
       expect(game.card2xUrl, game.slug).toBe(
         live && card && card2x ? resolveAssetUrl(game.manifest, card2x) : null,
+      );
+    }
+  });
+});
+
+describe('game logos', () => {
+  const entry = 'https://games.example.com/games/alien-invaders/';
+  const assets = {
+    icon: '/games/alien-invaders/ayvago/icon-512.png',
+    cover: '/games/alien-invaders/ayvago/cover-1920x1080.jpg',
+  };
+  // The shape the studio's arcade-catalog.ts adds to every arcade game.
+  const logo = {
+    en: '/games/alien-invaders/ayvago/logo-en.png',
+    tr: '/games/alien-invaders/ayvago/logo-tr.png',
+  };
+
+  it('resolves the logo of every locale against the entry like the card', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    expect(resolveGameArt({ entry, assets: { ...assets, logo } }, true).logoUrl).toEqual({
+      en: 'https://games.example.com/games/alien-invaders/ayvago/logo-en.png',
+      tr: 'https://games.example.com/games/alien-invaders/ayvago/logo-tr.png',
+    });
+    // Absolute https refs stay where they point; a missing locale stays missing.
+    const cdn = 'https://cdn.example.com/logo.png';
+    expect(
+      resolveGameArt({ entry, assets: { ...assets, logo: { en: cdn } } }, true).logoUrl,
+    ).toEqual({ en: cdn });
+  });
+
+  it('resolves no logo without one or without own assets', async () => {
+    const { resolveGameArt } = await loadCatalog();
+    expect(resolveGameArt({ entry, assets }, true).logoUrl).toBeNull();
+    expect(resolveGameArt({ entry, assets: { ...assets, logo } }, false).logoUrl).toBeNull();
+  });
+
+  it("picks the locale's logo and falls back to English", async () => {
+    const { gameLogoUrl, resolveGameArt } = await loadCatalog();
+    const both = resolveGameArt({ entry, assets: { ...assets, logo } }, true);
+    expect(gameLogoUrl(both, 'tr')).toBe(new URL(logo.tr, entry).toString());
+    expect(gameLogoUrl(both, 'en')).toBe(new URL(logo.en, entry).toString());
+    const enOnly = resolveGameArt({ entry, assets: { ...assets, logo: { en: logo.en } } }, true);
+    expect(gameLogoUrl(enOnly, 'tr')).toBe(new URL(logo.en, entry).toString());
+    expect(gameLogoUrl({ logoUrl: null }, 'tr')).toBeNull();
+  });
+
+  it('serves the logo of a studio entry in the shape arcadeGame() will generate', async () => {
+    vi.resetModules();
+    vi.doMock('@ayvago/shared', async (importOriginal) => {
+      const shared = await importOriginal<typeof import('@ayvago/shared')>();
+      const withLogo = (seed: SeedGame): SeedGame => ({
+        ...seed,
+        manifest: {
+          ...seed.manifest,
+          assets: {
+            ...seed.manifest.assets,
+            logo: {
+              en: `/games/${seed.slug}/ayvago/logo-en.png`,
+              tr: `/games/${seed.slug}/ayvago/logo-tr.png`,
+            },
+          },
+        },
+      });
+      return {
+        ...shared,
+        SEED_GAMES: shared.SEED_GAMES.map((seed) =>
+          seed.slug === 'alien-invaders' ? withLogo(seed) : seed,
+        ),
+      };
+    });
+    try {
+      const { gameLogoUrl, getGameBySlug } = await import('./index');
+      const game = getGameBySlug('alien-invaders')!;
+      expect(game.logoUrl).toEqual({
+        en: `${ARCADE_ORIGIN}/games/alien-invaders/ayvago/logo-en.png`,
+        tr: `${ARCADE_ORIGIN}/games/alien-invaders/ayvago/logo-tr.png`,
+      });
+      expect(gameLogoUrl(game, 'tr')).toBe(
+        `${ARCADE_ORIGIN}/games/alien-invaders/ayvago/logo-tr.png`,
+      );
+      // Other games keep the text logo.
+      expect(getGameBySlug('bubble-pop')!.logoUrl).toBeNull();
+    } finally {
+      vi.doUnmock('@ayvago/shared');
+    }
+  });
+
+  it('passes the logo of every catalog game through', async () => {
+    const { getAllGames } = await loadCatalog();
+    for (const game of getAllGames()) {
+      const { logo: ref } = game.manifest.assets;
+      const live = game.coverUrl !== null;
+      expect(game.logoUrl?.en ?? null, game.slug).toBe(
+        live && ref ? resolveAssetUrl(game.manifest, ref.en) : null,
       );
     }
   });

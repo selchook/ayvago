@@ -55,6 +55,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.27 | Most played, a bigger spotlight and thinkers' quotes: "Recently played" becomes a "Most played" page with This week, All time and Yours tabs; the home spotlight grows to ten slides with in-game card art, a progress bar and thumbnails; the top-bar ticker mixes in short, sourced quotes from philosophers (owner request) | ✅ code |
 | 5.28 | One window in the "Players and plays" report: every number counts from 7 November 2026 (UTC); the all-time columns are gone, one small note names the window, the columns counted only from 10 November keep a `*` (owner request) | ✅ code · ⏳ functions deploy |
 | 5.29 | Tavla in the lobby: the same lobby as Okey (public tables, players online, invites, recent players, quick play, private tables) for Tavla, at two-seat tables without bots; a catalog flag from the studio decides which two-player games get one (owner request, [ADR 0026](../adr/0026-two-seat-tables.md)) | ✅ code · ⏳ studio merge and catalog sync |
+| 5.30 | Game logos on the player overlay: a game's own designed logo (optional `assets.logo` in `ayvago.json`, `{ en, tr? }` transparent PNGs) replaces the title text over portrait games' art before Play and while loading, in the player's language (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-game-logo-slice-530)) | ✅ code · ⏳ merge before the logo sync |
 
 ## 5.1 Player characters ✅
 
@@ -1784,7 +1785,8 @@ Owner steps: merge order (this change before the catalog sync that adds the card
 
 Still open:
 - Real card art comes with the studio change; the screenshots used placeholders.
-- The Phase 6 developer docs should list `assets.card` / `card2x` with their sizes.
+- The Phase 6 developer docs should list `assets.card` / `card2x` with their sizes. (Slice 5.30
+  lists every manifest image in [roadmap §11.4](roadmap.md#114-manifest-images).)
 
 ## 5.25 Sortable admin report tables ✅ code
 
@@ -2395,3 +2397,80 @@ Still open:
 - A match-length setting (3/5/7) for Tavla tables, as a per-game table setting.
 - Other turn-based two-player games (Mangala, Reversi, Turkish Draughts …) can join the lobby the
   same way, from the studio alone.
+
+## 5.30 Game logos on the player overlay ✅ code
+
+The owner reported that the old logos were still on the player overlay ("overlayContent'teki eski
+logolar duruyor, onları da güncelle"). Before Play and while a game loads, a portrait game's
+overlay art (slice 5.24) wrote the game's title as text in Fredoka or the pixel font. The studio
+(`selchook/ayvago-games`) now draws a designed logo for every game, so the text looked like the
+old logo. Contract: [ADR 0024, amendment](../adr/0024-game-card-art.md#amendment-game-logo-slice-530).
+
+What shipped:
+- **Manifest** (`packages/shared/src/manifest.ts`): optional `assets.logo`, a strict
+  `{ en, tr? }` map of asset refs (English required, like the manifest's text), validated like
+  the other refs (a path or an https URL, plain http only for localhost). Each is a transparent
+  PNG of the game's own logo (title art, may include an emblem), at most 640×320. Exported type
+  `LocalizedAsset`; `pickLocalized` takes it too. The change stays inside `manifest.ts`, the file
+  the studio vendors verbatim.
+- **Catalog** (`apps/web/lib/catalog`): `resolveGameArt` resolves `logoUrl: { en, tr? } | null`
+  against the entry URL with the same own-assets rule as the cover and the card (coming-soon
+  games and generated covers get none). `gameLogoUrl(game, locale)` picks the locale's logo and
+  falls back to English; null without a logo.
+- **Player overlay** (`components/game/player-cover.tsx`, `game.module.css`): on the game, room
+  and table pages a portrait game with a logo shows it as an `<img>` (decorative, lazy, async) in
+  place of the text: the locale's logo, else the English one. The logo sits in a fixed box that it
+  is fitted into (`object-fit: contain`, anchored bottom-left, never stretched), so trimmed logos
+  of any shape come out about the same size:
+  - wide stages (desktop): 40 % of the stage wide and 22 % high, 5 % in from the left and bottom;
+  - tall stages (phones, the existing container query): 84 % wide and 18 % high, along the bottom.
+
+  The box stays in the bottom 27 % of the stage (22 % on phones), clear of the Play button, the
+  spinner, the loading text and the "not responding" state in the middle. The bottom scrim stays, and a soft drop
+  shadow keeps the logo apart from bright screenshots. Games without a logo keep the text logo.
+- **Landscape games keep their card** (decision). Their overlay shows the 16:9 card, which already
+  has the game's logo baked in. Laying `assets.logo` over it would show the logo twice, and
+  hiding the baked-in one would need a second, logo-free card. The card's logo stays English in
+  Turkish too; a localized card is left for later (see Still open).
+
+Fix on the way: **the "Reload game" button on the overlay** (shown when a game takes too long to
+load) used the panel button style, which `game.module.css` defines a second time further down:
+dark text and a dark accent outline in the light themes, on the overlay's dark scrim. On the
+overlay it now has white text and a light outline in Minimal and Cartoon; Arcade keeps its red
+outline.
+
+Deviations: none from the brief. `arcade-catalog.ts` is not touched: the example entries live in
+the tests.
+
+Tests:
+- shared `manifest.test.ts` (+3): a logo with both locales or English alone is valid, a manifest
+  without one too; a logo without English, with an unknown locale, as a plain string, with an http
+  (non-localhost) or a relative ref is rejected; the exact studio entry shape
+  (`/games/<slug>/ayvago/logo-en.png`, `logo-tr.png`, typed as `GameManifestInput`) parses and
+  resolves the Turkish logo against the studio origin.
+- web `lib/catalog/catalog.test.ts` (+5, two existing cases extended with `logoUrl: null`): logos
+  resolved against the entry like the card, absolute https refs kept, a missing locale stays
+  missing; no logo without one or without own assets; `gameLogoUrl` picks Turkish and falls back
+  to English; a mocked `SEED_GAMES` entry with the logo the studio's `arcadeGame()` will generate
+  (typed as `SeedGame`) gets both URLs and other games none; every catalog game's `logoUrl`
+  matches its manifest.
+- Full run: shared 124, web 258, themes 16, adapter 30, firebase 240 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass.
+- **In the browser** (`next start`, a local build where `arcadeGame()` temporarily gave Alien
+  Invaders and Bubble Pop the logo refs, then reverted; the studio origin routed to local files,
+  with the studio's real logo PNGs from its logo branch; the game iframe never answers, so the
+  overlay stays in its loading state):
+  - Alien Invaders (retro) and Bubble Pop with a logo, Gem Match without (text fallback), in
+    English and Turkish, in Minimal light and dark, Cartoon light and dark and Arcade, at 390×844
+    and 1280×800: 60 runs, each before Play and after 13 s of loading (spinner, loading text,
+    "taking longer than usual" and "Reload game");
+  - every run: the locale's logo file requested (`logo-tr.png` on `/tr`), the logo box never
+    meets the Play button, no horizontal overflow; the text fallback unchanged.
+
+Owner steps ([setup](../setup/phase-5.md#530-game-logos-on-the-player-overlay)): merge this before
+the catalog sync that adds `logo`. No rules, functions or secrets.
+
+Still open:
+- Landscape cards keep their English baked-in logo in Turkish. A Turkish card (`card` as a
+  `{ en, tr? }` map, or a logo-free card with `assets.logo` on top) would fix it.
+- The logo could replace the text name elsewhere (the spotlight, the Arcade tiles); not asked for.
