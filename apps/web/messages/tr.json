@@ -24,7 +24,9 @@
   "footer": {
     "label": "Yasal bilgiler ve iletişim",
     "copyright": "<sign>©</sign> {years} Ayvago Games. Tüm hakları saklıdır.",
+    "about": "Hakkında",
     "privacy": "Gizlilik",
+    "terms": "Kullanım koşulları",
     "cookies": "Çerez tercihleri",
     "contact": "İletişim"
   },
@@ -67,7 +69,10 @@
     "spotlightToday": "#{rank} Bugün trend",
     "spotlightWeek": "Bu hafta popüler",
     "spotlightFeatured": "Öne çıkan",
-    "spotlightNew": "Ayvago'da yeni"
+    "spotlightNew": "Ayvago'da yeni",
+    "aboutTitle": "Ayvago hakkında",
+    "aboutBody": "Ayvago, {count} oyunun yer aldığı ücretsiz bir tarayıcı oyun platformudur: retro arcade klasikleri, aksiyon ve spor oyunları, gündelik oyunlar ve bulmacalar, kelime oyunları ve Okey, Tavla, Mangala gibi sevilen Türk oyunları. Her oyunu kendi stüdyomuz Ayvago Games yapar; oyunlar telefonda, tablette ve bilgisayarda hiçbir şey indirmeden çalışır. Misafir olarak hemen oynayabilir ya da ilerlemeni korumak için Google ile giriş yapabilirsin; haftalık skor tablolarında yükselir, başarımlar kazanır, bazı oyunları arkadaşlarınla çevrim içi oynarsın. Ayvago Türkçe ve İngilizce kullanılabilir ve üç görünümü vardır: Minimal, Cartoon ve Arcade.",
+    "aboutLink": "Ayvago hakkında daha fazlası"
   },
   "shelf": {
     "previous": "Sola kaydır",
@@ -91,7 +96,6 @@
     "newIntro": "Ayvago'ya en son eklenen oyunlar.",
     "multiplayerTitle": "Çok oyunculu oyunlar",
     "multiplayerIntro": "Bir arkadaşına meydan oku ya da çevrimiçi oyna.",
-    "categoryIntro": "Ayvago'daki tüm {category} oyunları.",
     "count": "{count, plural, one {# oyun} other {# oyun}}"
   },
   "tile": {
@@ -1063,5 +1067,112 @@
     "features": "Özellikler",
     "faq": "Sıkça sorulan sorular",
     "otherInputs": "Diğer kontroller"
+  },
+  "categoryIntro": {
+    "arcade": "Ayvago'daki arcade oyunları hemen başlar ve kolay kolay bırakılmaz: Uzaylı İstilası ve Uzay Avcısı gibi uzay nişancıları, tilt, tuğla kırma, sonsuz koşu ve yarış oyunları. Bir tur birkaç dakika sürer ve önemli olan skordur; en iyi oyunların haftalık skor tablosuna girer. Çoğu klavyeyle de dokunmatik ekranda da aynı rahatlıkla oynanır.",
+    "action": "Aksiyon oyunları refleksini ve zamanlamanı sınar. Burada Altıgen Diyar ve Neon Samuray gibi 3D maceralar, zombi hayatta kalma oyunları, tank savaşları, korsan dövüşleri ve Çamur Rallisi'nde arazi sürüşü, klasik nişancı oyunlarıyla bir arada. Birçoğunda seviyeler, geliştirmeler ya da boss savaşları var; hepsi telefonda da bilgisayarda da tarayıcıda çalışır.",
+    "casual": "Gündelik oyunlar kısa bir molada bile kolayca oynanır: üçlü eşleştirme ve birleştirme bulmacaları, Solitaire, Köstebek Avı, Suşi Telaşı ve Lezzet Durağı gibi sıcacık 3D dükkân oyunları, mini golf ve bowling. Kuralları tek cümleye sığar; ilerleyen seviyeler ve skor tabloları ise geri dönmen için bir sebep verir.",
+    "puzzle": "Bulmaca oyunları ileriyi düşünmeyi ödüllendirir. Bu kategoride Sudoku, Nonogram ve Mayın Tarlası gibi mantık bulmacaları, Blok Düşür ve 2048 gibi blok oyunları, Sokoban'da kasa itme, kelime bulmacaları ve kazandıkça güçlenen bir yapay zekâya karşı Reversi ve Dört Bağla gibi masa oyunları var. Birçoğunda elle hazırlanmış ya da her seferinde yeniden üretilen seviyeler olduğu için çözülecek bir tahta hep vardır.",
+    "retro": "Retro oyunlar, ilk atari salonları ve ev bilgisayarları döneminin fikirlerini bugünün ekranları için yeniden kurar: aşağı doğru ilerleyen bir uzaylı filosu, parçalanan göktaşları, her meyveyle uzayan bir yılan, hayaletlerle dolu bir labirent ve bir kuyuya düşen bloklar. Kurallar klasik olanlardır; üstüne retro bir görünüm ve ses ile çevrim içi bir skor tablosu eklenir.",
+    "sports": "Ayvago'daki spor oyunları kısa maçlar ve yarışmalardan oluşur: penaltı atışları, üçlük yarışması, okçuluk, bowling, 3D mini golf, kaykay hareketleri, hava hokeyi ve Altın Kürsü'de beş branşlı bir atletizm kupası. Bazılarını bir arkadaşına karşı çevrim içi oynayabilirsin; diğerlerinde bilgisayar rakiplerle ve haftalık skor tablosuyla yarışırsın.",
+    "strategy": "Strateji oyunları sonraki hamlelerini planlamakla ilgilidir. Burada Tavla, Reversi, Gomoku, Dokuz Taş ve Dama gibi klasik masa oyunları, geleneksel Türk oyunu Mangala ve taşlarla oynanan Okey'in yanında kule savunması ve topçu düelloları var. Birçoğu bir arkadaşına karşı çevrim içi oynanabilir; yapay zekâ rakipler ise sen kazandıkça güçlenir.",
+    "card": "Ayvago'daki kart ve taş oyunları: Klondike Solitaire, hayvan çiftleriyle Hafıza Kartları ve Türklerin taşlarla oynadığı Okey. Solitaire sakin bir sabır oyunudur; Okey ise sosyal bir oyundur: üç bota karşı ya da en fazla dört kişilik çevrim içi bir masada oynanır, lobide açık bir masaya oturabilir ya da arkadaşlarını davet edebilirsin.",
+    "word": "Harflerle oynamayı sevenler için kelime oyunları: Gizli Kelime'de saklı kelimeyi altı tahminde bul, Harf Çemberi'nde harfleri birleştirip bulmacadaki kelimeleri tamamla, Kelime Avı'nda harf tablosuna gizlenmiş temalı kelimeleri ara ya da Harf Yağmuru'nda yağan harflerin birikmesine izin verme. Her oyunun kendi Türkçe ve İngilizce kelime listeleri vardır ve Ayvago'da seçtiğin dili takip eder."
+  },
+  "about": {
+    "title": "Ayvago hakkında",
+    "description": "Ayvago ücretsiz bir tarayıcı oyun platformudur: Ayvago Games'in yaptığı retro aksiyon, gündelik, bulmaca, kelime ve kart oyunları, skor tabloları ve çevrim içi oyun.",
+    "intro": "Ayvago (ayvago.com), tarayıcıda oynanan ücretsiz bir oyun platformudur. Retro arcade klasiklerinden aksiyon, gündelik, bulmaca, kelime ve kart oyunlarına kadar {count} oyun barındırır; oyunlar telefonda, tablette ve bilgisayarda hiçbir şey kurmadan çalışır.",
+    "studio": {
+      "title": "Ayvago Games yapımı",
+      "p1": "Ayvago'daki her oyunu kendi stüdyomuz Ayvago Games yapar. Oyunlar ortak bir altyapı üzerine kurulur; bu sayede hepsi aynı şekilde açılır, dokunmatik ekranda da klavyeyle de oynanır, ses ayarını hatırlar ve Türkçe ile İngilizce gelir.",
+      "p2": "Görseller ve sesler Kenney gibi ücretsiz (CC0) kütüphanelerden gelir; stüdyo kataloğa düzenli olarak yeni oyunlar ekler. Özgün oyunların ve arcade klasiklerinin yanında Okey, Tavla, Mangala ve Dama gibi sevilen Türk oyunlarını da bulursun."
+    },
+    "play": {
+      "title": "İlerlemen ve skor tabloları",
+      "p1": "Misafir olarak hemen oynamaya başlayabilirsin; Google ile giriş yaparsan ilerlemen her cihazda seninle olur. Biten oyunlar haftalık ve tüm zamanların skor tablolarına girer; sıralamalar adil kalsın diye her skor sunucularımızda kontrol edilir.",
+      "p2": "Oynadıkça XP, seviye ve başarım rozetleri kazanırsın. Beş karakterden birini seçersin; seçtiğin karakter kahramanı olan oyunlarda karşına çıkar. Sevdiğin oyunları kitaplığında saklayabilirsin."
+    },
+    "online": {
+      "title": "Birlikte oynamak",
+      "p1": "Bazı oyunlar çevrim içi oynanabilir. İki kişilik oyunlarda davet bağlantısıyla paylaştığın özel bir oda kullanılır. Okey ve Tavla gibi masa oyunlarının ise açık masaları, hızlı oyunu ve davetleri olan bir lobisi vardır; boş koltuklara botlar oturur."
+    },
+    "site": {
+      "title": "Sana uyan bir site",
+      "p1": "Ayvago Türkçe ve İngilizce kullanılabilir. Üç görünümü vardır: açık ya da koyu renkte Minimal ve Cartoon, bir de her zaman koyu olan Arcade. Oynamak ücretsizdir. Masrafları karşılamak için reklam gösterilebilir; reklamlar oyun sırasında ve çevrim içi maçlarda asla çıkmaz, nasıl çalıştıkları gizlilik sayfasında anlatılır."
+    },
+    "contact": {
+      "title": "Bize ulaş",
+      "p1": "Bir hata mı buldun, aklında bir oyun fikri ya da bir soru mu var? <link>İletişim sayfasına</link> göz at."
+    }
+  },
+  "terms": {
+    "title": "Kullanım koşulları",
+    "description": "Ayvago'yu kullanma kuralları: hesaplar, adil oyun, kullanıcı adları, reklamlar ve satın almalar, oyunların hakları ve sorumluluğumuz.",
+    "updated": "Son güncelleme: {date}",
+    "intro": "Bu koşullar, Ayvago Games (\"biz\") tarafından işletilen ayvago.com ve üzerindeki oyunlar (\"hizmet\") için geçerlidir. Hizmeti kullanarak bu koşulları kabul etmiş olursun. Kabul etmiyorsan lütfen Ayvago'yu kullanma.",
+    "service": {
+      "title": "Hizmet",
+      "p1": "Ayvago'yu kullanmak ücretsizdir. Oyunları ve özellikleri istediğimiz zaman ekleyebilir, değiştirebilir ya da kaldırabiliriz; hizmet bakım nedeniyle ya da elimizde olmayan sebeplerle zaman zaman kullanılamayabilir.",
+      "p2": "Hizmeti olduğu gibi sunuyoruz. Çalışır ve doğru kalması için uğraşıyoruz, ancak her zaman erişilebilir ya da hatasız olacağına söz veremeyiz."
+    },
+    "accounts": {
+      "title": "Hesaplar",
+      "p1": "Oynadığında sana bir misafir hesabı açılır; ilerlemeni her cihazda korumak için Google ile giriş yapabilirsin. Hesabında olanlardan sen sorumlusun, bu yüzden girişini güvende tut.",
+      "p2": "Ülkende bu koşulları kabul edebileceğin yaşın altındaysan Ayvago'yu yalnızca anne, baba ya da vasinin izniyle kullan.",
+      "p3": "Hesabını istediğin zaman Profil sayfandan silebilirsin. Kullanılmayan misafir hesapları, gizlilik sayfasında anlatıldığı gibi 30 gün sonra silinir."
+    },
+    "fairPlay": {
+      "title": "Adil oyun ve skorlar",
+      "p1": "Skor tabloları ancak adil olduğunda bir anlam taşır. Her skor sunucularımızda kontrol edilir; imkânsız görünen oyunlar incelemeye alınır ve kaldırılabilir.",
+      "p2": "Hile yapma: bot, betik ya da değiştirilmiş oyun kullanma, hatalardan yararlanma, başka oyuncuların oyunlarına, çevrim içi maçlarına ya da hizmetin kendisine müdahale etme.",
+      "p3": "Bu kuralları çiğneyen hesapların skorlarını kaldırabilir, ilerlemelerini sıfırlayabilir ya da hesaplarını askıya alabiliriz."
+    },
+    "names": {
+      "title": "Kullanıcı adları ve davranış",
+      "p1": "Saldırgan olmayan, başkasının kimliğine bürünmeyen ve kimsenin haklarını ihlal etmeyen bir kullanıcı adı seç. Bu kurallara uymayan adlar reddedilir ya da tarafımızdan değiştirilebilir.",
+      "p2": "Masalarda, odalarda ve davetlerde diğer oyunculara saygılı ol."
+    },
+    "ads": {
+      "title": "Reklamlar, ödüller ve satın almalar",
+      "p1": "Ayvago, hizmetin masraflarını karşılamak için reklam gösterebilir: bir oyunda ödül almak için izlemeyi kendin seçtiğin ödüllü reklamlar, oyunlar arasında kısa reklamlar ve büyük ekranlarda oyunun yanında bir banner. Reklamlar oyun sırasında ve çevrim içi maçlarda asla çıkmaz.",
+      "p2": "Ödül, ancak sunucumuz reklamın izlendiğini doğruladıktan sonra verilir ve günlük sınırlar uygulanır. Oyun içi ödüllerin parasal değeri yoktur; takas edilemez ve devredilemez.",
+      "p3": "\"Reklamları kaldır\" satın alması sunulduğunda, hesabın için oyunlar arasındaki reklamları ve banner'ı kapatır; ödüllü reklamlar isteğe bağlı kalır. Fiyat ve ödeme sağlayıcısı ödemeden önce gösterilir; tüketici olarak yasal hakların saklıdır.",
+      "p4": "Reklamların, çerezlerin ve onayın nasıl çalıştığı gizlilik sayfasında anlatılır."
+    },
+    "rights": {
+      "title": "Oyunlar ve haklarımız",
+      "p1": "Oyunlar, site ve tasarımı, Ayvago adı ve logosu Ayvago Games'e ya da lisans verenlerine aittir. Oyunlardaki bazı görseller ve sesler ücretsiz (CC0) kütüphanelerden gelir.",
+      "p2": "Oyunları Ayvago'da kendi eğlencen için oynayabilirsin. Yazılı iznimiz olmadan kopyalayamaz, başka bir yerde barındıramaz, başka sitelere gömemez, değiştiremez ya da satamazsın."
+    },
+    "liability": {
+      "title": "Sorumluluk",
+      "p1": "Yasanın izin verdiği ölçüde; dolaylı ya da sonuç olarak doğan zararlardan, kaybolan ilerleme, skor ya da ödüllerden ve elimizde olmayan olayların yol açtığı zararlardan sorumlu değiliz.",
+      "p2": "Bu koşullardaki hiçbir hüküm, yasanın sınırlanmasına izin vermediği sorumluluğu ya da tüketici olarak haklarını sınırlamaz."
+    },
+    "changes": {
+      "title": "Koşullardaki değişiklikler",
+      "p1": "Bu koşulları güncelleyebiliriz. En üstteki tarih geçerli sürümü gösterir; önemli değişiklikleri sitede belirtiriz. Bir değişiklikten sonra Ayvago'yu kullanmaya devam etmen, yeni koşulları kabul ettiğin anlamına gelir."
+    },
+    "contact": {
+      "title": "İletişim",
+      "p1": "Bu koşullarla ilgili soruların için <link>{email}</link> adresine yaz."
+    }
+  },
+  "contact": {
+    "title": "İletişim",
+    "description": "Ayvago ekibine nasıl ulaşırsın: hata bildirimleri, oyun fikirleri, hesap ve gizlilik soruları.",
+    "intro": "Ayvago'yu Ayvago Games yapıyor. Bize ulaşmanın en iyi yolu e-posta; Türkçe ya da İngilizce yazabilirsin.",
+    "email": "E-posta: <link>{email}</link>",
+    "topicsTitle": "Bize hangi konularda yazabilirsin",
+    "topics": {
+      "bug": "Bir hata ya da açılmayan bir oyun. Lütfen oyunu, cihazını ve tarayıcını belirt.",
+      "idea": "Yeni oyun ya da özellik fikirleri.",
+      "account": "Hesabın, kullanıcı adın ya da bir skor.",
+      "privacy": "Gizlilik ve veri talepleri.",
+      "business": "İş birliği ve ticari teklifler."
+    },
+    "selfServiceTitle": "Kendin yapabileceklerin",
+    "selfService": "Verilerini <profile>Profil sayfandan</profile> indirebilir ya da silebilir, reklam ve çerez tercihlerini <privacy>gizlilik sayfasından</privacy> değiştirebilirsin."
   }
 }

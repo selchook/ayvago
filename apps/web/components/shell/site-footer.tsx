@@ -1,12 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { PRIVACY_CONTACT } from '@/lib/ads/config';
 import { CopyrightNotice } from './copyright-notice';
 import { NavLink } from './nav-link';
 import styles from './shell.module.css';
 
-// The site footer at the end of every page's content column: the copyright notice, then the
-// privacy page, the ad and cookie choice (on the privacy page) and the privacy contact.
+// The site footer at the end of every page's content column: the copyright notice, then About,
+// Privacy, Terms of use, the ad and cookie choice (on the privacy page) and Contact (slice 3.5).
 export async function SiteFooter() {
   const t = await getTranslations('footer');
   return (
@@ -19,8 +18,18 @@ export async function SiteFooter() {
       <nav aria-label={t('label')}>
         <ul className={styles.footerLinks}>
           <li>
+            <NavLink href="/about" className={styles.footerLink}>
+              {t('about')}
+            </NavLink>
+          </li>
+          <li>
             <NavLink href="/privacy" className={styles.footerLink}>
               {t('privacy')}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink href="/terms" className={styles.footerLink}>
+              {t('terms')}
             </NavLink>
           </li>
           <li>
@@ -29,9 +38,9 @@ export async function SiteFooter() {
             </Link>
           </li>
           <li>
-            <a href={`mailto:${PRIVACY_CONTACT}`} className={styles.footerLink}>
+            <NavLink href="/contact" className={styles.footerLink}>
               {t('contact')}
-            </a>
+            </NavLink>
           </li>
         </ul>
       </nav>

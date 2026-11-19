@@ -617,8 +617,14 @@ button.navItem {
     text-align: center;
   }
 
+  /* Five links wrap on a phone; gaps instead of middots, so no line starts with a dot. */
   .footerLinks {
     justify-content: center;
+    column-gap: 12px;
+  }
+
+  .footerLinks li + li::before {
+    content: none;
   }
 
   .topBar {

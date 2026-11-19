@@ -71,3 +71,25 @@
 [data-theme='cartoon'] .button {
   border-color: var(--border);
 }
+
+/* The home page's "About Ayvago" text near the bottom (slice 3.5). */
+.about {
+  display: grid;
+  gap: 10px;
+  max-width: 72ch;
+  margin-top: 16px;
+  padding: 20px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.about p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.about a {
+  font-weight: 700;
+}
