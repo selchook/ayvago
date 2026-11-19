@@ -15,3 +15,4 @@ export * from './lobby';
 export * from './tables';
 export * from './presence';
 export * from './ads';
+export * from './guide';

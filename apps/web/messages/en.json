@@ -24,7 +24,9 @@
   "footer": {
     "label": "Legal and contact",
     "copyright": "<sign>©</sign> {years} Ayvago Games. All rights reserved.",
+    "about": "About",
     "privacy": "Privacy",
+    "terms": "Terms of use",
     "cookies": "Cookie preferences",
     "contact": "Contact"
   },
@@ -67,7 +69,10 @@
     "spotlightToday": "#{rank} Trending today",
     "spotlightWeek": "Popular this week",
     "spotlightFeatured": "Featured",
-    "spotlightNew": "New on Ayvago"
+    "spotlightNew": "New on Ayvago",
+    "aboutTitle": "About Ayvago",
+    "aboutBody": "Ayvago is a free browser game platform with {count} games: retro arcade classics, action and sports games, casual and puzzle games, word games and Turkish favourites such as Okey, Backgammon (Tavla) and Mangala. Every game is made by our own studio, Ayvago Games, and runs on phones, tablets and computers without a download. Play as a guest or sign in with Google to keep your progress, climb the weekly leaderboards, earn achievements and play some games online with friends. Ayvago speaks English and Turkish and comes in three looks: Minimal, Cartoon and Arcade.",
+    "aboutLink": "More about Ayvago"
   },
   "shelf": {
     "previous": "Scroll left",
@@ -91,7 +96,6 @@
     "newIntro": "The latest games added to Ayvago.",
     "multiplayerTitle": "Multiplayer games",
     "multiplayerIntro": "Challenge a friend or play online.",
-    "categoryIntro": "All {category} games on Ayvago.",
     "count": "{count, plural, one {# game} other {# games}}"
   },
   "tile": {
@@ -1056,5 +1060,119 @@
       "withEmail": "For questions and privacy requests, write to <link>{email}</link>.",
       "withoutEmail": "You can download or delete your data on your Profile page."
     }
+  },
+  "guide": {
+    "howToPlay": "How to play",
+    "tips": "Tips",
+    "features": "Features",
+    "faq": "Frequently asked questions",
+    "otherInputs": "Other controls"
+  },
+  "categoryIntro": {
+    "arcade": "Arcade games on Ayvago are quick to start and hard to put down: space shooters such as Alien Invaders and Space Blaster, pinball, brick breakers, endless runners and racing games. A round takes a few minutes and the score is what counts; your best runs go on the weekly leaderboard. Most of them play just as well on a keyboard as on a touch screen.",
+    "action": "Action games test your reflexes and timing. You will find 3D adventures such as Hex Realm and Neon Ronin, zombie survival, tank battles, pirate brawlers and off-road driving in Mud Rally, next to classic shooters. Many have levels, upgrades or boss fights, and all of them run in the browser on phones and computers alike.",
+    "casual": "Casual games are easy to pick up in a short break: match-three and merge puzzles, Solitaire, Whack-a-Mole, cosy 3D shop games such as Sushi Rush and Snack Shack, mini golf and bowling. The rules fit in one sentence, while the later levels and the leaderboards give you a reason to come back.",
+    "puzzle": "Puzzle games reward thinking ahead. This category holds logic puzzles such as Sudoku, Nonogram and Mine Sweeper, block games such as Block Drop and Merge 2048, crate pushing in Sokoban, word puzzles, and board games such as Reversi and Connect Four against an AI that gets stronger as you win. Many have handmade or freshly generated levels, so there is always another board to solve.",
+    "retro": "Retro games bring back the ideas of the early arcade and home computer era, rebuilt for today's screens: an alien fleet marching down, asteroids breaking apart, a snake that grows with every fruit, a maze full of ghosts and blocks falling into a well. The rules are the classic ones, with a retro look and sound and an online leaderboard on top.",
+    "sports": "Sports games on Ayvago are short matches and contests: penalty shoot-outs, a three-point contest, archery, bowling, 3D mini golf, skateboard tricks, air hockey and a five-event athletics cup in Golden Podium. Some can be played against a friend online; in the others you face computer rivals and the weekly leaderboard.",
+    "strategy": "Strategy games are about planning your next moves. Here are classic board games such as Backgammon, Reversi, Gomoku, Nine Men's Morris and Turkish Draughts, the Turkish mancala game Mangala and the tile game Okey, along with tower defense and artillery duels. Many of them can be played against a friend online, and the AI opponents grow stronger the more you win.",
+    "card": "Card and tile games on Ayvago: Klondike Solitaire, Memory Match with its animal pairs, and Okey, the Turkish tile game. Solitaire is a quiet game of patience; Okey is a social one, played against three bots or at an online table for up to four people, with a lobby where you can join a public table or invite friends.",
+    "word": "Word games for players who love letters: find the hidden word in six guesses in Secret Word, link letters into crossword answers in Letter Loop, hunt themed words in a letter grid in Word Hunt, or keep the falling letters in Letter Rain from piling up. Each game has its own English and Turkish word lists and follows the language you choose on Ayvago."
+  },
+  "about": {
+    "title": "About Ayvago",
+    "description": "Ayvago is a free browser game platform: retro action, casual, puzzle, word and card games made by Ayvago Games, with leaderboards and online play.",
+    "intro": "Ayvago (ayvago.com) is a free game platform you play in the browser. It has {count} games, from retro arcade classics to action, casual, puzzle, word and card games, and they run on phones, tablets and computers with nothing to install.",
+    "studio": {
+      "title": "Made by Ayvago Games",
+      "p1": "Every game on Ayvago is made in-house by our own studio, Ayvago Games. The games are built on one shared runtime, so they all start the same way, work with touch and with a keyboard, keep your sound setting, and come in English and Turkish.",
+      "p2": "The art and sound come from free (CC0) libraries such as Kenney's, and the studio adds new games to the catalog regularly. Alongside originals and arcade classics you will find Turkish favourites such as Okey, Backgammon (Tavla), Mangala and Turkish Draughts."
+    },
+    "play": {
+      "title": "Your progress and the leaderboards",
+      "p1": "You can start playing at once as a guest; signing in with Google keeps your progress on every device. Finished runs go on weekly and all-time leaderboards, and every score is checked on our servers so the rankings stay fair.",
+      "p2": "Playing earns XP, levels and achievement badges. You choose one of five characters, who appears in the games that have a hero, and you can keep your favourite games in your library."
+    },
+    "online": {
+      "title": "Playing together",
+      "p1": "Some games can be played online. Two-player games use a private room you share with an invite link. Table games such as Okey and Backgammon have a lobby with public tables, quick play and invites, and bots take any empty seats."
+    },
+    "site": {
+      "title": "One site, your way",
+      "p1": "Ayvago comes in English and Turkish and in three looks: Minimal and Cartoon, in light or dark, and the always-dark Arcade. It is free to play. Ads may help cover the costs; they never appear during play or in online matches, and the privacy page explains how they work."
+    },
+    "contact": {
+      "title": "Get in touch",
+      "p1": "Found a bug, have an idea for a game or a question? Visit the <link>contact page</link>."
+    }
+  },
+  "terms": {
+    "title": "Terms of use",
+    "description": "The rules for using Ayvago: accounts, fair play, usernames, ads and purchases, the games' rights and our liability.",
+    "updated": "Last updated: {date}",
+    "intro": "These terms apply to ayvago.com and the games on it (the \"service\"), run by Ayvago Games (\"we\"). By using the service you accept them. If you do not agree, please do not use Ayvago.",
+    "service": {
+      "title": "The service",
+      "p1": "Ayvago is free to use. We may add, change or remove games and features at any time, and the service may be unavailable now and then for maintenance or for reasons outside our control.",
+      "p2": "We provide the service as it is. We work to keep it running and correct, but we cannot promise that it will always be available or free of errors."
+    },
+    "accounts": {
+      "title": "Accounts",
+      "p1": "When you play you get a guest account; you can sign in with Google to keep your progress on every device. You are responsible for what happens in your account, so keep your sign-in safe.",
+      "p2": "If you are under the age at which you can agree to these terms in your country, use Ayvago only with the permission of a parent or guardian.",
+      "p3": "You can delete your account at any time on your Profile page. Guest accounts that are not used are deleted after 30 days, as the privacy page explains."
+    },
+    "fairPlay": {
+      "title": "Fair play and scores",
+      "p1": "Leaderboards only mean something when they are fair. Every score is checked on our servers; runs that look impossible are held for review and may be removed.",
+      "p2": "Do not cheat: no bots, scripts or modified games, no exploiting bugs, and no interfering with other players' games, online matches or the service itself.",
+      "p3": "We may remove scores, reset progress or suspend accounts that break these rules."
+    },
+    "names": {
+      "title": "Usernames and behaviour",
+      "p1": "Choose a username that is not offensive, does not pretend to be someone else and does not infringe anyone's rights. Names that break these rules are refused or may be changed by us.",
+      "p2": "Be respectful to other players at tables, in rooms and with invites."
+    },
+    "ads": {
+      "title": "Ads, rewards and purchases",
+      "p1": "Ayvago may show ads to pay for the service: rewarded ads you choose to watch for a reward in a game, short ads between games, and a banner beside the game on large screens. Ads never appear during play or in online matches.",
+      "p2": "A reward is given only after our server confirms the ad was watched, and daily limits apply. In-game rewards have no money value and cannot be exchanged or transferred.",
+      "p3": "When the \"Remove ads\" purchase is offered, it turns off the ads between games and the banner for your account; rewarded ads stay optional. The price and the payment provider are shown before you pay, and your statutory rights as a consumer are not affected.",
+      "p4": "How ads, cookies and consent work is explained on the privacy page."
+    },
+    "rights": {
+      "title": "The games and our rights",
+      "p1": "The games, the site and its design, and the Ayvago name and logo belong to Ayvago Games or its licensors. Some of the art and sound in the games comes from free (CC0) libraries.",
+      "p2": "You may play the games on Ayvago for your own entertainment. You may not copy, host elsewhere, embed on other sites, modify or sell them without our written permission."
+    },
+    "liability": {
+      "title": "Liability",
+      "p1": "As far as the law allows, we are not liable for indirect or consequential losses, for lost progress, scores or rewards, or for losses caused by events outside our control.",
+      "p2": "Nothing in these terms limits liability that the law does not allow to be limited, or your rights as a consumer."
+    },
+    "changes": {
+      "title": "Changes to these terms",
+      "p1": "We may update these terms. The date at the top shows the current version, and we point out important changes on the site. Using Ayvago after a change means you accept the new terms."
+    },
+    "contact": {
+      "title": "Contact",
+      "p1": "Questions about these terms: write to <link>{email}</link>."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "How to reach the Ayvago team: bug reports, game ideas, account and privacy questions.",
+    "intro": "Ayvago is made by Ayvago Games. The best way to reach us is email; write in English or Turkish.",
+    "email": "Email: <link>{email}</link>",
+    "topicsTitle": "What you can write to us about",
+    "topics": {
+      "bug": "A bug, or a game that does not load. Please tell us the game, your device and your browser.",
+      "idea": "Ideas for new games or features.",
+      "account": "Your account, your username or a score.",
+      "privacy": "Privacy and data requests.",
+      "business": "Business and partnership enquiries."
+    },
+    "selfServiceTitle": "Things you can do yourself",
+    "selfService": "You can download or delete your data on your <profile>Profile page</profile>, and change your ad and cookie choices on the <privacy>privacy page</privacy>."
   }
 }

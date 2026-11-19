@@ -68,3 +68,21 @@
   background: var(--accent);
   color: var(--accent-contrast);
 }
+
+/* Info pages (about, terms, contact; slice 3.5). */
+.lead {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 6px;
+  line-height: 1.6;
+}
+
+.list li::marker {
+  color: var(--accent);
+}

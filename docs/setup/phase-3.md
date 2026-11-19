@@ -93,3 +93,43 @@ admin panel's status line confirms the client ID once the new build is live.
 
 There are no secrets in this slice: the AdSense IDs are public, and `grantAdReward` needs no
 keys.
+
+## 3.5 Site content for the AdSense review
+
+Merging deploys the web app only: game pages that show the studio's guides once they arrive, the
+About, Terms of use and Contact pages, the category intros, the home page's About block, and the
+leaderboard and coming-soon pages out of the index. No rules, functions, secrets or environment
+variables.
+
+### 1. Review the Terms of use ⏳
+1. ⏳ Read `/en/terms` and `/tr/terms` (a plain draft written from how the site works) and have
+   them checked legally, together with the privacy text (§6 above).
+2. ⏳ Send the corrections and the business's legal name once it is decided (roadmap open
+   decision 3); a governing-law clause can be added then. Claude updates the text and the date at
+   the top.
+
+### 2. The studio's guides 🤖
+- 🤖 The studio (`selchook/ayvago-games`) writes a guide per game and publishes
+  `platform/arcade-guides.json` on its `main`. The hourly **Sync arcade catalog** run copies it
+  into the same PR as the catalog; merging that PR puts the guides on the game pages. Nothing to
+  configure: until the studio publishes the file, the run keeps the platform's (empty) copy.
+- ⏳ Merge the sync PRs as usual. If one fails CI because of the guides, the studio's file broke
+  the contract (`packages/shared/src/guide.ts`); the studio fixes it on its side.
+
+### 3. Search Console, after the deploy ⏳
+1. ⏳ <https://search.google.com/search-console> → the `ayvago.com` property → **Sitemaps** →
+   submit `https://ayvago.com/sitemap.xml` again. It now lists the About, Terms and Contact pages
+   and no leaderboard or coming-soon pages.
+2. ⏳ Optional: **URL inspection** → a game page with a guide → **Request indexing**.
+3. The leaderboard pages drop out of the index over the next weeks as Google recrawls them
+   (`noindex`); nothing to remove by hand.
+
+### 4. Ask AdSense for a new review ⏳
+1. ⏳ **Wait** until the guides of **all** games are live and Google has recrawled the site
+   (Search Console → Pages shows the game pages indexed again), about **2–4 weeks** after the last
+   guides are merged. A review requested earlier sees the same thin pages and fails again.
+2. ⏳ Before asking, check in AdSense → **Ads → By site → ayvago.com** that **Auto ads stays off**
+   (§1.5 above). Auto ads would put ads on every page that loads the tag, including the lobby,
+   room, table, profile, search and 404 pages, which have no content of their own. The platform's
+   own placements are only on game pages.
+3. ⏳ AdSense → **Sites → ayvago.com → Request review**.

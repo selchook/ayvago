@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const label = t(`categories.${category}`);
   return {
     title: label,
-    description: t('list.categoryIntro', { category: label }),
+    // The hand-written intro (slice 3.5) doubles as the page's description.
+    description: t(`categoryIntro.${category}`),
     alternates: localizedAlternates(locale, categoryPath(category)),
   };
 }
@@ -36,7 +37,7 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <ListPage
       title={label}
-      intro={t('list.categoryIntro', { category: label })}
+      intro={t(`categoryIntro.${category}`)}
       games={rankGames(getGamesByCategory(category), rankings, 'qualityScore')}
       locale={locale}
     />

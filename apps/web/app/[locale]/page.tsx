@@ -4,6 +4,7 @@ import { ContinueShelf } from '@/components/catalog/continue-shelf';
 import { Shelf } from '@/components/catalog/shelf';
 import { SpotlightCarousel, type SpotlightSlide } from '@/components/catalog/spotlight-carousel';
 import styles from '@/components/page.module.css';
+import { Link } from '@/i18n/navigation';
 import {
   categoryPath,
   gameCardArt,
@@ -13,6 +14,7 @@ import {
   getFeaturedGames,
   getGamesByCategory,
   getAllGames,
+  getLiveGameCount,
   getMultiplayerGames,
   getNewestGames,
 } from '@/lib/catalog';
@@ -104,6 +106,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
         locale={locale}
         seeAllHref="/multiplayer"
       />
+
+      {/* What Ayvago is, in words, for players and search engines alike (slice 3.5). */}
+      <section className={styles.about} aria-labelledby="about-ayvago-heading">
+        <h2 id="about-ayvago-heading">{t('home.aboutTitle')}</h2>
+        <p>{t('home.aboutBody', { count: getLiveGameCount() })}</p>
+        <p>
+          <Link href="/about">{t('home.aboutLink')}</Link>
+        </p>
+      </section>
     </>
   );
 }

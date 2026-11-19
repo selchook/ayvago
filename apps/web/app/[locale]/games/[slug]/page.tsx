@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AdBanner } from '@/components/ads/ad-banner';
 import { PlayerCover } from '@/components/game/player-cover';
 import { GameTile } from '@/components/catalog/game-tile';
+import { GameGuide } from '@/components/game/game-guide';
 import { GamePlayer } from '@/components/game/game-player';
 import { LeaderboardPanel } from '@/components/leaderboard/leaderboard-panel';
 import { QuickPlayButton } from '@/components/lobby/quick-play-button';
@@ -24,6 +25,7 @@ import {
   tableSize,
   type CatalogGame,
 } from '@/lib/catalog';
+import { faqJsonLd, getGameGuide, jsonLdScript, localizeGuide } from '@/lib/catalog/guides';
 import { getRankings } from '@/lib/catalog/rankings';
 import { getTileLabels, toTiles } from '@/lib/catalog/tiles';
 import { SITE_URL, localizedAlternates } from '@/lib/seo';
@@ -45,6 +47,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: localizedAlternates(locale, gamePath(game)),
+    // A coming-soon page has no game to play yet: reachable, but kept out of search results.
+    ...(game.status === 'live' ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,
@@ -85,6 +89,10 @@ export default async function GamePage({ params }: Props) {
   const { manifest } = game;
   const title = gameTitle(game, locale);
   const categoryLabel = t(`categories.${manifest.category}`);
+  // The studio's written guide (slice 3.5); without one the page keeps its short form.
+  const guideData = getGameGuide(game.slug);
+  const guide = guideData ? localizeGuide(guideData, locale) : null;
+  const faq = guide ? faqJsonLd(guide.faq, locale, `${SITE_URL}/${locale}${gamePath(game)}`) : null;
   const rankings = await getRankings();
   const [related, labels] = await Promise.all([
     toTiles(getRelatedGames(game, rankings), locale),
@@ -96,10 +104,14 @@ export default async function GamePage({ params }: Props) {
       <script
         type="application/ld+json"
         // JSON.stringify output contains no HTML; "<" is escaped to keep it inert inside <script>.
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd(game, locale, categoryLabel)).replace(/</g, '\\u003c'),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd(game, locale, categoryLabel)) }}
       />
+      {faq ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(faq) }}
+        />
+      ) : null}
       <div className={styles.layout}>
         <div>
           <GamePlayer
@@ -178,19 +190,29 @@ export default async function GamePage({ params }: Props) {
               </section>
             ) : null}
 
-            <section className={styles.section} aria-labelledby="about-heading">
-              <h2 id="about-heading">{t('game.description')}</h2>
-              <p>{gameDescription(game, locale)}</p>
-            </section>
+            {guide ? (
+              <GameGuide
+                guide={guide}
+                description={gameDescription(game, locale)}
+                inputs={manifest.input}
+              />
+            ) : (
+              <>
+                <section className={styles.section} aria-labelledby="about-heading">
+                  <h2 id="about-heading">{t('game.description')}</h2>
+                  <p>{gameDescription(game, locale)}</p>
+                </section>
 
-            <section className={styles.section} aria-labelledby="controls-heading">
-              <h2 id="controls-heading">{t('game.controls')}</h2>
-              <ul className={styles.chips}>
-                {manifest.input.map((input) => (
-                  <li key={input}>{t(`input.${input}`)}</li>
-                ))}
-              </ul>
-            </section>
+                <section className={styles.section} aria-labelledby="controls-heading">
+                  <h2 id="controls-heading">{t('game.controls')}</h2>
+                  <ul className={styles.chips}>
+                    {manifest.input.map((input) => (
+                      <li key={input}>{t(`input.${input}`)}</li>
+                    ))}
+                  </ul>
+                </section>
+              </>
+            )}
 
             {manifest.tags.length > 0 ? (
               <section className={styles.section} aria-labelledby="tags-heading">
@@ -225,8 +247,9 @@ export default async function GamePage({ params }: Props) {
             )}
           </section>
 
-          {/* Desktop only, beside the game, never over it; nothing while ads are off. */}
-          <AdBanner />
+          {/* Desktop only, beside the game, never over it; nothing while ads are off. A
+              coming-soon page has no game yet, so no ad either (slice 3.5). */}
+          {game.status === 'live' ? <AdBanner /> : null}
 
           <section className={styles.section} aria-labelledby="related-heading">
             <h2 id="related-heading">{t('game.related')}</h2>

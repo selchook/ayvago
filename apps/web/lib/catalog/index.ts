@@ -173,6 +173,15 @@ export function getGamesByCategory(category: GameCategory): CatalogGame[] {
   return getAllGames().filter((game) => gameCategories(game.manifest).includes(category));
 }
 
+/** Games players can play now (coming-soon games have a page but no game yet). */
+export function getLiveGames(): CatalogGame[] {
+  return getAllGames().filter((game) => game.status === 'live');
+}
+
+export function getLiveGameCount(): number {
+  return getLiveGames().length;
+}
+
 export function getFeaturedGames(): CatalogGame[] {
   return getAllGames().filter((game) => game.featured);
 }

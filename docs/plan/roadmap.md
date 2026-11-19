@@ -530,6 +530,7 @@ Slice plan and status: [Phase 3 plan](phase-3.md) · owner steps: [Phase 3 setup
 - [ ] Rewarded placements + `grantAdReward` — `grantAdReward` and the platform side done (slice 3.1); the in-game placements are built in the studio
 - [ ] Paddle/Lemon Squeezy checkout + webhook → `entitlements`; `remove_ads`
 - [ ] Google Analytics revenue funnel (BigQuery export later) — ad events are dispatched as `ayvago:ad` for it (slice 3.1)
+- [x] Site content for the AdSense review: server-rendered game guides written by the studio and synced with the catalog, About / Terms of use / Contact pages, category intros, thin pages (leaderboards, coming-soon games) out of the index ([ADR 0027](../adr/0027-game-guides-as-page-content.md)) — slice 3.5; the guides themselves come from the studio
 - **Done when:** a `remove_ads` buyer never sees an interstitial; rewarded rewards arrive only after server confirmation.
 
 ### Phase 4 — Multiplayer (2–3 weeks) — in progress

@@ -26,8 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: t('leaderboard.pageTitle', { title }),
     description: t('metadata.leaderboardDescription', { title }),
     alternates: localizedAlternates(locale, `${gamePath(game)}/leaderboard`),
-    // Coming-soon games have no leaderboard to show yet.
-    ...(game.status === 'live' ? {} : { robots: { index: false } }),
+    // The board loads in the browser, so crawlers see a nearly empty page that repeats the game
+    // page: kept out of the index (and the sitemap), its links still followed (slice 3.5).
+    robots: { index: false, follow: true },
   };
 }
 

@@ -5,7 +5,8 @@
   [§12 Phases and timeline](roadmap.md#12-phases-and-timeline) · Specs:
   [UI and themes](../specs/ui-and-themes.md), [Accounts and profiles](../specs/accounts.md)
   · Owner steps: [Phase 3 setup](../setup/phase-3.md) · Decisions:
-  [ADR 0023](../adr/0023-ads-behind-an-admin-switch.md)
+  [ADR 0023](../adr/0023-ads-behind-an-admin-switch.md),
+  [ADR 0027](../adr/0027-game-guides-as-page-content.md)
 
 **Done when:** a `remove_ads` buyer never sees an interstitial; rewarded rewards arrive only after
 server confirmation.
@@ -23,6 +24,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 3.2 | `remove_ads` checkout: Paddle or Lemon Squeezy, webhook → `purchases` + `entitlements/{uid}` | ⬜ |
 | 3.3 | Google Analytics revenue funnel (ad events are already dispatched as `ayvago:ad`), BigQuery export later | ⬜ |
 | 3.4 | Rewarded placements in games ("continue", "2× reward"), built in the studio (`selchook/ayvago-games`): core hooks plus five games, with protocol 2.8 carrying the continue | ✅ studio (selchook/ayvago-games#100) |
+| 3.5 | Site content for the AdSense review: the studio's written game guides rendered on the game pages (synced with the catalog), About, Terms of use and Contact pages, a hand-written intro per category, an About block on the home page, and the thin pages (leaderboards, coming-soon games) out of the index (owner request, [ADR 0027](../adr/0027-game-guides-as-page-content.md)) | ✅ code · ⏳ studio guides, Terms review, AdSense re-review |
 
 ## 3.1 Ad infrastructure behind an admin switch ✅ code
 
@@ -295,3 +297,133 @@ platform to know that the run continued. The run stays one score session.
   field; until then personalised ads need the visitor's own consent in every region.
 - A legal review of the privacy and KVKK text, and the data controller's legal name once the
   business entity is decided (roadmap open decision 3).
+
+## 3.5 Site content for the AdSense review ✅ code
+
+Google AdSense turned ayvago.com down for "low value content" ("Düşük değere sahip içerik"). The
+diagnosis from the code:
+1. Game pages carried about 35 words of their own (the manifest description), the input chips and
+   the tags; the game is a cross-origin iframe, which crawlers do not count as the page's content.
+2. Every live game also had an indexed `/leaderboard` page whose table loads in the browser, so
+   crawlers saw about 200 nearly empty, near-duplicate pages in the sitemap.
+3. Category pages had one templated sentence.
+4. There was no About, Terms of use or Contact page.
+5. Coming-soon games had indexed pages without a game.
+
+Decision record: [ADR 0027](../adr/0027-game-guides-as-page-content.md).
+
+### Game guides
+- **Contract** `packages/shared/src/guide.ts` (exported from the package): `gameGuideSchema`
+  (`about`, `howToPlay`, `controls`, `tips`, optional `features` and `faq`; `{ en, tr? }` text with
+  length limits), `guideFileSchema` and `parseGuideFile`. The studio vendors the same file.
+- **Sync.** `.github/workflows/sync-arcade-catalog.yml` also copies the studio's
+  `platform/arcade-guides.json` into `apps/web/content/arcade-guides.json`, in the same commit and
+  PR as the catalog. A 404 (the studio has not published the file yet) keeps the platform's copy
+  with a notice; any other error, or a file that is not `version: 1` with a `guides` object, fails
+  the run. The committed file starts empty (`{ "version": 1, "guides": {} }`); it is generated, so
+  Prettier skips it.
+- **Loading** `apps/web/lib/catalog/guides.ts`, server only: validates the file once per process
+  (`parseGuideFile`; an invalid file fails the build), `getGameGuide(slug)`, `guideSlugs()`,
+  `localizeGuide(guide, locale)` (`pickLocalized` fallback to English; `about` split into paragraphs
+  at blank lines; controls in the order keyboard, touch, mouse, gamepad), `faqJsonLd` and
+  `jsonLdScript` (`<` escaped). Not re-exported from `lib/catalog/index.ts`, which client
+  components import.
+- **Game page** (`components/game/game-guide.tsx`): with a guide, the page shows
+  - **About this game**: the manifest description as a bold lead, then the guide's paragraphs;
+  - **How to play**: an ordered list;
+  - **Controls**: one row per input with the existing `input.*` labels (a `dl`), replacing the
+    bare chips; manifest inputs the guide does not describe (gyroscope, for example) stay as chips;
+  - **Tips**, **Features**: lists;
+  - **Frequently asked questions**: h3 + p, every answer in the server HTML;
+  - `FAQPage` JSON-LD beside the `VideoGame` JSON-LD.
+
+  Without a guide the page is unchanged. The meta description stays as it was: the manifest
+  description plus the suffix already runs to about 160 characters.
+- **Look:** semantic tokens only; the FAQ questions use the body font in every theme (the pixel
+  display font is for titles); the controls table stacks on phones. Checked in Minimal light and
+  dark, Cartoon and Arcade on a phone (390×844) and a desktop (1440×900), in English and Turkish.
+
+### Thin pages out of the index
+- **Leaderboard pages**: `robots: noindex, follow` for every game, and gone from `sitemap.ts`.
+- **Coming-soon game pages**: `noindex, follow`, gone from the sitemap, still reachable; no desktop
+  banner on them (there is no game to play).
+- **404s**: unknown paths (`[...rest]`), unknown games and unknown categories answer with a real
+  404 status and `<meta name="robots" content="noindex">` (checked with `curl` on `next start`).
+- Already `noindex` before this slice: profile, favorites, search, lobbies, rooms, tables, admin.
+
+### Category intros
+`categoryIntro.<category>` in both catalogs: two to three sentences per category, written from the
+games each one holds (named games use their Turkish titles on `/tr`), server-rendered under the
+heading and used as the page's meta description. `list.categoryIntro` (the templated sentence) is
+gone.
+
+### About, Terms of use, Contact
+- `/[locale]/about`, `/[locale]/terms`, `/[locale]/contact`: server-rendered, with metadata and
+  hreflang alternates like `/privacy`, in the sitemap, and linked from the footer (About · Privacy ·
+  Terms of use · Cookie preferences · Contact). The footer's Contact link now opens the contact
+  page instead of a `mailto:` link.
+- **About**: what Ayvago is, the live game count from the catalog, the in-house studio and its
+  shared runtime, CC0 art, accounts, server-checked leaderboards, XP and characters, online rooms
+  and tables, themes and languages, ads in one honest sentence.
+- **Terms of use**: a plain draft (the service, accounts, fair play and score checks, usernames,
+  ads, rewards and the `remove_ads` purchase as the ad manager handles them, the games' rights,
+  liability limits, changes, contact). ⏳ The owner has it reviewed legally.
+- **Contact**: the same address as the footer and the privacy page (`PRIVACY_CONTACT`,
+  `NEXT_PUBLIC_PRIVACY_CONTACT` or `ayvagogames@gmail.com`), what to write about, and what players
+  can do themselves (the profile page, the privacy page).
+
+### Home page
+An **About Ayvago** block near the bottom (about 100 words, the live game count, a link to
+`/about`), server-rendered.
+
+### Ads audit
+Where ads can appear (no change to the ad manager in this slice):
+- **The AdSense tag** (`AdHost` in the app shell) loads with the page on **every route** once ads
+  are live (client ID set, switch on, consent message confirmed) for players without
+  `remove_ads`: lobbies, rooms, tables, profile, search, 404 and admin included.
+- **Ad units the platform places itself:**
+  - the desktop banner: only on game pages (now only live ones);
+  - interstitials: only between runs on a game page and when leaving a game page after a finished
+    run, never during a run or online;
+  - rewarded ads: only when a player asks in a solo game.
+
+  No unit renders on the lobby, room, table, profile, search, 404, admin, home, category, about,
+  terms or contact pages.
+- **The risk is AdSense Auto ads.** Switched on in the AdSense dashboard, they would place ads on
+  any page that loads the tag, including pages without publisher content. The setup checklist
+  already says Auto ads off (§1.5); this slice repeats it in the re-review steps. Loading the tag
+  only on content routes would need a route signal in the ad manager, which also serves the
+  leave-a-game interstitial, so it is left as an option rather than a quick change.
+
+### Deviations
+- The meta description of game pages is not rewritten from the guide (it would exceed about 160
+  characters).
+- The fixture guide (`lib/catalog/guides.fixture.ts`) is for tests only; no guide ships until the
+  studio's file arrives through the sync.
+
+### Tests
+- `packages/shared/src/guide.test.ts` (8): a full and a minimal guide, English required, unknown
+  locales and keys refused, list sizes, text lengths, controls need a known input, the file's
+  version and slug format.
+- `apps/web/lib/catalog/guides.test.ts` (8): the committed file parses and every slug in it is a
+  catalog game; lookup by slug (no inherited keys); an invalid file throws; localization with the
+  English fallback; paragraph splitting; empty optional sections; FAQPage data and the escaped
+  script; no client component and not `lib/catalog/index.ts` imports the guides.
+- `apps/web/components/game/game-guide.test.tsx` (3): every section and its text in the static
+  markup, Turkish labels with English fallback text, undescribed inputs as chips.
+- `apps/web/app/seo.test.ts` (4): the sitemap lists About, Terms, Contact, Privacy, categories and
+  live games in both locales and no leaderboard; a coming-soon game leaves it; leaderboards are
+  `noindex, follow`; live game pages are indexed and coming-soon ones are not.
+- The message test (en and tr keys match, no empty strings).
+- `next start` with a fixture guide (uncommitted): the guide text and the FAQPage JSON-LD are in
+  the server HTML, none of the guide text is in `.next/static`; status and robots checked with
+  `curl`; Playwright screenshots of the game page, a category page, About, Terms, Contact and the
+  home block in every theme on a phone and a desktop, in English and Turkish.
+
+### Still open
+- ⏳ The studio's guides: five are being written (Hex Realm, Okey, Block Drop, Mud Rally, Letter
+  Loop), then the rest of the catalog. They arrive through the "Sync arcade catalog" PR.
+- ⏳ The owner's legal review of the Terms of use (and the business's legal name once decided).
+- ⏳ Resubmitting the sitemap and asking AdSense for a new review ([Phase 3
+  setup](../setup/phase-3.md#35-site-content-for-the-adsense-review)).
+- Optional: load the AdSense tag only on content routes (see the ads audit).
