@@ -1056,5 +1056,12 @@
       "withEmail": "For questions and privacy requests, write to <link>{email}</link>.",
       "withoutEmail": "You can download or delete your data on your Profile page."
     }
+  },
+  "guide": {
+    "howToPlay": "How to play",
+    "tips": "Tips",
+    "features": "Features",
+    "faq": "Frequently asked questions",
+    "otherInputs": "Other controls"
   }
 }

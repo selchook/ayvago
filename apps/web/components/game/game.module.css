@@ -282,6 +282,108 @@
   max-width: 70ch;
 }
 
+/* The written guide (slice 3.5): calm, readable text in every theme. */
+.guide {
+  display: grid;
+  gap: 24px;
+}
+
+.guide .section {
+  gap: 10px;
+}
+
+.guide p,
+.guide li,
+.guide dd {
+  line-height: 1.6;
+}
+
+.lead {
+  font-weight: 600;
+}
+
+.steps,
+.bullets {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 6px;
+  max-width: 70ch;
+}
+
+.steps li::marker {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.bullets li::marker {
+  color: var(--accent);
+}
+
+.controls {
+  margin: 0;
+  display: grid;
+  max-width: 70ch;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.controls > div {
+  display: grid;
+  grid-template-columns: minmax(7em, max-content) minmax(0, 1fr);
+  gap: 4px 16px;
+  padding: 10px 14px;
+}
+
+.controls > div + div {
+  border-top: var(--border-width) solid var(--border);
+}
+
+.controls dt {
+  font-weight: 700;
+}
+
+.controls dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.faq {
+  display: grid;
+  gap: 14px;
+  max-width: 70ch;
+}
+
+.faq > div {
+  display: grid;
+  gap: 4px;
+}
+
+/* Questions read as body text, not as display headings (the pixel font is for titles). */
+.faq h3 {
+  font-family: var(--font-body);
+  text-transform: none;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.faq p {
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .controls > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+[data-theme='arcade'] .controls {
+  border-radius: 0;
+}
+
 .chips {
   list-style: none;
   margin: 0;

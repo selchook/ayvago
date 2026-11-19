@@ -1056,5 +1056,12 @@
       "withEmail": "Sorularınız ve KVKK başvurularınız için <link>{email}</link> adresine yazabilirsiniz.",
       "withoutEmail": "Verilerinizi Profil sayfanızdan indirebilir veya silebilirsiniz."
     }
+  },
+  "guide": {
+    "howToPlay": "Nasıl oynanır",
+    "tips": "İpuçları",
+    "features": "Özellikler",
+    "faq": "Sıkça sorulan sorular",
+    "otherInputs": "Diğer kontroller"
   }
 }
