@@ -145,6 +145,20 @@ export const ARCADE_GAMES: SeedGame[] = [
     version: '1.2.1',
   }),
   arcadeGame({
+    slug: 'astro-crew',
+    title: { en: 'Astro Crew', tr: 'Uzay Tayfası' },
+    description: {
+      en: 'Lead a crew of animal astronauts across a galaxy of tiny alien planets! A 3D action adventure: your blaster aims by itself while you run, roll and fire your signature skill through bouncing blobs, spitting flyers, ground-slamming brutes and three huge bosses. Every planet is a new mission: clear the waves, defend the dome, hunt keycards, rescue stranded rovers. Level up and pick power cards, charge your giant mech for a few smashing seconds, and grow your base with crystals between missions. Four crew members, twelve planets, Easy or Normal.',
+      tr: 'Hayvan astronotlardan oluşan tayfanı minik uzaylı gezegenlerle dolu bir galakside yönet! 3B bir aksiyon macerası: sen koşar, takla atar ve özel yeteneğini kullanırken silahın kendi nişan alır; zıplayan balçıklar, tüküren uçanlar, yeri döven devler ve üç dev boss seni bekliyor. Her gezegen yeni bir görev: dalgaları temizle, kubbeyi koru, anahtar kart avla, mahsur kalan gezicileri kurtar. Seviye atla, güç kartı seç, dev mekanı doldurup birkaç saniyeliğine her şeyi ez ve görevler arasında kristallerle üssünü büyüt. Dört tayfa, on iki gezegen, Kolay ya da Normal.',
+    },
+    category: 'action',
+    categories: ['action', 'arcade'],
+    tags: ['astro', 'crew', 'retro'],
+    orientation: 'landscape',
+    input: ['touch', 'keyboard', 'mouse'],
+    addedAt: '2026-11-18',
+  }),
+  arcadeGame({
     slug: 'axe-throw',
     title: { en: 'Axe Throw', tr: 'Balta Atışı' },
     description: {
@@ -809,6 +823,20 @@ export const ARCADE_GAMES: SeedGame[] = [
     multiplayer: true,
   }),
   arcadeGame({
+    slug: 'neon-ronin',
+    title: { en: 'Neon Ronin', tr: 'Neon Samuray' },
+    description: {
+      en: 'A 3D action platformer across the floating neon rooftops of a rain-soaked cyber city. Run, double jump, wall-jump and roll through bolts; chain katana combos and fire your blaster before it overheats. Cut through robots, turrets and giant mech bosses in four districts, hunt data chips, upgrade your cyberware and draft implant chips.',
+      tr: "Yağmurlu bir siber şehirde, neon tabelalı yüzen çatıların üstünde 3B aksiyon platform oyunu. Koş, çift zıpla, duvardan sek, mermilerin içinden yuvarlan; katanayla kombolar zincirle, blaster'ı ısıtmadan ateş et. Dört bölgede robotları, taretleri ve dev mekanik bossları alt et, veri çiplerini bul, siber donanımını yükselt ve implant çipleri seç.",
+    },
+    category: 'action',
+    categories: ['action', 'arcade'],
+    tags: ['neon', 'ronin', 'retro'],
+    orientation: 'landscape',
+    input: ['touch', 'keyboard', 'mouse'],
+    addedAt: '2026-11-18',
+  }),
+  arcadeGame({
     slug: 'nine-mens-morris',
     title: { en: "Nine Men's Morris", tr: 'Dokuz Taş' },
     description: {
@@ -937,9 +965,9 @@ export const ARCADE_GAMES: SeedGame[] = [
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['pirate', 'cove', 'retro'],
-    orientation: 'portrait',
+    orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.0.1',
+    version: '1.1.0',
     addedAt: '2026-11-11',
   }),
   arcadeGame({
