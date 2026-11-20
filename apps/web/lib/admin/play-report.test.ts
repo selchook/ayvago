@@ -5,6 +5,7 @@ import { gameCsvRows, playerCsvRows, reportFileName, splitDuration } from './pla
 
 const kinds = (google: number, registered: number, guest: number, unknown: number) => ({
   google,
+  facebook: 0,
   registered,
   guest,
   unknown,
@@ -31,6 +32,7 @@ const report: PlayReport = {
   extendedSince: '2026-11-10',
   summary: {
     google: { profiles: 2, players: 1, ...counts(9, 7, 3, 420, 30) },
+    facebook: { profiles: 0, players: 0, ...counts(0, 0, 0, 0, 0) },
     registered: { profiles: 0, players: 0, ...counts(0, 0, 0, 0, 0) },
     guest: { profiles: 3, players: 1, ...counts(0, 2, 0, 60, 0) },
     unknown: { profiles: null, players: 0, ...counts(0, 0, 0, 0, 0) },
@@ -105,6 +107,7 @@ describe('play report rows', () => {
   it('builds the per-game rows', () => {
     const label = (prefix: string) => ({
       google: `${prefix} G`,
+      facebook: `${prefix} F`,
       registered: `${prefix} R`,
       guest: `${prefix} M`,
       unknown: `${prefix} U`,
@@ -130,15 +133,17 @@ describe('play report rows', () => {
       'Seconds',
       'Left',
       'Plays G',
+      'Plays F',
       'Plays R',
       'Plays M',
       'Plays U',
       'Players G',
+      'Players F',
       'Players R',
       'Players M',
       'Players U',
     ]);
-    expect(rows[1]).toEqual(['Yılan', 'snake', 12, 9, 2, 480, 30, 7, 0, 2, 0, 1, 0, 1, 0]);
+    expect(rows[1]).toEqual(['Yılan', 'snake', 12, 9, 2, 480, 30, 7, 0, 0, 2, 0, 1, 0, 0, 1, 0]);
   });
 
   it('names the files after the window and the build time', () => {

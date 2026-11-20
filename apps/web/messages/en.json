@@ -71,7 +71,7 @@
     "spotlightFeatured": "Featured",
     "spotlightNew": "New on Ayvago",
     "aboutTitle": "About Ayvago",
-    "aboutBody": "Ayvago is a free browser game platform with {count} games: retro arcade classics, action and sports games, casual and puzzle games, word games and Turkish favourites such as Okey, Backgammon (Tavla) and Mangala. Every game is made by our own studio, Ayvago Games, and runs on phones, tablets and computers without a download. Play as a guest or sign in with Google to keep your progress, climb the weekly leaderboards, earn achievements and play some games online with friends. Ayvago speaks English and Turkish and comes in three looks: Minimal, Cartoon and Arcade.",
+    "aboutBody": "Ayvago is a free browser game platform with {count} games: retro arcade classics, action and sports games, casual and puzzle games, word games and Turkish favourites such as Okey, Backgammon (Tavla) and Mangala. Every game is made by our own studio, Ayvago Games, and runs on phones, tablets and computers without a download. Play as a guest or sign in to keep your progress, climb the weekly leaderboards, earn achievements and play some games online with friends. Ayvago speaks English and Turkish and comes in three looks: Minimal, Cartoon and Arcade.",
     "aboutLink": "More about Ayvago"
   },
   "shelf": {
@@ -140,7 +140,7 @@
     "guest": "Guest",
     "you": "You",
     "continued": "Used a continue",
-    "claimAsGuest": "Sign in with Google to keep your place on the leaderboard.",
+    "claimAsGuest": "Sign in to keep your place on the leaderboard.",
     "seeAll": "See the full leaderboard",
     "pageTitle": "{title} leaderboard",
     "pageIntro": "The best validated scores in {title}. Weekly seasons reset every Monday at 09:00 UTC.",
@@ -202,7 +202,7 @@
     "favoritesTitle": "Favorites",
     "favoritesEmpty": "Tap the heart on a game to keep it here.",
     "browse": "Browse games",
-    "syncNote": "Synced with your account. Guests: sign in with Google to see them on every device."
+    "syncNote": "Synced with your account. Guests: sign in to see them on every device."
   },
   "mostPlayed": {
     "title": "Most played",
@@ -229,19 +229,27 @@
     "signedOutTitle": "Sign in to Ayvago",
     "signedOutBody": "Keep your scores and favorites on every device.",
     "guestHint": "No account needed to play. You start as a guest.",
-    "continueWithGoogle": "Continue with Google",
+    "providers": {
+      "google": "Google",
+      "facebook": "Facebook"
+    },
+    "continueWith": "Continue with {provider}",
     "working": "Signing in…",
     "guestBadge": "Guest",
     "guestBody": "Your progress is tied to this browser. Sign in to keep it on every device.",
-    "saveWithGoogle": "Save progress with Google",
-    "signedInWithGoogle": "Signed in with Google",
+    "saveWith": "Save progress with {provider}",
+    "signedInWith": "Signed in with {providers}",
     "signOut": "Sign out",
     "errors": {
       "popupBlocked": "The sign-in window was blocked. Allow pop-ups for this site and try again.",
       "generic": "Sign-in failed. Please try again.",
-      "notAvailable": "Google sign-in is not available on this site yet.",
+      "notAvailable": "This sign-in method is not available on this site yet.",
       "network": "Connection problem. Check your internet connection and try again.",
       "code": "Error code: {code}"
+    },
+    "existingAccount": {
+      "body": "This email already has an Ayvago account that signs in with {existing}. Continue with {existing} to connect {attempted} to it.",
+      "cancel": "Cancel"
     },
     "profileLink": "Profile and settings",
     "adminLink": "Admin panel"
@@ -303,7 +311,24 @@
     "settingsSync": "Your avatar, character, theme and language are saved to your account and follow you to every device.",
     "saveFailed": "Could not save. Please try again.",
     "accountTitle": "Account",
-    "signedInAs": "Signed in with Google as {email}",
+    "signedInAs": "Signed in with {providers} as {email}",
+    "methods": {
+      "title": "Sign-in methods",
+      "body": "Sign in to your account with any method connected here.",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "connect": "Connect",
+      "connectLabel": "Connect your {provider} account",
+      "disconnect": "Disconnect",
+      "disconnectLabel": "Disconnect your {provider} account",
+      "working": "Please wait…",
+      "lastHint": "Connect another method before you disconnect this one.",
+      "errors": {
+        "inUse": "This {provider} account is already connected to another Ayvago account.",
+        "emailInUse": "The email address of this {provider} account already belongs to another Ayvago account.",
+        "lastMethod": "Keep at least one sign-in method connected."
+      }
+    },
     "dataTitle": "Your data",
     "exportBody": "Download everything Ayvago stores about you (profile, favorites, recently played games and best scores) as a JSON file.",
     "exportButton": "Download my data",
@@ -315,7 +340,7 @@
     "deleting": "Deleting…",
     "cancel": "Cancel",
     "deleteFailed": "The account could not be deleted. Please try again.",
-    "usernameGuest": "Sign in with Google to choose your own username.",
+    "usernameGuest": "Sign in to choose your own username.",
     "usernameRules": "3–20 characters: letters, digits and _, starting with a letter. You can choose a new name once every {days} days.",
     "usernameNextChange": "Next change possible on {date}.",
     "usernameSaved": "Username saved.",
@@ -327,7 +352,7 @@
       "offensive": "This name is not allowed. Please choose another one.",
       "taken": "This name is already taken. Please choose another one.",
       "cooldown": "You can choose a new name on {date}.",
-      "registered-only": "Sign in with Google to choose your own username.",
+      "registered-only": "Sign in to choose your own username.",
       "generic": "The username could not be saved. Please try again."
     },
     "onlineTitle": "Online status",
@@ -402,9 +427,10 @@
       "generated": "Generated {time}",
       "since": "Listed from {since}.",
       "laterNote": "* Counted from {extended}.",
-      "kindsNote": "Google: signed in with Google. Registered: signed in another way. Guest: plays without an account. Unknown: has play stats, but the profile was deleted.",
+      "kindsNote": "Google: signed in with Google. Facebook: signed in with Facebook (and not Google). Registered: signed in another way. Guest: plays without an account. Unknown: has play stats, but the profile was deleted.",
       "kinds": {
         "google": "Google",
+        "facebook": "Facebook",
         "registered": "Registered",
         "guest": "Guest",
         "unknown": "Unknown"
@@ -1028,9 +1054,15 @@
     "intro": "Ayvago (ayvago.com) is a free web game platform. This page explains what we store about you, which cookies and similar technologies we use, how ads work, and your rights under the EU General Data Protection Regulation (GDPR).",
     "data": {
       "title": "What we store",
-      "p1": "When you play, you get a guest account; you can also sign in with Google. We store your username, avatar and character, your settings (theme, language), your library (favourites, recently played), your scores, play statistics, achievements and votes. Signing in with Google adds your email address to the account.",
+      "p1": "When you play, you get a guest account; you can also sign in with Google or Facebook. We store your username, avatar and character, your settings (theme, language), your library (favourites, recently played), your scores, play statistics, achievements and votes.",
+      "signIn": "Signing in with Google or Facebook connects that account to your Ayvago account. Our sign-in service (Firebase Authentication) receives from Google your name, email address and profile picture link, and from Facebook your name, your email address if you share it, your profile picture link and your Facebook user ID for Ayvago. From Facebook we ask only for your public profile and email address. We use the email address and these IDs to sign you in and to keep one account per email address. Your name and picture are not shown on Ayvago, where you appear under your Ayvago username and avatar. We never post to Facebook or Google, and we do not read your friends or contacts.",
       "p2": "The data is kept in Google Firebase in the European Union (europe-west1, Belgium). Games run in a sandbox and never receive your account data; they only get what they need to play, such as your chosen character and your best score.",
       "p3": "On your Profile page you can download all your data or delete your account at any time. Unused guest accounts are deleted after 30 days."
+    },
+    "deleteData": {
+      "title": "Delete your data",
+      "p1": "You can delete your Ayvago account and all of its data yourself at any time: sign in, open your Profile page, press \"Delete my account\" under \"Your data\" and confirm. This deletes your profile, library, scores, leaderboard places, votes, play statistics and achievements, and your sign-in account together with its link to Google or Facebook. If your last sign-in was a while ago, you confirm it with Google or Facebook first.",
+      "p2": "If you signed in with Facebook, you can also remove Ayvago in Facebook's settings under \"Apps and websites\". That stops Facebook from sharing your data with Ayvago; to delete the data already stored here, delete your account on the Profile page as well, or write to us at the contact below and we will delete it for you."
     },
     "storage": {
       "title": "Cookies and local storage",
@@ -1090,7 +1122,7 @@
     },
     "play": {
       "title": "Your progress and the leaderboards",
-      "p1": "You can start playing at once as a guest; signing in with Google keeps your progress on every device. Finished runs go on weekly and all-time leaderboards, and every score is checked on our servers so the rankings stay fair.",
+      "p1": "You can start playing at once as a guest; signing in keeps your progress on every device. Finished runs go on weekly and all-time leaderboards, and every score is checked on our servers so the rankings stay fair.",
       "p2": "Playing earns XP, levels and achievement badges. You choose one of five characters, who appears in the games that have a hero, and you can keep your favourite games in your library."
     },
     "online": {
@@ -1118,7 +1150,7 @@
     },
     "accounts": {
       "title": "Accounts",
-      "p1": "When you play you get a guest account; you can sign in with Google to keep your progress on every device. You are responsible for what happens in your account, so keep your sign-in safe.",
+      "p1": "When you play you get a guest account; you can sign in to keep your progress on every device. You are responsible for what happens in your account, so keep your sign-in safe.",
       "p2": "If you are under the age at which you can agree to these terms in your country, use Ayvago only with the permission of a parent or guardian.",
       "p3": "You can delete your account at any time on your Profile page. Guest accounts that are not used are deleted after 30 days, as the privacy page explains."
     },

@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  LOCALE_NATIVE_NAMES,
-  USERNAME_COOLDOWN_DAYS,
-  usernameProblem,
-  type Locale,
-} from '@ayvago/shared';
+import { LOCALE_NATIVE_NAMES, USERNAME_COOLDOWN_DAYS, usernameProblem } from '@ayvago/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
@@ -20,18 +15,22 @@ import {
 } from '@/lib/account/avatars';
 import {
   changeUsername,
+  connectProvider,
   deleteAccount,
+  disconnectProvider,
   exportAccountData,
-  signInWithGoogle,
+  SIGN_IN_OPTIONS,
   signOut,
   updateProfile,
   useAccount,
-  type SignInError,
+  type LinkError,
+  type SignInProvider,
   type UsernameResult,
 } from '@/lib/account/store';
+import { SIGN_IN_PROVIDERS } from '@/lib/account/sign-in-flow';
 import { formatScore, type ScoreFormat } from '@/lib/format';
 import { useBestScores, useFavorites, useRecent } from '@/lib/library';
-import { GoogleLogo } from '../icons';
+import { FacebookLogo, GoogleLogo } from '../icons';
 import pageStyles from '../page.module.css';
 import { ThemeControls } from '../theme-controls';
 import { Avatar } from './avatar';
@@ -39,6 +38,8 @@ import { AvatarGlyphIcon } from './avatar-glyph';
 import { CharacterPicker } from './character-picker';
 import { ProgressSection } from './progress-section';
 import { RecentSection, type TableGame } from './recent-section';
+import { SignInButtons } from './sign-in-buttons';
+import { useProvidersLabel } from './providers-label';
 import menuStyles from './account.module.css';
 import styles from './profile.module.css';
 
@@ -98,38 +99,6 @@ export function ProfileView({
   );
 }
 
-function GoogleButton({ label }: { label: string }) {
-  const t = useTranslations('account');
-  const locale = useLocale() as Locale;
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<SignInError | null>(null);
-  return (
-    <>
-      <button
-        type="button"
-        className={menuStyles.googleButton}
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          setError(await signInWithGoogle(locale));
-          setBusy(false);
-        }}
-      >
-        <GoogleLogo />
-        {busy ? t('working') : label}
-      </button>
-      {error ? (
-        <p className={menuStyles.error} role="alert">
-          {t(`errors.${error.kind}`)}
-          {error.code ? (
-            <span className={menuStyles.errorCode}>{t('errors.code', { code: error.code })}</span>
-          ) : null}
-        </p>
-      ) : null}
-    </>
-  );
-}
-
 function SignedOut() {
   const t = useTranslations('profile');
   const ta = useTranslations('account');
@@ -138,7 +107,7 @@ function SignedOut() {
       <h2>{ta('signedOutTitle')}</h2>
       <p className={styles.muted}>{ta('signedOutBody')}</p>
       <div className={styles.actions}>
-        <GoogleButton label={ta('continueWithGoogle')} />
+        <SignInButtons purpose="continue" />
       </div>
       <p className={styles.muted}>{t('guestStart')}</p>
     </section>
@@ -163,6 +132,7 @@ function SignedIn({
   const t = useTranslations('profile');
   const ta = useTranslations('account');
   const locale = useLocale();
+  const providersLabel = useProvidersLabel();
   const favorites = useFavorites();
   const recent = useRecent();
   const best = useBestScores();
@@ -197,7 +167,10 @@ function SignedIn({
             {account.isGuest ? (
               <span className={menuStyles.badge}>{ta('guestBadge')}</span>
             ) : (
-              <span>{account.email ?? ta('signedInWithGoogle')}</span>
+              <span>
+                {account.email ??
+                  ta('signedInWith', { providers: providersLabel(account.providers) })}
+              </span>
             )}
             {memberSince ? <span>{t('memberSince', { date: memberSince })}</span> : null}
           </p>
@@ -264,12 +237,19 @@ function SignedIn({
           <>
             <p className={styles.muted}>{ta('guestBody')}</p>
             <div className={styles.actions}>
-              <GoogleButton label={ta('saveWithGoogle')} />
+              <SignInButtons purpose="save" />
             </div>
           </>
         ) : (
           <>
-            <p>{t('signedInAs', { email: account.email ?? '—' })}</p>
+            <p>
+              {account.email
+                ? t('signedInAs', {
+                    providers: providersLabel(account.providers),
+                    email: account.email,
+                  })
+                : ta('signedInWith', { providers: providersLabel(account.providers) })}
+            </p>
             <div className={styles.actions}>
               <button
                 type="button"
@@ -279,11 +259,107 @@ function SignedIn({
                 {ta('signOut')}
               </button>
             </div>
+            <SignInMethods connected={account.providers} />
           </>
         )}
       </section>
 
       <DataSection onDeleted={onDeleted} />
+    </div>
+  );
+}
+
+const PROVIDER_LOGO: Record<SignInProvider, () => React.ReactNode> = {
+  google: () => <GoogleLogo size={22} />,
+  facebook: () => <FacebookLogo size={22} />,
+};
+
+/**
+ * Connected sign-in methods (slice 5.33): connect another one, or disconnect one while another
+ * stays. Connecting never switches accounts; a provider account that belongs to another Ayvago
+ * account is reported instead.
+ */
+function SignInMethods({ connected }: { connected: SignInProvider[] }) {
+  const t = useTranslations('profile.methods');
+  const ta = useTranslations('account');
+  const [busy, setBusy] = useState<SignInProvider | null>(null);
+  const [error, setError] = useState<(LinkError & { provider: SignInProvider }) | null>(null);
+  // Offered providers, plus any connected one whose switch is off (it must stay removable).
+  const shown = SIGN_IN_PROVIDERS.filter(
+    (provider) => SIGN_IN_OPTIONS.includes(provider) || connected.includes(provider),
+  );
+  const onlyOne = connected.length <= 1;
+
+  async function change(provider: SignInProvider, action: typeof connectProvider) {
+    setBusy(provider);
+    setError(null);
+    const result = await action(provider);
+    if (result) setError({ ...result, provider });
+    setBusy(null);
+  }
+
+  return (
+    <div className={styles.setting} data-testid="sign-in-methods">
+      <h3>{t('title')}</h3>
+      <p className={styles.muted}>{t('body')}</p>
+      <ul className={styles.methods}>
+        {shown.map((provider) => {
+          const name = ta(`providers.${provider}`);
+          const isConnected = connected.includes(provider);
+          return (
+            <li key={provider} data-provider={provider} data-connected={isConnected}>
+              <span className={`${styles.methodLogo} ${styles[`${provider}Logo`] ?? ''}`}>
+                {PROVIDER_LOGO[provider]()}
+              </span>
+              <span className={styles.methodName}>
+                <strong>{name}</strong>
+                <span className={styles.muted}>
+                  {isConnected ? t('connected') : t('notConnected')}
+                </span>
+              </span>
+              {isConnected ? (
+                <button
+                  type="button"
+                  className={menuStyles.secondaryButton}
+                  aria-label={t('disconnectLabel', { provider: name })}
+                  disabled={busy !== null || onlyOne}
+                  aria-describedby={onlyOne ? 'methods-last-hint' : undefined}
+                  onClick={() => change(provider, disconnectProvider)}
+                >
+                  {busy === provider ? t('working') : t('disconnect')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={menuStyles.secondaryButton}
+                  aria-label={t('connectLabel', { provider: name })}
+                  disabled={busy !== null}
+                  onClick={() => change(provider, connectProvider)}
+                >
+                  {busy === provider ? t('working') : t('connect')}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {onlyOne && shown.length > 1 ? (
+        <p id="methods-last-hint" className={styles.muted}>
+          {t('lastHint')}
+        </p>
+      ) : null}
+      {error ? (
+        <p className={menuStyles.error} role="alert">
+          {error.kind === 'inUse' || error.kind === 'emailInUse'
+            ? t(`errors.${error.kind}`, { provider: ta(`providers.${error.provider}`) })
+            : error.kind === 'lastMethod'
+              ? t('errors.lastMethod')
+              : ta(`errors.${error.kind}`)}
+          {error.code ? (
+            <span className={menuStyles.errorCode}>{ta('errors.code', { code: error.code })}</span>
+          ) : null}
+        </p>
+      ) : null}
     </div>
   );
 }

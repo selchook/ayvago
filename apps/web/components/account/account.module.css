@@ -97,6 +97,7 @@
 }
 
 .googleButton,
+.facebookButton,
 .secondaryButton {
   display: inline-flex;
   align-items: center;
@@ -122,9 +123,56 @@
   background: #f2f2f2;
 }
 
-.googleButton:disabled {
+.googleButton:disabled,
+.facebookButton:disabled {
   cursor: progress;
   opacity: 0.75;
+}
+
+/* Meta's brand guidelines: Facebook blue (#1877F2), white text, the white "f" logo. */
+.facebookButton {
+  background: #1877f2;
+  color: #fff;
+  border-color: #1877f2;
+}
+
+.facebookButton:hover {
+  background: #166fe5;
+  border-color: #166fe5;
+}
+
+/* The provider buttons share one width, so they line up as a stack. */
+.signInButtons {
+  display: grid;
+  gap: 8px;
+}
+
+/* "This email already has an account …": the next step with the other provider. */
+.notice {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  font-size: 0.88rem;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.linkButton {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .secondaryButton {

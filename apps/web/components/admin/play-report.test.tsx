@@ -24,6 +24,7 @@ const report: PlayReport = {
   extendedSince: '2026-11-10',
   summary: {
     google: { profiles: 2, players: 1, ...counts(9, 7, 3, 420) },
+    facebook: { profiles: 0, players: 0, ...counts(0, 0, 0, 0) },
     registered: { profiles: 0, players: 0, ...counts(0, 0, 0, 0) },
     guest: { profiles: 3, players: 1, ...counts(0, 2, 0, 60) },
     unknown: { profiles: null, players: 0, ...counts(0, 0, 0, 0) },
@@ -38,8 +39,8 @@ const report: PlayReport = {
         abandonedSeconds: 0,
         onlineStarted: 0,
       },
-      playsByKind: { google: 7, registered: 0, guest: 2, unknown: 0 },
-      playersByKind: { google: 1, registered: 0, guest: 1, unknown: 0 },
+      playsByKind: { google: 7, facebook: 0, registered: 0, guest: 2, unknown: 0 },
+      playersByKind: { google: 1, facebook: 0, registered: 0, guest: 1, unknown: 0 },
     },
   ],
   players: [
@@ -116,6 +117,7 @@ describe('play report tables', () => {
       'Play time',
       'Players',
       'Google',
+      'Facebook',
       'Registered',
       'Guest',
       'Unknown',
@@ -133,7 +135,7 @@ describe('play report tables', () => {
     ]);
     // the per-game row shows the window's numbers
     const row = html.split('<tbody>')[2]!.split('</tr>')[0]!;
-    expect(text(row).trim()).toBe('Snake 1,234 987 0 8 min 1 0 1 0');
+    expect(text(row).trim()).toBe('Snake 1,234 987 0 8 min 1 0 0 1 0');
     expect(html).toContain('Per player (1)');
   });
 

@@ -31,9 +31,9 @@ export async function deletePlayerData(uid: string) {
 }
 
 /**
- * mergeGuestAccount({ guestIdToken }): after a guest signs in with a Google account that already
- * exists, the client calls this as that account with the guest's ID token (taken before switching)
- * as proof of ownership. The guest's library, progress (XP, achievements) and recent players join
+ * mergeGuestAccount({ guestIdToken }): after a guest signs in with a Google or Facebook account
+ * that already exists, the client calls this as that account with the guest's ID token (taken
+ * before switching) as proof of ownership. The guest's library, progress (XP, achievements) and recent players join
  * the account's, and the guest account is deleted.
  */
 export async function mergeGuestAccount(request: CallableRequest<unknown>) {

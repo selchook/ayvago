@@ -3,20 +3,21 @@
 //   node scripts/progress-report.mjs [--days 7]
 // It only reads. It prints counts, never names, uids or e-mail addresses.
 //
-// Player kinds: "guest" (anonymous profile), "google" (signed in with Google), "registered"
-// (signed in, provider not readable) and "unknown" (no profile any more).
+// Player kinds: "guest" (anonymous profile), "google" (signed in with Google), "facebook" (signed
+// in with Facebook and not Google), "registered" (signed in, provider not readable) and "unknown"
+// (no profile any more).
 import { appendFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
-const KINDS = ['google', 'registered', 'guest', 'unknown'];
+const KINDS = ['google', 'facebook', 'registered', 'guest', 'unknown'];
 
 /**
  * Player kind per uid. The profile's `isGuest` (Firestore) splits guests from registered players;
- * Firebase Auth then names Google sign-ins, when the credentials may read Auth (otherwise a
- * registered player stays "registered").
+ * Firebase Auth then names Google and Facebook sign-ins, when the credentials may read Auth
+ * (otherwise a registered player stays "registered").
  */
 async function kindsOf(db, auth, uids) {
   const kinds = new Map();
@@ -34,8 +35,11 @@ async function kindsOf(db, auth, uids) {
     const registered = list.filter((uid) => kinds.get(uid) === 'registered');
     for (let i = 0; i < registered.length; i += 100) {
       const res = await auth.getUsers(registered.slice(i, i + 100).map((uid) => ({ uid })));
-      for (const u of res.users)
-        if (u.providerData.some((p) => p.providerId === 'google.com')) kinds.set(u.uid, 'google');
+      for (const u of res.users) {
+        const ids = u.providerData.map((p) => p.providerId);
+        if (ids.includes('google.com')) kinds.set(u.uid, 'google');
+        else if (ids.includes('facebook.com')) kinds.set(u.uid, 'facebook');
+      }
     }
   } catch (err) {
     console.warn(

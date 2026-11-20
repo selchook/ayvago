@@ -77,7 +77,7 @@ const report = () =>
     stats,
     daily,
     profiles,
-    profileTotals: { google: 3, registered: 1, guest: 7 },
+    profileTotals: { google: 3, facebook: 0, registered: 1, guest: 7 },
   });
 
 describe('buildPlayReport', () => {
@@ -99,6 +99,7 @@ describe('buildPlayReport', () => {
     const old = { starts: 0, onlinePlays: 0, abandonedSeconds: 0 };
     expect(report().summary).toEqual({
       google: { profiles: 3, players: 1, plays: 7, playSeconds: 420, totalSeconds: 420, ...old },
+      facebook: { profiles: 0, players: 0, plays: 0, playSeconds: 0, totalSeconds: 0, ...old },
       registered: { profiles: 1, players: 1, plays: 1, playSeconds: 40, totalSeconds: 40, ...old },
       guest: { profiles: 7, players: 2, plays: 6, playSeconds: 150, totalSeconds: 150, ...old },
       unknown: {
@@ -112,6 +113,45 @@ describe('buildPlayReport', () => {
     });
   });
 
+  it('counts Facebook players as their own kind (slice 5.33)', () => {
+    const r = buildPlayReport({
+      now: NOW,
+      stats: [
+        ...stats,
+        {
+          uid: 'uid-facebook-FFFFF',
+          gameId: 'snake',
+          plays: 2,
+          playSeconds: 80,
+          lastPlayedAt: at('2026-11-08T11:00:00Z'),
+        },
+      ],
+      daily,
+      profiles: new Map([
+        ...profiles,
+        ['uid-facebook-FFFFF', { username: 'Cem', kind: 'facebook' }],
+      ]),
+      profileTotals: { google: 3, facebook: 2, registered: 1, guest: 7 },
+    });
+    expect(r.summary.facebook).toMatchObject({
+      profiles: 2,
+      players: 1,
+      plays: 2,
+      playSeconds: 80,
+    });
+    // the other kinds are unchanged
+    expect(r.summary.google).toMatchObject({ profiles: 3, players: 1, plays: 7 });
+    expect(r.games[0]!.playsByKind).toEqual({
+      google: 5,
+      facebook: 2,
+      registered: 1,
+      guest: 3,
+      unknown: 0,
+    });
+    expect(r.games[0]!.playersByKind.facebook).toBe(1);
+    expect(r.players.find((p) => p.tag === 'FFFFF')).toMatchObject({ kind: 'facebook', plays: 2 });
+  });
+
   it('counts only the days from STATS_SINCE on per game', () => {
     const r = report();
     // orbsurge was only played before STATS_SINCE: no row; tetrix has plays but no counted days
@@ -120,14 +160,14 @@ describe('buildPlayReport', () => {
       gameId: 'snake',
       // 7 and 8 November; 6 November and October are left out
       window: { started: 12, finished: 9, playSeconds: 430, abandonedSeconds: 0, onlineStarted: 0 },
-      playsByKind: { google: 5, registered: 1, guest: 3, unknown: 0 },
-      playersByKind: { google: 1, registered: 1, guest: 1, unknown: 0 },
+      playsByKind: { google: 5, facebook: 0, registered: 1, guest: 3, unknown: 0 },
+      playersByKind: { google: 1, facebook: 0, registered: 1, guest: 1, unknown: 0 },
     });
     expect(r.games[1]).toEqual({
       gameId: 'tetrix',
       window: { started: 0, finished: 0, playSeconds: 0, abandonedSeconds: 0, onlineStarted: 0 },
-      playsByKind: { google: 2, registered: 0, guest: 3, unknown: 4 },
-      playersByKind: { google: 1, registered: 0, guest: 1, unknown: 1 },
+      playsByKind: { google: 2, facebook: 0, registered: 0, guest: 3, unknown: 4 },
+      playersByKind: { google: 1, facebook: 0, registered: 0, guest: 1, unknown: 1 },
     });
   });
 
@@ -162,7 +202,7 @@ describe('buildPlayReport', () => {
       ],
       daily,
       profiles,
-      profileTotals: { google: 3, registered: 1, guest: 7 },
+      profileTotals: { google: 3, facebook: 0, registered: 1, guest: 7 },
     });
     expect(r.players.map((p) => p.tag)).not.toContain('OOOOO');
     expect(r.playerCount).toBe(5);
@@ -170,7 +210,13 @@ describe('buildPlayReport', () => {
     expect(bora.games.map((g) => g.gameId)).toEqual(['snake', 'tetrix']);
     expect(bora).toMatchObject({ plays: 2, playSeconds: 50 });
     expect(r.games.map((g) => g.gameId)).toEqual(['snake', 'tetrix']);
-    expect(r.games[0]!.playsByKind).toEqual({ google: 5, registered: 1, guest: 3, unknown: 0 });
+    expect(r.games[0]!.playsByKind).toEqual({
+      google: 5,
+      facebook: 0,
+      registered: 1,
+      guest: 3,
+      unknown: 0,
+    });
     expect(r.summary.unknown).toMatchObject({ players: 1, plays: 4 });
   });
 
@@ -212,7 +258,7 @@ describe('buildPlayReport', () => {
       stats,
       daily: [],
       profiles,
-      profileTotals: { google: 0, registered: 0, guest: 0 },
+      profileTotals: { google: 0, facebook: 0, registered: 0, guest: 0 },
       maxPlayers: 2,
     });
     expect(r.players.map((p) => p.tag)).toEqual(['AAAAA', 'EEEEE']);
@@ -272,7 +318,7 @@ describe('buildPlayReport', () => {
         ...profiles,
         ['uid-guest-FFFFF', { username: 'IdleOwl1234', kind: 'guest' } as ProfileInput],
       ]),
-      profileTotals: { google: 3, registered: 1, guest: 7 },
+      profileTotals: { google: 3, facebook: 0, registered: 1, guest: 7 },
     });
 
     const bora = r.players.find((p) => p.tag === 'BBBBB')!;

@@ -5,6 +5,7 @@ import { auth } from '../functions/src/admin';
 import {
   admin,
   client,
+  facebookPlayer,
   FIXTURE,
   guest,
   outcome,
@@ -39,6 +40,8 @@ describe('getPlayReport', () => {
     const boss = await admin(); // a Google account with a profile, no plays
     const ayla = await registered('ayla@example.com', { username: 'Ayla' });
     const bora = await mailPlayer('Bora');
+    // Facebook without an email address (slice 5.33)
+    const cem = await facebookPlayer('cem', null, { username: 'Cem' });
     const fox = await guest({ username: 'PixelFox4821' });
     await guest({ username: 'IdleOwl1234' }); // a guest who never finished a run
 
@@ -51,6 +54,11 @@ describe('getPlayReport', () => {
       plays: 4,
       playSeconds: 240,
       lastPlayedAt: at('2026-11-08T10:00:00Z'),
+    });
+    await write(`users/${cem.uid}/stats/snake`, {
+      plays: 3,
+      playSeconds: 120,
+      lastPlayedAt: at('2026-11-08T09:00:00Z'),
     });
     await write('users/ghost123456/stats/snake', {
       plays: 2,
@@ -95,6 +103,15 @@ describe('getPlayReport', () => {
         totalSeconds: near(60),
         ...none,
       },
+      facebook: {
+        profiles: 1,
+        players: 1,
+        starts: 0,
+        plays: 3,
+        playSeconds: 120,
+        totalSeconds: 120,
+        ...none,
+      },
       registered: {
         profiles: 1,
         players: 1,
@@ -132,20 +149,21 @@ describe('getPlayReport', () => {
     expect(snake).toEqual({
       gameId: 'snake',
       window: { started: 3, finished: 2, playSeconds: 90, abandonedSeconds: 0, onlineStarted: 0 },
-      playsByKind: { google: 0, registered: 4, guest: 0, unknown: 2 },
-      playersByKind: { google: 0, registered: 1, guest: 0, unknown: 1 },
+      playsByKind: { google: 0, facebook: 3, registered: 4, guest: 0, unknown: 2 },
+      playersByKind: { google: 0, facebook: 1, registered: 1, guest: 0, unknown: 1 },
     });
     const fixture = report.games.find((g) => g.gameId === FIXTURE)!;
     // today's real runs
     expect(fixture.window.started).toBe(3);
     expect(fixture.window.finished).toBe(3);
     expect(fixture).toMatchObject({
-      playsByKind: { google: 2, registered: 0, guest: 1, unknown: 0 },
-      playersByKind: { google: 1, registered: 0, guest: 1, unknown: 0 },
+      playsByKind: { google: 2, facebook: 0, registered: 0, guest: 1, unknown: 0 },
+      playersByKind: { google: 1, facebook: 0, registered: 0, guest: 1, unknown: 0 },
     });
 
     expect(report.players.map((p) => [p.username, p.kind, p.plays])).toEqual([
       ['Bora', 'registered', 4],
+      ['Cem', 'facebook', 3],
       // equal plays: the one who played last first
       ['Ayla', 'google', 2],
       [null, 'unknown', 2],
@@ -153,7 +171,7 @@ describe('getPlayReport', () => {
     ]);
     // Bora's orbsurge stats were last played before STATS_SINCE
     expect(report.players[0]!.games.map((g) => g.gameId)).toEqual(['snake']);
-    expect(report.players[1]!.games).toEqual([
+    expect(report.players[2]!.games).toEqual([
       {
         gameId: FIXTURE,
         starts: 2,
@@ -163,11 +181,11 @@ describe('getPlayReport', () => {
         ...none,
       },
     ]);
-    expect(report.playerCount).toBe(4);
+    expect(report.playerCount).toBe(5);
     expect(report.truncated).toBe(0);
     // no uid and no e-mail address leaves the function
     const text = JSON.stringify(report);
-    for (const uid of [boss.uid, ayla.uid, bora, fox.uid]) expect(text).not.toContain(uid);
+    for (const uid of [boss.uid, ayla.uid, bora, cem.uid, fox.uid]) expect(text).not.toContain(uid);
     expect(text).not.toContain('@example.com');
   });
 

@@ -11,10 +11,13 @@ import { localizedAlternates } from '@/lib/seo';
 type Props = { params: Promise<{ locale: Locale }> };
 
 /** Bump when the text changes in substance. */
-const UPDATED = new Date('2026-11-11T00:00:00Z');
+const UPDATED = new Date('2026-11-20T00:00:00Z');
 
+// `id` is the anchor, `key` the message namespace (when they differ).
 const SECTIONS = [
-  { id: 'data', paragraphs: ['p1', 'p2', 'p3'] },
+  { id: 'data', paragraphs: ['p1', 'signIn', 'p2', 'p3'] },
+  // Meta's "User data deletion" instructions URL points here: keep the anchor stable.
+  { id: 'delete-data', key: 'deleteData', paragraphs: ['p1', 'p2'] },
   { id: 'storage', paragraphs: ['p1', 'p2'] },
   { id: 'ads', paragraphs: ['p1', 'p2', 'p3', 'p4', 'p5'] },
   // GDPR in English, KVKK in Turkish: each locale carries the law that fits its readers.
@@ -48,16 +51,19 @@ export default async function PrivacyPage({ params }: Props) {
           {t('updated', { date: format.dateTime(UPDATED, { dateStyle: 'long', timeZone: 'UTC' }) })}
         </p>
       </header>
-      {SECTIONS.map((section) => (
-        <section key={section.id} id={section.id} aria-labelledby={`${section.id}-heading`}>
-          <h2 id={`${section.id}-heading`}>{t(`${section.id}.title`)}</h2>
-          {section.paragraphs.map((p) => (
-            // Every id/paragraph pair above exists in the catalogs (the message test checks both).
-            <p key={p}>{t(`${section.id}.${p}` as 'data.p1')}</p>
-          ))}
-          {section.id === 'ads' ? <AdChoice /> : null}
-        </section>
-      ))}
+      {SECTIONS.map((section) => {
+        const key = 'key' in section ? section.key : section.id;
+        return (
+          <section key={section.id} id={section.id} aria-labelledby={`${section.id}-heading`}>
+            <h2 id={`${section.id}-heading`}>{t(`${key}.title`)}</h2>
+            {section.paragraphs.map((p) => (
+              // Every key/paragraph pair above exists in the catalogs (the message test checks both).
+              <p key={p}>{t(`${key}.${p}` as 'data.p1')}</p>
+            ))}
+            {section.id === 'ads' ? <AdChoice /> : null}
+          </section>
+        );
+      })}
       <section id="contact" aria-labelledby="contact-heading">
         <h2 id="contact-heading">{t('contact.title')}</h2>
         <p>

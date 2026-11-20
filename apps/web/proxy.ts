@@ -5,6 +5,7 @@ import { routing } from './i18n/routing';
 export default createMiddleware(routing);
 
 export const config = {
-  // Skip API routes, Next internals and files with an extension (images, manifest, etc.).
-  matcher: '/((?!api|_next|_vercel|.*\\..*).*)',
+  // Skip API routes, Next internals, the Firebase auth handler proxied under /__/ (slice 5.33)
+  // and files with an extension (images, manifest, etc.).
+  matcher: '/((?!api|_next|_vercel|__/|.*\\..*).*)',
 };

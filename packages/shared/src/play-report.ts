@@ -15,11 +15,11 @@
 // Documents written before it simply lack those fields, which read as 0.
 
 /**
- * How a player signed in: "google" (Firebase Auth lists google.com), "registered" (another
- * provider), "guest" (anonymous, `isGuest` on the profile) or "unknown" (play stats but no
- * profile any more).
+ * How a player signed in: "google" (Firebase Auth lists google.com), "facebook" (facebook.com and
+ * not google.com; slice 5.33), "registered" (another provider), "guest" (anonymous, `isGuest` on
+ * the profile) or "unknown" (play stats but no profile any more).
  */
-export const PLAYER_KINDS = ['google', 'registered', 'guest', 'unknown'] as const;
+export const PLAYER_KINDS = ['google', 'facebook', 'registered', 'guest', 'unknown'] as const;
 export type PlayerKind = (typeof PLAYER_KINDS)[number];
 
 /**
@@ -165,7 +165,13 @@ export type PlayReportInput = {
   maxPlayers?: number;
 };
 
-const zeroKinds = (): KindCounts => ({ google: 0, registered: 0, guest: 0, unknown: 0 });
+const zeroKinds = (): KindCounts => ({
+  google: 0,
+  facebook: 0,
+  registered: 0,
+  guest: 0,
+  unknown: 0,
+});
 
 const zeroCounts = (): PlayCounts => ({
   starts: 0,
@@ -236,7 +242,9 @@ export function buildPlayReport(input: PlayReportInput): PlayReport {
         window: zeroDaily(),
         playsByKind: zeroKinds(),
         playersByKind: zeroKinds(),
-        players: { google: new Set(), registered: new Set(), guest: new Set(), unknown: new Set() },
+        players: Object.fromEntries(
+          PLAYER_KINDS.map((kind) => [kind, new Set<string>()]),
+        ) as Record<PlayerKind, Set<string>>,
       };
       games.set(gameId, row);
     }
