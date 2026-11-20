@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { authProxyOrigin, authProxyRewrites } from './lib/firebase/auth-proxy';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
@@ -44,6 +45,16 @@ if (process.env.NEXT_PUBLIC_FIREBASE_EMULATORS !== '1') {
   }
 }
 
+// Auth domain proxy (slice 5.33): serves the Firebase auth handler from this site's own domain.
+const AUTH_PROXY_ORIGIN = authProxyOrigin(process.env.FIREBASE_AUTH_PROXY_ORIGIN);
+if (process.env.FIREBASE_AUTH_PROXY_ORIGIN && !AUTH_PROXY_ORIGIN) {
+  console.warn(
+    '[ayvago] FIREBASE_AUTH_PROXY_ORIGIN must be https://<project>.firebaseapp.com; auth proxy off',
+  );
+} else if (AUTH_PROXY_ORIGIN) {
+  console.log(`[ayvago] Auth handler proxied to ${AUTH_PROXY_ORIGIN} (/__/auth)`);
+}
+
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript sources; let Next compile them.
   transpilePackages: ['@ayvago/shared', '@ayvago/themes'],
@@ -59,6 +70,10 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
+  },
+  // Before the pages and the locale routes, so /__/auth/* never reaches the [locale] segment.
+  async rewrites() {
+    return { beforeFiles: authProxyRewrites(AUTH_PROXY_ORIGIN), afterFiles: [], fallback: [] };
   },
   // Category URLs from before the categories matched the Ayvago Arcade genres (ADR 0009), and
   // retired pages.

@@ -330,3 +330,64 @@
   display: grid;
   gap: 12px;
 }
+
+/* Sign-in methods (slice 5.33): one row per provider, its brand logo, the state and one action. */
+.methods {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.methods li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border);
+  background: var(--surface);
+}
+
+.methodLogo {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  /* Brand colours: Google's logo sits on white, Facebook's white "f" on Facebook blue. */
+  background: #fff;
+  border: 1px solid #747775;
+}
+
+.facebookLogo {
+  background: #1877f2;
+  border-color: #1877f2;
+}
+
+[data-theme='arcade'] .methodLogo {
+  border-radius: 0;
+}
+
+.methodName {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.methodName .muted {
+  font-size: 0.82rem;
+}
+
+[data-theme='arcade'] .methodName strong {
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+/* "Disconnect" on the only method stays visible but reads as unavailable (the hint says why). */
+.methods button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

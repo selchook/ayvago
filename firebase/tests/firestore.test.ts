@@ -87,6 +87,29 @@ describe('users/{uid} create', () => {
     );
   });
 
+  it('treats a Facebook user like a Google user (slice 5.33)', async () => {
+    const facebook = (uid: string) =>
+      env.authenticatedContext(uid, { firebase: { sign_in_provider: 'facebook.com' } }).firestore();
+    await assertFails(setDoc(doc(facebook('cem'), 'users', 'cem'), newProfile({ isGuest: true })));
+    await assertSucceeds(
+      setDoc(doc(facebook('cem'), 'users', 'cem'), newProfile({ isGuest: false })),
+    );
+    // a guest upgraded with Facebook marks the profile registered, and cannot go back
+    await seed('dan');
+    await assertSucceeds(
+      updateDoc(doc(facebook('dan'), 'users', 'dan'), {
+        isGuest: false,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(facebook('dan'), 'users', 'dan'), {
+        isGuest: true,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   it("rejects writing someone else's profile", async () => {
     await assertFails(setDoc(doc(guest('mallory'), 'users', 'alice'), newProfile()));
   });

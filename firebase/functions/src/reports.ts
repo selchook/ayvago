@@ -89,16 +89,21 @@ async function readDaily(): Promise<DailyInput[]> {
   return out;
 }
 
-/** The uids among `uids` that signed in with Google (Firebase Auth provider data). */
-async function googleUids(uids: string[]): Promise<Set<string>> {
-  const google = new Set<string>();
+/**
+ * The kind of every uid among `uids` that signed in with Google or Facebook (Firebase Auth
+ * provider data). Google wins when both are connected, so earlier reports keep their numbers.
+ */
+async function providerKinds(uids: string[]): Promise<Map<string, 'google' | 'facebook'>> {
+  const kinds = new Map<string, 'google' | 'facebook'>();
   for (let i = 0; i < uids.length; i += AUTH_CHUNK) {
     const result = await auth().getUsers(uids.slice(i, i + AUTH_CHUNK).map((uid) => ({ uid })));
     for (const user of result.users) {
-      if (user.providerData.some((p) => p.providerId === 'google.com')) google.add(user.uid);
+      const ids = user.providerData.map((p) => p.providerId);
+      if (ids.includes('google.com')) kinds.set(user.uid, 'google');
+      else if (ids.includes('facebook.com')) kinds.set(user.uid, 'facebook');
     }
   }
-  return google;
+  return kinds;
 }
 
 export async function playReport(now = Date.now()): Promise<PlayReport> {
@@ -117,11 +122,11 @@ export async function playReport(now = Date.now()): Promise<PlayReport> {
   ]);
 
   const registered = registeredDocs.docs.map((doc) => doc.id);
-  const google = await googleUids(registered);
+  const kinds = await providerKinds(registered);
   const profiles = new Map<string, ProfileInput>();
-  const newProfiles = { google: 0, registered: 0 };
+  const newProfiles = { google: 0, facebook: 0, registered: 0 };
   for (const doc of registeredDocs.docs) {
-    const kind = google.has(doc.id) ? 'google' : 'registered';
+    const kind = kinds.get(doc.id) ?? 'registered';
     profiles.set(doc.id, { username: username(doc), kind });
     if ((millis(doc.get('createdAt')) ?? -Infinity) >= STATS_SINCE_MS) newProfiles[kind] += 1;
   }
@@ -147,7 +152,10 @@ export async function playReport(now = Date.now()): Promise<PlayReport> {
     profiles,
     profileTotals: {
       ...newProfiles,
-      guest: Math.max(0, newCount.data().count - newProfiles.google - newProfiles.registered),
+      guest: Math.max(
+        0,
+        newCount.data().count - newProfiles.google - newProfiles.facebook - newProfiles.registered,
+      ),
     },
   });
   logger.info('Play report built', {

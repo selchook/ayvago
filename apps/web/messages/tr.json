@@ -71,7 +71,7 @@
     "spotlightFeatured": "Öne çıkan",
     "spotlightNew": "Ayvago'da yeni",
     "aboutTitle": "Ayvago hakkında",
-    "aboutBody": "Ayvago, {count} oyunun yer aldığı ücretsiz bir tarayıcı oyun platformudur: retro arcade klasikleri, aksiyon ve spor oyunları, gündelik oyunlar ve bulmacalar, kelime oyunları ve Okey, Tavla, Mangala gibi sevilen Türk oyunları. Her oyunu kendi stüdyomuz Ayvago Games yapar; oyunlar telefonda, tablette ve bilgisayarda hiçbir şey indirmeden çalışır. Misafir olarak hemen oynayabilir ya da ilerlemeni korumak için Google ile giriş yapabilirsin; haftalık skor tablolarında yükselir, başarımlar kazanır, bazı oyunları arkadaşlarınla çevrim içi oynarsın. Ayvago Türkçe ve İngilizce kullanılabilir ve üç görünümü vardır: Minimal, Cartoon ve Arcade.",
+    "aboutBody": "Ayvago, {count} oyunun yer aldığı ücretsiz bir tarayıcı oyun platformudur: retro arcade klasikleri, aksiyon ve spor oyunları, gündelik oyunlar ve bulmacalar, kelime oyunları ve Okey, Tavla, Mangala gibi sevilen Türk oyunları. Her oyunu kendi stüdyomuz Ayvago Games yapar; oyunlar telefonda, tablette ve bilgisayarda hiçbir şey indirmeden çalışır. Misafir olarak hemen oynayabilir ya da ilerlemeni korumak için giriş yapabilirsin; haftalık skor tablolarında yükselir, başarımlar kazanır, bazı oyunları arkadaşlarınla çevrim içi oynarsın. Ayvago Türkçe ve İngilizce kullanılabilir ve üç görünümü vardır: Minimal, Cartoon ve Arcade.",
     "aboutLink": "Ayvago hakkında daha fazlası"
   },
   "shelf": {
@@ -140,7 +140,7 @@
     "guest": "Misafir",
     "you": "Sen",
     "continued": "Devam hakkı kullandı",
-    "claimAsGuest": "Liderlik tablosundaki yerini korumak için Google ile giriş yap.",
+    "claimAsGuest": "Liderlik tablosundaki yerini korumak için giriş yap.",
     "seeAll": "Tüm liderlik tablosunu gör",
     "pageTitle": "{title} liderlik tablosu",
     "pageIntro": "{title} oyunundaki doğrulanmış en iyi skorlar. Haftalık sezonlar her pazartesi 12:00'de (TSİ) sıfırlanır.",
@@ -202,7 +202,7 @@
     "favoritesTitle": "Favoriler",
     "favoritesEmpty": "Bir oyunu burada tutmak için kalbe dokun.",
     "browse": "Oyunlara göz at",
-    "syncNote": "Hesabınla eşitlenir. Misafirsen, her cihazda görmek için Google ile giriş yap."
+    "syncNote": "Hesabınla eşitlenir. Misafirsen, her cihazda görmek için giriş yap."
   },
   "mostPlayed": {
     "title": "En çok oynananlar",
@@ -229,19 +229,27 @@
     "signedOutTitle": "Ayvago'ya giriş yap",
     "signedOutBody": "Skorların ve favorilerin her cihazda seninle olsun.",
     "guestHint": "Oynamak için hesap gerekmez; misafir olarak başlarsın.",
-    "continueWithGoogle": "Google ile devam et",
+    "providers": {
+      "google": "Google",
+      "facebook": "Facebook"
+    },
+    "continueWith": "{provider} ile devam et",
     "working": "Giriş yapılıyor…",
     "guestBadge": "Misafir",
     "guestBody": "İlerlemen bu tarayıcıya bağlı. Her cihazda korumak için giriş yap.",
-    "saveWithGoogle": "İlerlemeni Google ile kaydet",
-    "signedInWithGoogle": "Google ile giriş yapıldı",
+    "saveWith": "İlerlemeni {provider} ile kaydet",
+    "signedInWith": "{providers} ile giriş yapıldı",
     "signOut": "Çıkış yap",
     "errors": {
       "popupBlocked": "Giriş penceresi engellendi. Bu site için açılır pencerelere izin verip tekrar dene.",
       "generic": "Giriş yapılamadı. Lütfen tekrar dene.",
-      "notAvailable": "Google ile giriş bu sitede henüz kullanılamıyor.",
+      "notAvailable": "Bu giriş yöntemi bu sitede henüz kullanılamıyor.",
       "network": "Bağlantı sorunu. İnternet bağlantını kontrol edip tekrar dene.",
       "code": "Hata kodu: {code}"
+    },
+    "existingAccount": {
+      "body": "Bu e-posta adresiyle {existing} ile giriş yapılan bir Ayvago hesabı zaten var. {attempted} hesabını o hesaba bağlamak için {existing} ile devam et.",
+      "cancel": "Vazgeç"
     },
     "profileLink": "Profil ve ayarlar",
     "adminLink": "Yönetim paneli"
@@ -303,7 +311,24 @@
     "settingsSync": "Avatarın, karakterin, teman ve dilin hesabına kaydedilir ve her cihazda seninle olur.",
     "saveFailed": "Kaydedilemedi. Lütfen tekrar dene.",
     "accountTitle": "Hesap",
-    "signedInAs": "Google ile {email} olarak giriş yapıldı",
+    "signedInAs": "{providers} ile {email} olarak giriş yapıldı",
+    "methods": {
+      "title": "Giriş yöntemleri",
+      "body": "Hesabına burada bağlı olan yöntemlerden biriyle giriş yapabilirsin.",
+      "connected": "Bağlı",
+      "notConnected": "Bağlı değil",
+      "connect": "Bağla",
+      "connectLabel": "{provider} hesabını bağla",
+      "disconnect": "Bağlantıyı kaldır",
+      "disconnectLabel": "{provider} hesabının bağlantısını kaldır",
+      "working": "Lütfen bekle…",
+      "lastHint": "Bu yöntemin bağlantısını kaldırmadan önce başka bir yöntem bağla.",
+      "errors": {
+        "inUse": "Bu {provider} hesabı zaten başka bir Ayvago hesabına bağlı.",
+        "emailInUse": "Bu {provider} hesabının e-posta adresi başka bir Ayvago hesabına ait.",
+        "lastMethod": "En az bir giriş yöntemi bağlı kalmalı."
+      }
+    },
     "dataTitle": "Verilerin",
     "exportBody": "Ayvago'nun senin hakkında sakladığı her şeyi (profil, favoriler, son oynanan oyunlar ve en iyi skorlar) JSON dosyası olarak indir.",
     "exportButton": "Verilerimi indir",
@@ -315,7 +340,7 @@
     "deleting": "Siliniyor…",
     "cancel": "Vazgeç",
     "deleteFailed": "Hesap silinemedi. Lütfen tekrar dene.",
-    "usernameGuest": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
+    "usernameGuest": "Kendi kullanıcı adını seçmek için giriş yap.",
     "usernameRules": "3–20 karakter: harf, rakam ve _ kullanabilirsin; bir harfle başlamalı. Yeni bir ad {days} günde bir seçilebilir.",
     "usernameNextChange": "Bir sonraki değişiklik: {date}.",
     "usernameSaved": "Kullanıcı adı kaydedildi.",
@@ -327,7 +352,7 @@
       "offensive": "Bu ada izin verilmiyor. Lütfen başka bir ad seç.",
       "taken": "Bu ad zaten alınmış. Lütfen başka bir ad seç.",
       "cooldown": "Yeni bir adı {date} tarihinde seçebilirsin.",
-      "registered-only": "Kendi kullanıcı adını seçmek için Google ile giriş yap.",
+      "registered-only": "Kendi kullanıcı adını seçmek için giriş yap.",
       "generic": "Kullanıcı adı kaydedilemedi. Lütfen tekrar dene."
     },
     "onlineTitle": "Çevrimiçi durumu",
@@ -402,9 +427,10 @@
       "generated": "Oluşturulma: {time}",
       "since": "{since} tarihinden itibaren listelenmiştir.",
       "laterNote": "* {extended} tarihinden itibaren sayılır.",
-      "kindsNote": "Google: Google ile giriş yapmış. Kayıtlı: başka bir yolla giriş yapmış. Misafir: hesapsız oynuyor. Bilinmiyor: oynanma istatistiği var ama profili silinmiş.",
+      "kindsNote": "Google: Google ile giriş yapmış. Facebook: Facebook ile giriş yapmış (Google ile değil). Kayıtlı: başka bir yolla giriş yapmış. Misafir: hesapsız oynuyor. Bilinmiyor: oynanma istatistiği var ama profili silinmiş.",
       "kinds": {
         "google": "Google",
+        "facebook": "Facebook",
         "registered": "Kayıtlı",
         "guest": "Misafir",
         "unknown": "Bilinmiyor"
@@ -1028,9 +1054,15 @@
     "intro": "Ayvago (ayvago.com) ücretsiz bir web oyun platformudur. Bu sayfa hakkınızda neleri sakladığımızı, hangi çerezleri ve benzeri teknolojileri kullandığımızı, reklamların nasıl çalıştığını ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamındaki haklarınızı açıklar.",
     "data": {
       "title": "Sakladığımız veriler",
-      "p1": "Oynamaya başladığınızda size bir misafir hesabı açılır; dilerseniz Google ile de giriş yapabilirsiniz. Kullanıcı adınızı, avatarınızı ve karakterinizi, ayarlarınızı (tema, dil), kitaplığınızı (favoriler, son oynananlar), skorlarınızı, oyun istatistiklerinizi, başarımlarınızı ve oylarınızı saklarız. Google ile giriş yaptığınızda e-posta adresiniz de hesaba eklenir.",
+      "p1": "Oynamaya başladığınızda size bir misafir hesabı açılır; dilerseniz Google ya da Facebook ile de giriş yapabilirsiniz. Kullanıcı adınızı, avatarınızı ve karakterinizi, ayarlarınızı (tema, dil), kitaplığınızı (favoriler, son oynananlar), skorlarınızı, oyun istatistiklerinizi, başarımlarınızı ve oylarınızı saklarız.",
+      "signIn": "Google ya da Facebook ile giriş yaptığınızda o hesap Ayvago hesabınıza bağlanır. Giriş hizmetimiz (Firebase Authentication) Google'dan adınızı, e-posta adresinizi ve profil fotoğrafınızın bağlantısını; Facebook'tan adınızı, paylaşırsanız e-posta adresinizi, profil fotoğrafınızın bağlantısını ve Ayvago'ya özel Facebook kullanıcı kimliğinizi alır. Facebook'tan yalnızca herkese açık profilinizi ve e-posta adresinizi isteriz. E-posta adresini ve bu kimlikleri sizi giriş yaptırmak ve her e-posta adresine tek hesap düşmesini sağlamak için kullanırız. Adınız ve fotoğrafınız Ayvago'da gösterilmez; Ayvago'da Ayvago kullanıcı adınız ve avatarınızla görünürsünüz. Facebook'ta ya da Google'da sizin adınıza hiçbir şey paylaşmayız; arkadaşlarınızı veya kişilerinizi okumayız.",
       "p2": "Veriler Avrupa Birliği'nde, Google Firebase'de (europe-west1, Belçika) tutulur. Oyunlar korumalı bir alanda çalışır ve hesap verilerinizi hiçbir zaman almaz; yalnızca oynamak için gerekenleri, örneğin seçtiğiniz karakteri ve en iyi skorunuzu alır.",
       "p3": "Profil sayfanızdan istediğiniz zaman tüm verilerinizi indirebilir ya da hesabınızı silebilirsiniz. Kullanılmayan misafir hesapları 30 gün sonra silinir."
+    },
+    "deleteData": {
+      "title": "Verilerinizi silme",
+      "p1": "Ayvago hesabınızı ve tüm verilerini istediğiniz zaman kendiniz silebilirsiniz: giriş yapın, Profil sayfanızı açın, \"Verilerin\" bölümünde \"Hesabımı sil\" düğmesine basın ve onaylayın. Bu işlem profilinizi, kitaplığınızı, skorlarınızı, liderlik tablolarındaki yerlerinizi, oylarınızı, oyun istatistiklerinizi ve başarımlarınızı, Google ya da Facebook bağlantısıyla birlikte giriş hesabınızı siler. Son girişinizin üzerinden bir süre geçtiyse önce Google ya da Facebook ile onay vermeniz istenir.",
+      "p2": "Facebook ile giriş yaptıysanız Ayvago'yu Facebook ayarlarındaki \"Uygulamalar ve web siteleri\" bölümünden de kaldırabilirsiniz. Bu, Facebook'un verilerinizi Ayvago ile paylaşmasını durdurur; burada saklanan verileri silmek için hesabınızı Profil sayfasından da silin ya da aşağıdaki iletişim adresinden bize yazın, verilerinizi sizin için silelim."
     },
     "storage": {
       "title": "Çerezler ve yerel depolama",
@@ -1090,7 +1122,7 @@
     },
     "play": {
       "title": "İlerlemen ve skor tabloları",
-      "p1": "Misafir olarak hemen oynamaya başlayabilirsin; Google ile giriş yaparsan ilerlemen her cihazda seninle olur. Biten oyunlar haftalık ve tüm zamanların skor tablolarına girer; sıralamalar adil kalsın diye her skor sunucularımızda kontrol edilir.",
+      "p1": "Misafir olarak hemen oynamaya başlayabilirsin; giriş yaparsan ilerlemen her cihazda seninle olur. Biten oyunlar haftalık ve tüm zamanların skor tablolarına girer; sıralamalar adil kalsın diye her skor sunucularımızda kontrol edilir.",
       "p2": "Oynadıkça XP, seviye ve başarım rozetleri kazanırsın. Beş karakterden birini seçersin; seçtiğin karakter kahramanı olan oyunlarda karşına çıkar. Sevdiğin oyunları kitaplığında saklayabilirsin."
     },
     "online": {
@@ -1118,7 +1150,7 @@
     },
     "accounts": {
       "title": "Hesaplar",
-      "p1": "Oynadığında sana bir misafir hesabı açılır; ilerlemeni her cihazda korumak için Google ile giriş yapabilirsin. Hesabında olanlardan sen sorumlusun, bu yüzden girişini güvende tut.",
+      "p1": "Oynadığında sana bir misafir hesabı açılır; ilerlemeni her cihazda korumak için giriş yapabilirsin. Hesabında olanlardan sen sorumlusun, bu yüzden girişini güvende tut.",
       "p2": "Ülkende bu koşulları kabul edebileceğin yaşın altındaysan Ayvago'yu yalnızca anne, baba ya da vasinin izniyle kullan.",
       "p3": "Hesabını istediğin zaman Profil sayfandan silebilirsin. Kullanılmayan misafir hesapları, gizlilik sayfasında anlatıldığı gibi 30 gün sonra silinir."
     },

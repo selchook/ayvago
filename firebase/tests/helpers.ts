@@ -3,6 +3,7 @@ import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/
 import { deleteApp, initializeApp, type FirebaseApp } from 'firebase/app';
 import {
   connectAuthEmulator,
+  FacebookAuthProvider,
   getAuth,
   GoogleAuthProvider,
   signInAnonymously,
@@ -62,11 +63,32 @@ export const googleCredential = (email: string) =>
     JSON.stringify({ sub: `google-${email}`, email, email_verified: true }),
   );
 
+/**
+ * A fake Facebook identity for the Auth emulator. Facebook may share no email: `email: null`.
+ * The same `id` is the same Facebook account.
+ */
+export const facebookCredential = (id: string, email: string | null = null) =>
+  FacebookAuthProvider.credential(
+    JSON.stringify({ sub: `facebook-${id}`, ...(email ? { email } : {}) }),
+  );
+
 export async function registered(email: string, profile: Record<string, unknown> = {}) {
   const player = client();
   const { user } = await signInWithCredential(player.auth, googleCredential(email));
   await seedProfile(user.uid, { isGuest: false, ...profile });
   return { ...player, uid: user.uid };
+}
+
+/** A player who signed up with Facebook (slice 5.33). */
+export async function facebookPlayer(
+  id: string,
+  email: string | null,
+  profile: Record<string, unknown> = {},
+) {
+  const player = client();
+  const { user } = await signInWithCredential(player.auth, facebookCredential(id, email));
+  await seedProfile(user.uid, { isGuest: false, ...profile });
+  return { ...player, uid: user.uid, user };
 }
 
 export async function guest(profile: Record<string, unknown> = {}) {

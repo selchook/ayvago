@@ -1,20 +1,16 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { levelProgress, type Locale } from '@ayvago/shared';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import {
-  reconcilePreferences,
-  signInWithGoogle,
-  signOut,
-  useAccount,
-  type SignInError,
-} from '@/lib/account/store';
-import { GoogleLogo, UserIcon } from '../icons';
+import { reconcilePreferences, signOut, useAccount } from '@/lib/account/store';
+import { UserIcon } from '../icons';
 import popover from '../popover.module.css';
 import { Avatar } from './avatar';
 import { LevelChip, useLevelLabel } from './level-chip';
+import { SignInButtons } from './sign-in-buttons';
+import { useProvidersLabel } from './providers-label';
 import styles from './account.module.css';
 
 export function AccountMenu() {
@@ -23,8 +19,7 @@ export function AccountMenu() {
   const levelLabel = useLevelLabel();
   const locale = useLocale() as Locale;
   const account = useAccount();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<SignInError | null>(null);
+  const providersLabel = useProvidersLabel();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -42,29 +37,6 @@ export function AccountMenu() {
     return <span className={`${popover.trigger} ${styles.placeholder}`} aria-hidden="true" />;
   }
 
-  async function google() {
-    setBusy(true);
-    setError(null);
-    setError(await signInWithGoogle(locale));
-    setBusy(false);
-  }
-
-  const googleButton = (label: string) => (
-    <button type="button" className={styles.googleButton} onClick={google} disabled={busy}>
-      <GoogleLogo />
-      {busy ? t('working') : label}
-    </button>
-  );
-
-  const errorMessage = error ? (
-    <p className={styles.error} role="alert">
-      {t(`errors.${error.kind}`)}
-      {error.code ? (
-        <span className={styles.errorCode}>{t('errors.code', { code: error.code })}</span>
-      ) : null}
-    </p>
-  ) : null;
-
   if (account.status === 'signedOut') {
     return (
       // Keyed by state so the menu closes when the player signs out.
@@ -76,8 +48,7 @@ export function AccountMenu() {
         <div className={`${popover.panel} ${styles.panel}`}>
           <strong className={styles.title}>{t('signedOutTitle')}</strong>
           <p className={styles.body}>{t('signedOutBody')}</p>
-          {googleButton(t('continueWithGoogle'))}
-          {errorMessage}
+          <SignInButtons purpose="continue" />
           <p className={popover.hint}>{t('guestHint')}</p>
         </div>
       </details>
@@ -115,7 +86,9 @@ export function AccountMenu() {
             {account.isGuest ? (
               <span className={styles.badge}>{t('guestBadge')}</span>
             ) : (
-              <span className={styles.provider}>{t('signedInWithGoogle')}</span>
+              <span className={styles.provider}>
+                {t('signedInWith', { providers: providersLabel(account.providers) })}
+              </span>
             )}
           </div>
         </div>
@@ -154,8 +127,7 @@ export function AccountMenu() {
         {account.isGuest ? (
           <>
             <p className={styles.body}>{t('guestBody')}</p>
-            {googleButton(t('saveWithGoogle'))}
-            {errorMessage}
+            <SignInButtons purpose="save" />
           </>
         ) : (
           <button type="button" className={styles.secondaryButton} onClick={() => signOut()}>
