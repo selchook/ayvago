@@ -598,7 +598,7 @@
     "seeAll": "{count, plural, =0 {Aramayı aç} other {# sonucun tümünü gör}}"
   },
   "slogans": {
-    "count": "{count} retro oyun, ücretsiz",
+    "count": "Retro klasiklerden kelime ve kart oyunlarına {count} ücretsiz oyun",
     "instant": "Tarayıcında anında oyna",
     "noDownload": "İndirme yok. START’a bas, oyna.",
     "highScore": "Rekoru kır",
