@@ -3,3 +3,10 @@ packages:
   - 'packages/*'
   - 'firebase'
   - 'firebase/functions'
+
+# Security overrides (keep each with its reason; drop it once the dependency ships a fixed range).
+overrides:
+  # @firebase/firestore pins ~1.9 (still true in firebase 13.4); 1.9.x has no fix for
+  # GHSA-m9gg-hp2v-232j / GHSA-f596-whhp-79r4. grpc-js is only used by Firestore's Node build
+  # (the emulator tests); the browser build talks to Firestore over WebChannel.
+  '@firebase/firestore>@grpc/grpc-js': ^1.14.7
