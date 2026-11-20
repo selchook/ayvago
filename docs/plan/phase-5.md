@@ -12,7 +12,8 @@
   [ADR 0019](../adr/0019-table-lobby-presence-invites.md),
   [ADR 0020](../adr/0020-quick-play-settings-host-handover.md),
   [ADR 0024](../adr/0024-game-card-art.md), [ADR 0025](../adr/0025-phone-menu-drawer.md),
-  [ADR 0026](../adr/0026-two-seat-tables.md)
+  [ADR 0026](../adr/0026-two-seat-tables.md),
+  [ADR 0028](../adr/0028-social-sign-in-providers.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -58,6 +59,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.30 | Game logos on the player overlay: a game's own designed logo (optional `assets.logo` in `ayvago.json`, `{ en, tr? }` transparent PNGs) replaces the title text over portrait games' art before Play and while loading, in the player's language (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-game-logo-slice-530)) | ✅ code · ⏳ merge before the logo sync |
 | 5.31 | Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (owner request) | ✅ code |
 | 5.32 | Card art per language: `assets.card` / `card2x` may be a `{ en, tr? }` map, so the logo baked into the card is Turkish on `/tr` on the Minimal and Cartoon tiles, the home spotlight and the landscape player overlay; a single ref still works (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-card-art-per-language-slice-532)) | ✅ code · ⏳ merge before the localized-card sync |
+| 5.33 | Facebook sign-in next to Google: one provider flow (guest upgrade by linking, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, a feature switch, a prepared auth-domain proxy and the privacy page's data-deletion section (owner request, [ADR 0028](../adr/0028-social-sign-in-providers.md)) | ✅ code · ⏳ Meta app, Firebase provider, switch |
 
 ## 5.1 Player characters ✅
 
@@ -2583,3 +2585,123 @@ catalog sync that adds the Turkish cards. No rules, functions or secrets.
 Still open:
 - Another locale needs only its key in the manifest's localized maps (they follow
   `SUPPORTED_LOCALES`) and its cards from the studio.
+
+## 5.33 Facebook sign-in ✅ code
+
+The owner asked for Facebook sign-in next to Google. Decisions and the observed Firebase error
+codes: [ADR 0028](../adr/0028-social-sign-in-providers.md).
+
+What shipped:
+- **One provider flow** (`apps/web/lib/account/sign-in-flow.ts`, pure, every Firebase call
+  passed in): `signInWith(provider)` for `google` and `facebook`. Signed out: a plain sign-in. A
+  guest is linked in place (same uid; the profile is marked registered). On
+  `auth/credential-already-in-use` or `auth/email-already-in-use` the guest switches to the
+  account that has the provider and `mergeGuestAccount` runs with the guest's ID token taken
+  before the switch, as before. `lib/account/store.ts` wraps it with popups:
+  `signInWith(provider, locale)`, `signInWithGoogle(locale)` (unchanged for callers),
+  `continueSignIn`, `connectProvider`, `disconnectProvider`. Facebook asks only for `email` and
+  `public_profile`.
+- **Same email at the other provider.** When the email belongs to a Google account
+  (`auth/account-exists-with-different-credential`, directly or after `email-already-in-use`),
+  nothing changes yet: the pending Facebook credential is kept and the buttons are replaced by a
+  notice, "This email already has an Ayvago account that signs in with Google. Continue with Google
+  to connect Facebook to it.", a "Continue with Google" button and Cancel. Continuing signs in
+  with Google (a guest switches and is merged) and links the pending credential. Picking another
+  Google account fails with `auth/email-already-in-use` and shows the sign-in error. Cancelled
+  popups keep the notice, so the player can retry.
+- **Buttons** (`components/account/sign-in-buttons.tsx`): one per enabled provider in the account
+  menu (signed out and guest) and on the profile page (signed out and guest): "Continue with
+  Facebook" / "Facebook ile devam et" and "Save progress with Facebook" / "İlerlemeni Facebook ile
+  kaydet", Meta's colours (white text and the white "f" logo, an inline SVG, on #1877F2), the same
+  size as the Google button in every theme. Same errors as Google (popup blocked, network, not
+  available, generic with the code); a declined consent (`auth/user-cancelled`) now counts as a
+  closed popup for both providers.
+- **Sign-in methods on the profile page**: Google and Facebook with Connected / Not connected,
+  Connect (`linkWithPopup`) and Disconnect (`unlink`). The last method cannot be disconnected
+  (Firebase would allow it; the client refuses, the button is disabled with a hint). Connecting a
+  provider account that belongs to another Ayvago account shows "This Facebook account is already
+  connected to another Ayvago account." and never switches accounts; one whose email belongs to
+  another account shows its own message. A connected Facebook stays listed when the switch is off.
+- **No email**: Facebook accounts may share none. The menu and the profile say "Signed in with
+  Facebook" ("Signed in with Google and Facebook", locale list format) instead of an address;
+  `signedInAs` only shows with an email. The account state carries `providers`.
+- **Delete account** re-confirms with a provider the player has (`reauthProvider`: the session's
+  provider, else the first connected one), so a Facebook-only player is not sent to Google; same
+  cancel semantics.
+- **Feature switch**: the Facebook button shows only with `NEXT_PUBLIC_FACEBOOK_SIGN_IN=1`
+  (`apps/web/.env.example`, `turbo.json`).
+- **Auth domain proxy (prepared)**: with `FIREBASE_AUTH_PROXY_ORIGIN=https://<project>.firebaseapp.com`
+  `next.config.ts` rewrites `/__/auth/:path*` and `/__/firebase/init.json` to it (`beforeFiles`,
+  `lib/firebase/auth-proxy.ts`; only `https://*.firebaseapp.com` or `*.web.app` origins). The locale
+  middleware (`proxy.ts`) now skips `/__/`. Unset, nothing changes. The build log says when it is
+  on. There is no CSP in `next.config.ts` or a `vercel.json`, so nothing blocks it.
+- **Privacy page** (`/{locale}/privacy`, updated 20 November 2026): what Firebase Authentication
+  receives from Google and from Facebook (name, email if shared, profile picture link, the
+  app-scoped Facebook user id), that only `public_profile` and `email` are asked, that name and
+  picture are not shown on Ayvago, and a **Delete your data** section with the stable anchor
+  `#delete-data` (Profile → Delete my account; removing the app in Facebook's settings stops
+  sharing; or write to the contact). Neutral wording ("sign in") replaced "sign in with Google"
+  in the leaderboard, favorites, username, about and terms texts.
+- **Admin report**: a `facebook` player kind (Facebook and not Google; Google wins when both are
+  connected) in `getPlayReport`, the report tables, the CSVs and the read-only progress report
+  script.
+- **Emulator seam**: emulator builds read `window.__ayvagoEmulatorIdentity = { email, id? }` and
+  turn every popup (sign-in, connect, re-confirm) into that fake identity, so tests drive the real
+  UI. Hooks: `__ayvagoEmulatorSignIn(provider, email, id?)`, `__ayvagoEmulatorContinueSignIn`,
+  `__ayvagoEmulatorConnect`; `__ayvagoEmulatorGoogleSignIn(email)` still works.
+
+Deviations:
+- No redirect flow for Facebook's in-app browser (as asked): a blocked popup shows the existing
+  message.
+- The profile picture from Facebook is not used (the avatar stays a preset); Firebase Auth stores
+  its link with the provider data, which the privacy page says.
+- The emulator's errors carry no credential (production's do, per the Firebase docs for
+  `credential-already-in-use` and `email-already-in-use`), so the emulator seam hands the flow the
+  fake credential.
+
+Tests:
+- web `lib/account/sign-in-flow.test.ts` (17): guest upgrade for both providers, signed-out
+  sign-in, switch and merge on `credential-already-in-use` and `email-already-in-use`, errors
+  rethrown, the same-email notice for guests and signed-out players, the provider the server names,
+  no pending credential, `continueLink` (merge, already linked, another account picked),
+  provider ids, `reauthProvider` (a Facebook-only player is never sent to Google), connect and
+  disconnect (in use, email in use, cancelled, never the last method), error classification.
+- web `lib/firebase/auth-proxy.test.ts` (3): only Firebase Hosting origins, the two rewrites or
+  none, and the locale middleware's matcher skips `/__/auth/*` and `/__/firebase/init.json`.
+- firebase `social-sign-in.test.ts` (9, the flow against the Auth emulator and the real
+  `mergeGuestAccount`): Facebook from a guest keeps the uid with no email; a Facebook login another
+  account has switches and merges; the same-email path for a guest (merged, both providers, later
+  Facebook alone opens the account) and signed out; another Google account picked is refused;
+  Google joins a Facebook-only account; connect and disconnect, never the last; connecting another
+  player's Facebook reports `inUse` without switching; a Facebook-only player re-confirms with
+  Facebook and is deleted (data and sign-in).
+- firebase `firestore.test.ts` (+1): a `facebook.com` token creates and keeps a registered profile
+  (no rule change). `play-report.test.ts`: a Facebook player without email is its own kind.
+- shared `play-report.test.ts` (+1) and the web report tests count the new kind.
+- Full run: shared 137, web 296, themes 16, adapter 30, firebase 250 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass. A build with
+  `FIREBASE_AUTH_PROXY_ORIGIN` set logs the proxy and sends `/__/auth/handler`,
+  `/__/auth/iframe.js` and `/__/firebase/init.json` to the Firebase origin (no locale redirect).
+- **In the browser** (`next start` built with `NEXT_PUBLIC_FIREBASE_EMULATORS=1` and
+  `NEXT_PUBLIC_FACEBOOK_SIGN_IN=1` on the emulators, Playwright, the fake identity driving the real
+  buttons): the signed-out account menu and profile, the guest menu, the profile's sign-in methods
+  (Google only, both) and the registered menu in Minimal, Cartoon and Arcade, light and dark, at
+  390×844 and 1280×800, in English and Turkish; and the full paths in six theme, size and language
+  mixes, each asserted on the resulting uid: signed out on the profile → same-email notice →
+  Continue with Google → the Google account with Facebook connected; a guest in the account menu →
+  notice → merged into the Google account; connecting another player's Facebook → the "already
+  connected" message, no switch; a Facebook-only player without email → "Signed in with Facebook"
+  → Delete my account → deleted. The privacy page's `#delete-data` section in both languages.
+
+Owner steps ([setup](../setup/phase-5.md#533-facebook-sign-in)): create the Meta app, enable
+Facebook in Firebase Authentication, then `NEXT_PUBLIC_FACEBOOK_SIGN_IN=1`; optionally the
+auth-domain proxy for Safari and iOS. No rules or functions to deploy beyond the usual functions
+deploy (the report's new kind).
+
+Still open:
+- Apple and X sign-in (same flow, a switch each).
+- Real-device checks of the Facebook popup (Safari, iOS, Facebook's in-app browser) once the
+  Meta app is live; the auth-domain switch if Safari popups fail.
+- Production may unlink an unverified Facebook provider when a Google sign-in with the same email
+  joins the account (the emulator keeps both); the player can connect Facebook again on the
+  profile page.

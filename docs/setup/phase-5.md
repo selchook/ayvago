@@ -466,9 +466,92 @@ language). The one owner step is the merge order, as with the logos (5.30):
   English ones. A landscape game such as `https://ayvago.com/tr/games/mud-rally` shows the
   Turkish card behind **Oyna**.
 
+## 5.33 Facebook sign-in
+The code ships with the Facebook button hidden. Nothing changes for players until the last step
+of part A. Do the parts in this order. Use your Meta (Facebook) developer account, the Firebase
+console of the production project and the Vercel project of ayvago.com. `<project-id>` below is
+the Firebase project id (the value of `NEXT_PUBLIC_FIREBASE_PROJECT_ID`).
+
+### A. Facebook sign-in
+1. ⏳ **Create the Meta app.** <https://developers.facebook.com/apps> → **Create app**.
+   - Use case: **Authenticate and request data from users with Facebook Login**. If asked for an
+     app type, choose **Consumer**.
+   - App name **Ayvago**, your contact email, no business portfolio needed.
+2. ⏳ **Basic settings** (App settings → Basic):
+   - **App domains**: `ayvago.com`.
+   - **Privacy Policy URL**: `https://ayvago.com/en/privacy`.
+   - **Terms of Service URL**: `https://ayvago.com/en/terms`.
+   - **User data deletion**: choose **Data deletion instructions URL** and enter
+     `https://ayvago.com/en/privacy#delete-data` (the page explains Profile → Delete my account
+     and removing the app in Facebook's settings; there is no deletion callback).
+   - **App icon**: 1024×1024 PNG (the Ayvago app icon).
+   - **Category**: **Games**.
+   - Save. Copy the **App ID** and, after **Show**, the **App secret** (keep it private; it goes
+     only into Firebase in step 4).
+3. ⏳ **Permissions**: Use cases → Facebook Login → **Customize** → Permissions: add **email**
+   (`public_profile` is there by default). Ayvago asks for nothing else. These two permissions
+   need **no App Review** and no business verification for Facebook Login; if the dashboard still
+   asks for something (for example a Data Use Checkup), complete it.
+4. ⏳ **Enable Facebook in Firebase.** Firebase console → Authentication → **Sign-in method** →
+   **Add new provider** → **Facebook** → Enable → paste the **App ID** and **App secret** → copy
+   the **OAuth redirect URI** shown there (`https://<project-id>.firebaseapp.com/__/auth/handler`)
+   → Save.
+   - Keep Authentication → Settings → **User account linking** on **Link accounts that use the
+     same email** (the default). The "continue with Google to connect Facebook" step relies on it.
+5. ⏳ **Facebook Login settings** (Use cases → Facebook Login → Settings):
+   - **Client OAuth login**: Yes. **Web OAuth login**: Yes. **Enforce HTTPS**: Yes.
+   - **Valid OAuth Redirect URIs**: the URI copied in step 4. Add
+     `https://ayvago.com/__/auth/handler` as well only when you do part B.
+   - Save.
+6. ⏳ **Switch the app to Live.** In the app dashboard set **App Mode** from Development to
+   **Live** (it needs the privacy URL, deletion URL, icon and category from step 2). In
+   Development only people with a role in the app can sign in.
+7. ⏳ **Turn the button on.** Vercel → the ayvago.com project → Settings → Environment
+   Variables → add `NEXT_PUBLIC_FACEBOOK_SIGN_IN` = `1` (Production, and Preview if you test
+   there) → **Redeploy** the latest production deployment (`NEXT_PUBLIC_*` values are read at
+   build time).
+8. ⏳ **Check.** In a private window open `https://ayvago.com/en`, the account icon shows
+   **Continue with Facebook** under Google. Sign in with Facebook: you land signed in, and
+   Profile → **Sign-in methods** lists Facebook as Connected. Then, signed in with a Google
+   account, press **Connect** next to Facebook on the profile: both show Connected. Turkish:
+   `/tr` shows **Facebook ile devam et**.
+
+To turn Facebook off again, remove the variable (or set it to `0`) and redeploy. Players who
+connected Facebook keep it on their profile and can still sign in with it.
+
+### B. Optional: sign-in popups on Safari and iOS (auth domain on ayvago.com)
+Do this only if sign-in popups fail on Safari, iPhone or iPad (the popup closes and nothing
+happens). It serves Firebase's sign-in page from ayvago.com itself. The order matters: the new
+redirect address must be allowed everywhere before the site starts using it.
+
+1. ⏳ Vercel → Environment Variables → add `FIREBASE_AUTH_PROXY_ORIGIN` =
+   `https://<project-id>.firebaseapp.com` (Production) → Redeploy. The build log shows
+   `[ayvago] Auth handler proxied to https://<project-id>.firebaseapp.com (/__/auth)`. Check that
+   `https://ayvago.com/__/auth/handler` opens a blank Firebase page (not a 404 and not a redirect
+   to `/en/…`).
+2. ⏳ Google: <https://console.cloud.google.com/apis/credentials> (the Firebase project) →
+   **OAuth 2.0 Client IDs** → **Web client (auto created by Google Service)** → add
+   `https://ayvago.com` under **Authorized JavaScript origins** and
+   `https://ayvago.com/__/auth/handler` under **Authorized redirect URIs** → Save.
+3. ⏳ Meta: Facebook Login → Settings → **Valid OAuth Redirect URIs** → add
+   `https://ayvago.com/__/auth/handler` (keep the firebaseapp.com one) → Save.
+4. ⏳ Firebase console → Authentication → Settings → **Authorized domains**: make sure
+   `ayvago.com` is listed (add it if not).
+5. ⏳ Vercel → change `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` from `<project-id>.firebaseapp.com` to
+   `ayvago.com` → Redeploy.
+6. ⏳ Check Google and Facebook sign-in on desktop Chrome and on an iPhone (Safari). To undo, set
+   `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` back to `<project-id>.firebaseapp.com` and redeploy; the
+   proxy variable can stay.
+
+### C. Functions deploy
+- 🤖 The admin "Players and plays" report gets a Facebook column (`getPlayReport`). It reaches
+  production with the functions deploy that runs by itself when this is merged to `main`
+  (Actions → deploy-functions; it watches `firebase/functions` and `packages/shared`). No rules
+  change.
+
 ## Checking that runs are recorded (read-only)
 Actions → **Progress report** → Run workflow (optional: days, default 7). It reads Firestore with
 the deploy service account and writes a table to the run summary: score sessions by status,
-leaderboard entries and XP, split into guest, Google and registered players. Numbers only, no
-names or ids; nothing is changed.
+leaderboard entries and XP, split into guest, Google, Facebook and registered players. Numbers
+only, no names or ids; nothing is changed.
 
