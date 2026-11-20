@@ -415,67 +415,71 @@
     },
     "astro-crew": {
       "about": {
-        "en": "Astro Crew is a 3D action adventure starring a crew of animal astronauts. Each mission drops you onto a whole planet you can roam from rim to rim. You only steer: your blaster comes up by itself, aims at the nearest alien in reach and fires, and anything too close gets a punch. Your job is to move well and time your roll, skill and mech.\n\nThere are twelve missions over desert, purple, ice and lava planets, in five kinds: hunt down nests, fix stranded rovers, defend the dome through hive alerts, collect keycards and hold the beacon, or beat a boss in its lair. Nests wake as you come near, patrols wander, and the longer you stay, the more the hive alert fills until a swarm comes hunting for you. The Dune Titan, the Hive Queen and the Magma King wait at missions 4, 8 and 12.\n\nYou start with Finn the Frog or Barbara the Bee; Fernando the Flamingo joins after mission 4 and Rae the Red Panda after mission 8.",
-        "tr": "Uzay Tayfası, hayvan astronotlardan oluşan bir tayfanın başrolde olduğu 3B bir aksiyon macerası. Her görev seni baştan sona dolaşabileceğin koca bir gezegene indirir. Sen yalnızca yön verirsin: silahın kendiliğinden kalkar, menzildeki en yakın uzaylıya nişan alıp ateş eder, fazla yaklaşan da yumruğu yer. Senin işin iyi hareket etmek; taklayı, yeteneği ve mekayı doğru anda kullanmak.\n\nÇöl, mor, buz ve lav gezegenlerinde beş türde on iki görev var: yuvaları avla, mahsur gezicileri tamir et, kovan alarmlarına karşı kubbeyi koru, anahtar kartları toplayıp işaretçide dayan ya da bir bossu ininde yen. Yuvalar yaklaşınca uyanır, devriyeler dolaşır; ne kadar oyalanırsan kovan alarmı o kadar dolar ve sonunda bir sürü seni avlamaya gelir. Kum Devi, Kovan Kraliçesi ve Magma Kralı 4., 8. ve 12. görevlerde bekler.\n\nKurbağa Finn ya da Arı Barbara ile başlarsın; Flamingo Fernando 4. görevden, Kızıl Panda Rae 8. görevden sonra tayfaya katılır."
+        "en": "Astro Crew is a 3D action adventure starring a crew of animal astronauts. Every mission is a whole planet to roam. You attack yourself: hold FIRE and your blaster shoots at its own rate, a light aim assist picks the nearest alien in front of you, and one that gets too close takes a punch from the same button.\n\nTwelve missions on desert, purple, ice and lava planets come in five kinds: hunt down nests, fix stranded rovers, defend the dome through hive alerts, collect keycards and hold the beacon, or beat a boss in its lair. Nests wake as you come near, and the longer you stay, the fuller the hive alert gets until a swarm hunts you down. The Dune Titan, the Hive Queen and the Magma King wait at missions 4, 8 and 12.\n\nYou start with Finn the Frog or Barbara the Bee; Fernando the Flamingo joins after mission 4 and Rae the Red Panda after mission 8.",
+        "tr": "Uzay Tayfası, hayvan astronotlardan oluşan bir tayfanın başrolde olduğu 3B bir aksiyon macerası. Her görev dolaşabileceğin koca bir gezegendir. Saldırmak senin elinde: ATEŞ'i basılı tuttukça silahın kendi hızında ateş eder, hafif bir nişan yardımı önündeki en yakın uzaylıyı seçer, fazla yaklaşan da aynı düğmeyle yumruğu yer.\n\nÇöl, mor, buz ve lav gezegenlerindeki on iki görev beş türdür: yuvaları avla, mahsur gezicileri tamir et, kovan alarmlarına karşı kubbeyi koru, anahtar kartları toplayıp işaretçide dayan ya da bir bossu ininde yen. Yuvalar yaklaşınca uyanır; ne kadar oyalanırsan kovan alarmı o kadar dolar ve sonunda bir sürü seni avlamaya gelir. Kum Devi, Kovan Kraliçesi ve Magma Kralı 4., 8. ve 12. görevlerde bekler.\n\nKurbağa Finn ya da Arı Barbara ile başlarsın; Flamingo Fernando 4. görevden, Kızıl Panda Rae 8. görevden sonra tayfaya katılır."
       },
       "howToPlay": [
         {
-          "en": "Pick your crew member and LAUNCH, then choose a planet on the Star Map and read the brief: it gives the goal and the three stars.",
-          "tr": "Tayfandan birini seç ve KALKIŞ'a bas, sonra Yıldız Haritası'nda bir gezegen seçip brifingi oku: hedefi ve üç yıldızı orada görürsün."
+          "en": "Pick your crew member and LAUNCH, then a planet on the Star Map; the brief gives the goal and the three stars.",
+          "tr": "Tayfandan birini seç ve KALKIŞ'a bas, sonra Yıldız Haritası'nda bir gezegen seç; brifing hedefi ve üç yıldızı verir."
         },
         {
-          "en": "Follow the coloured beams and the arrows at the screen's edge: red for nests, green for rovers, yellow for keycards. The minimap in the top left shows the planet.",
-          "tr": "Renkli ışıkları ve ekran kenarındaki okları izle: kırmızı yuvalar, yeşil geziciler, sarı anahtar kartlar içindir. Sol üstteki küçük harita gezegeni gösterir."
+          "en": "Hold FIRE to shoot. Shots lock onto the nearest alien within about 35° of your facing or a few steps away, and you keep facing it as you run. Stand still and the gun turns to the nearest alien all round.",
+          "tr": "Ateş etmek için ATEŞ'i basılı tut. Atışlar baktığın yönün yaklaşık 35° içindeki ya da birkaç adım ötendeki en yakın uzaylıya kilitlenir, koşarken de ona dönük kalırsın. Durursan silah dört bir yandaki en yakın uzaylıya döner."
         },
         {
-          "en": "Collect the XP your kills drop. Each level-up offers three power cards; the one you pick stays with you for the whole run.",
-          "tr": "Öldürdüğün uzaylıların bıraktığı deneyimi topla. Her seviye atlayışta üç güç kartı çıkar; seçtiğin kart bütün yolculuk boyunca seninle kalır."
+          "en": "Follow the coloured beams and edge arrows: red to nests, green to rovers, yellow to keycards.",
+          "tr": "Renkli ışıkları ve kenardaki okları izle: kırmızı yuvalara, yeşil gezicilere, sarı anahtar kartlara götürür."
         },
         {
-          "en": "After each mission, spend crystals at the Base on modules that last for every run, then pick the next planet. The run ends when you fall, when a dome falls, or when the Magma King is beaten.",
-          "tr": "Her görevden sonra kristallerini Üs'te her yolculukta seninle kalan modüllere harca, sonra sıradaki gezegeni seç. Yolculuk, sen düştüğünde, bir kubbe düştüğünde ya da Magma Kralı yenildiğinde biter."
+          "en": "Collect the XP kills drop. Each level-up offers three power cards that last the whole run.",
+          "tr": "Öldürdüğün uzaylıların bıraktığı deneyimi topla. Her seviye atlayışta yolculuk boyunca kalan üç güç kartından birini seçersin."
+        },
+        {
+          "en": "Between missions, spend crystals on Base modules that last every run. The run ends when you fall, when a dome falls, or when the Magma King is beaten.",
+          "tr": "Görevler arasında kristallerini her yolculukta kalan Üs modüllerine harca. Yolculuk sen düştüğünde, bir kubbe düştüğünde ya da Magma Kralı yenildiğinde biter."
         }
       ],
       "controls": {
         "keyboard": {
-          "en": "WASD or arrows move, Space rolls, Q or J fires your skill, E or K calls the mech once its meter is full, P or Esc pauses. On the Star Map, B opens the Base.",
-          "tr": "WASD ya da oklar yürütür, Boşluk takla attırır, Q ya da J yeteneği kullanır, sayaç dolunca E ya da K mekayı çağırır, P ya da Esc duraklatır. Yıldız Haritası'nda B üssü açar."
+          "en": "WASD or arrows move; hold Space, Z or Enter to fire (a punch up close); Shift or X rolls; Q or J skill; E or K mech; P or Esc pauses. B opens the Base from the Star Map.",
+          "tr": "WASD ya da oklar yürütür; ateş (yakındakine yumruk) için Boşluk, Z ya da Enter'ı basılı tut; Shift ya da X takla, Q ya da J yetenek, E ya da K meka; P ya da Esc duraklatır. Yıldız Haritası'nda B üssü açar."
         },
         "touch": {
-          "en": "Drag anywhere left of the buttons to move. DODGE, SKILL and MECH are on the right, with rings that show when they are ready.",
-          "tr": "Yürümek için düğmelerin solunda herhangi bir yerde sürükle. TAKLA, YETENEK ve MEKA sağda; halkaları ne zaman hazır olduklarını gösterir."
+          "en": "Drag anywhere off the buttons to move. Hold the big FIRE button bottom right; DODGE, SKILL and MECH sit around it, their rings showing when they are ready.",
+          "tr": "Yürümek için düğmelerin dışında herhangi bir yerde sürükle. Sağ alttaki büyük ATEŞ düğmesini basılı tut; TAKLA, YETENEK ve MEKA onun çevresinde, halkaları hazır olduklarını gösterir."
         }
       },
       "tips": [
         {
-          "en": "Roll before a big target. The roll makes you invulnerable for a moment and your next shot after it is a power shot.",
-          "tr": "Büyük bir hedeften önce takla at. Takla bir anlığına seni dokunulmaz yapar, ardından gelen ilk atışın da güçlü atış olur."
+          "en": "Keep FIRE held while you back away: you stay facing the alien you locked onto, so you retreat and shoot at once.",
+          "tr": "Geri çekilirken ATEŞ'i bırakma: kilitlendiğin uzaylıya dönük kalırsın, böylece hem kaçar hem ateş edersin."
         },
         {
-          "en": "Don't linger by an awake nest. Destroying a nest knocks the hive alert down, so finish one before you wander to the next.",
-          "tr": "Uyanmış bir yuvanın yanında oyalanma. Bir yuvayı yıkmak kovan alarmını düşürür; bir sonrakine gitmeden önce elindekini bitir."
+          "en": "Roll before a big target: you are invulnerable for a moment, and a shot within a second after it is a power shot.",
+          "tr": "Büyük bir hedeften önce takla at: bir an dokunulmaz olursun, ardından bir saniye içindeki atışın da güçlü atış olur."
         },
         {
-          "en": "Against a boss, destroy the two hives round the lair first. While they stand, the boss takes only a tenth of your damage.",
-          "tr": "Bossa karşı önce inin etrafındaki iki kovanı yık. Onlar ayaktayken boss verdiğin hasarın yalnızca onda birini alır."
+          "en": "Don't linger by an awake nest. Destroying one knocks the hive alert down.",
+          "tr": "Uyanmış bir yuvanın yanında oyalanma. Bir yuvayı yıkmak kovan alarmını düşürür."
         },
         {
-          "en": "Keep the mech for a hunting wave or a boss. It lasts eight seconds, and the Solar Panels module can start you half charged.",
-          "tr": "Mekayı avcı sürüsü ya da boss için sakla. Sekiz saniye sürer; Güneş Panelleri modülü görevlere yarı dolu başlamanı sağlayabilir."
+          "en": "Against a boss, break the two hives round the lair first: until then it takes a tenth of your damage.",
+          "tr": "Bossa karşı önce inin etrafındaki iki kovanı yık: o zamana dek boss verdiğin hasarın onda birini alır."
         }
       ],
       "features": [
         {
-          "en": "Four animal heroes, each with its own weapon and signature skill",
-          "tr": "Her biri kendi silahı ve özel yeteneğiyle dört hayvan kahraman"
+          "en": "Four animal heroes with their own weapons and skills",
+          "tr": "Kendi silahı ve yeteneği olan dört hayvan kahraman"
         },
         {
           "en": "Twelve open-world planets and three huge bosses",
           "tr": "On iki açık dünya gezegeni ve üç dev boss"
         },
         {
-          "en": "Power cards from Common to Legendary in every run",
-          "tr": "Her yolculukta Sıradan'dan Efsanevi'ye güç kartları"
+          "en": "Power cards from Common to Legendary",
+          "tr": "Sıradan'dan Efsanevi'ye güç kartları"
         },
         {
           "en": "Seven base modules with three ranks each",
@@ -485,12 +489,22 @@
       "faq": [
         {
           "q": {
+            "en": "Does the blaster fire by itself?",
+            "tr": "Silah kendiliğinden ateş ediyor mu?"
+          },
+          "a": {
+            "en": "No. Since version 1.2 you fire by holding FIRE and stop by letting go; the aim assist only picks the target. Cards like Drone Buddy and Nova still act alone.",
+            "tr": "Hayır. 1.2 sürümünden beri ATEŞ'i basılı tutarak ateş eder, bırakınca durursun; nişan yardımı yalnızca hedefi seçer. Drone Dostu ve Nova gibi kartlar kendi başına çalışır."
+          }
+        },
+        {
+          "q": {
             "en": "How are points scored?",
             "tr": "Puanlar nasıl hesaplanıyor?"
           },
           "a": {
-            "en": "Aliens, nests and bosses score as they fall, a fixed rover 300 and a rescued castaway 500. A finished mission adds 400 × its number, 4 points per second under par and 250 per star.",
-            "tr": "Uzaylılar, yuvalar ve bosslar düştükçe puan verir; tamir edilen gezici 300, kurtarılan kazazede 500 puandır. Biten görev numarasının 400 katını, hedef sürenin altındaki her saniye için 4 puanı ve yıldız başına 250 puanı ekler."
+            "en": "Aliens, nests and bosses score as they fall, a fixed rover 300, a castaway 500. A finished mission adds 400 × its number, 4 per second under par and 250 per star.",
+            "tr": "Uzaylılar, yuvalar ve bosslar düştükçe puan verir; tamir edilen gezici 300, kazazede 500 puandır. Biten görev numarasının 400 katını, hedef sürenin altındaki her saniye için 4 puanı ve yıldız başına 250 puanı ekler."
           }
         },
         {
@@ -499,8 +513,8 @@
             "tr": "Her seferinde ilk gezegenden mi başlamam gerekiyor?"
           },
           "a": {
-            "en": "No. Every planet you have unlocked stays open on the Star Map. Within a run the aliens grow tougher with each mission you play, and your base modules carry over between runs.",
-            "tr": "Hayır. Açtığın her gezegen Yıldız Haritası'nda açık kalır. Bir yolculuk içinde oynadığın her görevle uzaylılar güçlenir; üs modüllerin ise yolculuktan yolculuğa seninle gelir."
+            "en": "No. Every unlocked planet stays open on the Star Map. Aliens grow tougher with each mission of a run, and base modules carry over between runs.",
+            "tr": "Hayır. Açtığın her gezegen Yıldız Haritası'nda açık kalır. Bir yolculukta her görevle uzaylılar güçlenir; üs modüllerin ise yolculuktan yolculuğa seninle gelir."
           }
         },
         {
@@ -509,8 +523,8 @@
             "tr": "Kolay modu var mı?"
           },
           "a": {
-            "en": "Yes. On Easy you have 40% more health and the dome is sturdier, while aliens are weaker, slower, hit softer and come in smaller packs, and the hive alert rises more slowly. Easy runs stay off the leaderboard.",
-            "tr": "Evet. Kolay'da canın %40 fazladır ve kubbe daha dayanıklıdır; uzaylılar ise daha zayıf ve yavaştır, daha hafif vurur, daha küçük gruplar halinde gelir, kovan alarmı da daha yavaş dolar. Kolay oyunlar sıralamaya girmez."
+            "en": "Yes. On Easy you have 40% more health and a sturdier dome, and aliens are weaker, slower and come in smaller packs. Easy runs stay off the leaderboard.",
+            "tr": "Evet. Kolay'da canın %40 fazla, kubbe daha dayanıklıdır; uzaylılar daha zayıf ve yavaştır, küçük gruplarla gelir. Kolay oyunlar sıralamaya girmez."
           }
         }
       ]
@@ -707,8 +721,8 @@
             "tr": "Skorum nasıl hesaplanıyor?"
           },
           "a": {
-            "en": "Each hit is worth 10 and each checker borne off 2. A won game adds 100, a mars 250, and winning the match adds 300 plus 50 for every point of your winning margin.",
-            "tr": "Her kırma 10, toplanan her taş 2 puan. Kazanılan oyun 100, mars 250 puan ekler; maçı kazanınca 300 puan ve aradaki her maç puanı için 50 puan daha gelir."
+            "en": "Each hit is worth 10 and each checker borne off 2; UNDO takes those points back with the step. A won game adds 100, a mars 250, and winning the match adds 300 plus 50 for every point of your winning margin.",
+            "tr": "Her kırma 10, toplanan her taş 2 puan; GERİ AL bu puanları adımla birlikte geri alır. Kazanılan oyun 100, mars 250 puan ekler; maçı kazanınca 300 puan ve aradaki her maç puanı için 50 puan daha gelir."
           }
         },
         {
@@ -2697,8 +2711,8 @@
             "tr": "Kolay modu var mı?"
           },
           "a": {
-            "en": "Yes. Pick EASY on the menu for a shorter ladder of rivals that often leave boxes on offer and hand out third sides. Easy runs do not count for the leaderboard.",
-            "tr": "Evet. Menüden KOLAY'ı seçersen, sık sık kutu bırakan ve üçüncü kenarı veren rakiplerden oluşan daha kısa bir merdiven gelir. Kolay oyunlar sıralamaya girmez."
+            "en": "Yes. Pick EASY on the menu for a shorter ladder of three rivals, Novice, Rookie and Apprentice, that often leave boxes on offer and hand out third sides; even the last of them plays below the normal ladder's Easy. Easy runs do not count for the leaderboard.",
+            "tr": "Evet. Menüden KOLAY'ı seçersen, sık sık kutu bırakan ve üçüncü kenarı veren üç rakipten oluşan daha kısa bir merdiven gelir: Çaylak, Acemi ve Çırak. Sonuncusu bile normal merdivendeki Kolay'dan zayıf oynar. Kolay oyunlar sıralamaya girmez."
           }
         },
         {
@@ -4289,8 +4303,8 @@
     },
     "lunar-lander": {
       "about": {
-        "en": "Lunar Lander puts you at the controls of a small module dropping toward a jagged moon surface. Gravity pulls all the time and the engine pushes the way the module points, so every landing is a balance of rotating, burning fuel and waiting.\n\nEach level draws new terrain with green pads marked x2, x3 and x5 (x2, x4 and x6 from level 3): the narrower the pad, the bigger the multiplier. A landing counts only with both feet on a pad, the module within 12 degrees of upright and moving slowly. The H-SPEED and V-SPEED readouts at the top turn green when your speed is safe. Touch down anywhere else, too fast or tilted, and you crash.\n\nEvery level is a little harder: gravity grows, the ground gets rougher and the pads shrink. From level 3 a wind pushes you sideways, and from level 6 the x6 pad is gone. You have three lives and one tank of 1000 fuel units that carries over from landing to landing.",
-        "tr": "Ay İnişi'nde, sivri kayalıklı bir Ay yüzeyine doğru alçalan küçük bir modülün başındasın. Yerçekimi seni sürekli aşağı çeker, motor ise modül nereye bakıyorsa oraya iter; her iniş, dönmek, yakıt yakmak ve beklemek arasında bir dengedir.\n\nHer seviyede yeni bir arazi çizilir; üzerinde x2, x3 ve x5 yazan yeşil pistler vardır (3. seviyeden itibaren x2, x4 ve x6). Pist ne kadar darsa çarpan o kadar büyüktür. İnişin sayılması için iki ayağın da pistte olmalı, modül dikeyden en fazla 12 derece eğik ve yavaş olmalı. Üstteki YATAY ve DİKEY göstergeleri hızın güvenliyse yeşile döner. Başka bir yere, çok hızlı ya da eğik inersen KAZA!\n\nHer seviye biraz daha zordur: yerçekimi artar, arazi sertleşir, pistler daralır. 3. seviyeden itibaren rüzgâr seni yana iter, 6. seviyeden sonra x6 pisti kalkar. Üç canın ve inişten inişe aktarılan 1000 birimlik tek bir yakıt deposu var."
+        "en": "Lunar Lander puts you at the controls of a small module dropping toward a jagged moon surface. Gravity pulls all the time and the engine pushes the way the module points, so every landing is a balance of rotating, burning fuel and waiting.\n\nEach level draws new terrain with green pads marked x2, x3 and x5 (x2, x4 and x6 from level 3): the narrower the pad, the bigger the multiplier. A landing counts only with both feet on a pad, the module within 12 degrees of upright and moving slowly. The H-SPEED and V-SPEED readouts at the top turn green when your speed is safe, and the module glows red while it is too fast or tilted to land. Touch down anywhere else, too fast or tilted, and you crash.\n\nEvery level is a little harder: gravity grows, the ground gets rougher and the pads shrink. From level 3 a wind pushes you sideways, and from level 6 the x6 pad is gone. You have three lives and one tank of 1000 fuel units that carries over from landing to landing.",
+        "tr": "Ay İnişi'nde, sivri kayalıklı bir Ay yüzeyine doğru alçalan küçük bir modülün başındasın. Yerçekimi seni sürekli aşağı çeker, motor ise modül nereye bakıyorsa oraya iter; her iniş, dönmek, yakıt yakmak ve beklemek arasında bir dengedir.\n\nHer seviyede yeni bir arazi çizilir; üzerinde x2, x3 ve x5 yazan yeşil pistler vardır (3. seviyeden itibaren x2, x4 ve x6). Pist ne kadar darsa çarpan o kadar büyüktür. İnişin sayılması için iki ayağın da pistte olmalı, modül dikeyden en fazla 12 derece eğik ve yavaş olmalı. Üstteki YATAY ve DİKEY göstergeleri hızın güvenliyse yeşile döner; modül de inemeyecek kadar hızlı ya da eğikken kırmızı parlar. Başka bir yere, çok hızlı ya da eğik inersen KAZA!\n\nHer seviye biraz daha zordur: yerçekimi artar, arazi sertleşir, pistler daralır. 3. seviyeden itibaren rüzgâr seni yana iter, 6. seviyeden sonra x6 pisti kalkar. Üç canın ve inişten inişe aktarılan 1000 birimlik tek bir yakıt deposu var."
       },
       "howToPlay": [
         {
@@ -5462,8 +5476,8 @@
       ],
       "controls": {
         "keyboard": {
-          "en": "The arrows or WASD move the cursor. Space, Enter or Z fills (or marks, in MARK mode); hold it while moving to paint a line. X marks or unmarks, and M or Tab switches between FILL and MARK. Esc or P pauses.",
-          "tr": "Oklar ya da WASD imleci gezdirir. Boşluk, Enter ya da Z boyar (İŞARET modunda işaretler); basılı tutup ilerlersen çizgi boyunca boyarsın. X işaret koyar ya da kaldırır, M ya da Tab BOYA ile İŞARET arasında geçiş yapar. Esc ya da P duraklatır."
+          "en": "The arrows or WASD move the cursor. Space, Enter or Z fills (or marks, in MARK mode); hold it while moving to do the same along a line. X marks or unmarks, and M or Tab switches between FILL and MARK. Esc or P pauses.",
+          "tr": "Oklar ya da WASD imleci gezdirir. Boşluk, Enter ya da Z boyar (İŞARET modunda işaretler); basılı tutup ilerlersen aynısını çizgi boyunca yaparsın. X işaret koyar ya da kaldırır, M ya da Tab BOYA ile İŞARET arasında geçiş yapar. Esc ya da P duraklatır."
         },
         "touch": {
           "en": "Tap or drag on the grid. The FILL and MARK buttons under it switch modes.",
@@ -5692,8 +5706,8 @@
           "tr": "Yalnızca çevresindeki şeride değil, noktalı çizginin kendisine nişan al: yörüngeye birkaç piksel yakın bir yakalanış KUSURSUZ! bonusu getirir."
         },
         {
-          "en": "You can fly past a planet to the one beyond it. That DOUBLE HOP! scores 20 instead of 10, but the PLANETS counter still goes up by one.",
-          "tr": "Bir gezegenin üstünden geçip arkasındakine atlayabilirsin. Bu ÇİFT ATLAYIŞ! 10 yerine 20 puan getirir, ama GEZEGEN sayacı yine bir artar."
+          "en": "You can fly past a planet to the one beyond it. That DOUBLE HOP! scores 20 instead of 10, a TRIPLE HOP! over two planets 30 and a longer MEGA HOP! 10 for every planet it covers, but the PLANETS counter still goes up by one.",
+          "tr": "Bir gezegenin üstünden geçip arkasındakine atlayabilirsin. Bu ÇİFT ATLAYIŞ! 10 yerine 20 puan getirir; iki gezegeni aşan ÜÇLÜ ATLAYIŞ! 30, daha uzun bir MEGA ATLAYIŞ! de geçtiği her gezegen için 10 puan getirir. Ama GEZEGEN sayacı yine yalnızca bir artar."
         },
         {
           "en": "A red orbit closes in about three laps at the start and in under two later on, and the ship flashes red near the end. Take the first good line out rather than waiting for a perfect one.",
@@ -5729,8 +5743,8 @@
             "tr": "Puan nasıl kazanılıyor?"
           },
           "a": {
-            "en": "Each new planet is worth 10 points, 20 when you reach it with a DOUBLE HOP!. A PERFECT! catch adds 5 and every star 5. Landing back on a planet you already visited is safe but scores nothing.",
-            "tr": "Her yeni gezegen 10 puan, ÇİFT ATLAYIŞ! ile ulaştığında 20 puan eder. KUSURSUZ! yakalanış 5, her yıldız 5 puan ekler. Daha önce uğradığın bir gezegene geri dönmek güvenlidir ama puan getirmez."
+            "en": "Each new planet is worth 10 points, 20 when you reach it with a DOUBLE HOP!, 30 with a TRIPLE HOP! and 10 per planet covered with a MEGA HOP!. A PERFECT! catch adds 5 and every star 5. Landing back on a planet you already visited is safe but scores nothing.",
+            "tr": "Her yeni gezegen 10 puan, ÇİFT ATLAYIŞ! ile ulaştığında 20, ÜÇLÜ ATLAYIŞ! ile 30 puan eder; MEGA ATLAYIŞ! geçtiği her gezegen için 10 puan getirir. KUSURSUZ! yakalanış 5, her yıldız 5 puan ekler. Daha önce uğradığın bir gezegene geri dönmek güvenlidir ama puan getirmez."
           }
         },
         {
@@ -6789,8 +6803,8 @@
     },
     "reversi": {
       "about": {
-        "en": "Reversi, the game also sold as Othello, is played on an 8 × 8 board that starts with four discs in the centre, two black and two white. You play black. A move puts one of your discs where it traps a straight line of the opponent's discs, across, down or diagonally, between the new disc and one already on the board. Every trapped disc flips to your colour, and one move can flip lines in several directions at once.\n\nA square only counts as a move if it flips something, so the dotted squares on the board are your options. With no legal move you must PASS; when neither side can move, the round ends and whoever has more discs wins.\n\nSolo, you play rounds against a computer that improves after each of your wins, from Rookie through Easy, Medium, Hard and Expert to Legend, and you have 2 lives. You move first in odd rounds, the computer in even ones. Online, you play one game against a friend on ayvago.com.",
-        "tr": "Othello adıyla da bilinen Reversi, ortasında ikisi siyah ikisi beyaz dört taşla başlayan 8 × 8 bir tahtada oynanır. Sen siyahla oynarsın. Hamle yaparken taşını öyle bir kareye koyarsın ki rakibin taşlarından oluşan düz bir sıra, yatay, dikey ya da çapraz olarak, yeni taşınla tahtadaki başka bir taşın arasında sıkışsın. Sıkışan her taş senin rengine döner; tek hamle birkaç yönde birden taş çevirebilir.\n\nBir kare ancak taş çeviriyorsa hamle sayılır; tahtadaki noktalı kareler senin seçeneklerindir. Oynayacak hamlen yoksa PAS geçersin; iki taraf da oynayamadığında el biter ve taşı çok olan kazanır.\n\nTek başına oynarken her galibiyetinden sonra güçlenen bir bilgisayara karşı oynarsın: Acemi, Kolay, Orta, Zor, Uzman ve Efsane. 2 canın olur. Tek sayılı ellerde sen, çift sayılı ellerde bilgisayar başlar. Çevrimiçi modda ayvago.com'da bir arkadaşınla tek oyun oynarsın."
+        "en": "Reversi, the game also sold as Othello, is played on an 8 × 8 board that starts with four discs in the centre, two black and two white. Black always moves first. A move puts one of your discs where it traps a straight line of the opponent's discs, across, down or diagonally, between the new disc and one already on the board. Every trapped disc flips to your colour, and one move can flip lines in several directions at once.\n\nA square only counts as a move if it flips something, so the dotted squares on the board are your options. With no legal move you must PASS; when neither side can move, the round ends and whoever has more discs wins.\n\nSolo, you play rounds against a computer that improves after each of your wins, from Rookie through Easy, Medium, Hard and Expert to Legend, and you have 2 lives. You take black and move first in odd rounds; in even ones the computer takes black and opens, and you play white. Online, you play one game against a friend on ayvago.com.",
+        "tr": "Othello adıyla da bilinen Reversi, ortasında ikisi siyah ikisi beyaz dört taşla başlayan 8 × 8 bir tahtada oynanır. İlk hamleyi her zaman siyah yapar. Hamle yaparken taşını öyle bir kareye koyarsın ki rakibin taşlarından oluşan düz bir sıra, yatay, dikey ya da çapraz olarak, yeni taşınla tahtadaki başka bir taşın arasında sıkışsın. Sıkışan her taş senin rengine döner; tek hamle birkaç yönde birden taş çevirebilir.\n\nBir kare ancak taş çeviriyorsa hamle sayılır; tahtadaki noktalı kareler senin seçeneklerindir. Oynayacak hamlen yoksa PAS geçersin; iki taraf da oynayamadığında el biter ve taşı çok olan kazanır.\n\nTek başına oynarken her galibiyetinden sonra güçlenen bir bilgisayara karşı oynarsın: Acemi, Kolay, Orta, Zor, Uzman ve Efsane. 2 canın olur. Tek sayılı ellerde siyahı sen alır ve başlarsın; çift sayılı ellerde siyahı bilgisayar alıp açar, sen beyazla oynarsın. Çevrimiçi modda ayvago.com'da bir arkadaşınla tek oyun oynarsın."
       },
       "howToPlay": [
         {
@@ -7613,8 +7627,8 @@
             "tr": "Puan nasıl hesaplanıyor?"
           },
           "a": {
-            "en": "Each correct press is worth 5 × the round number and finishing the round adds 20 × the round. A round with no mistake adds another 10 × the round, so in round 10 that is 500 + 200 + 100 points.",
-            "tr": "Her doğru basış 5 × tur numarası kadar puandır, turu bitirmek 20 × tur ekler. Hatasız turda bunun üstüne 10 × tur daha gelir; 10. turda bu 500 + 200 + 100 puan demektir."
+            "en": "Each correct press is worth 5 × the round number (a note already scored before a mistake pays nothing on the replay) and finishing the round adds 20 × the round. A round with no mistake adds another 10 × the round, so in round 10 that is 500 + 200 + 100 points.",
+            "tr": "Her doğru basış 5 × tur numarası kadar puandır (hatadan önce puan getirmiş notalar tekrarda yeniden puan getirmez), turu bitirmek 20 × tur ekler. Hatasız turda bunun üstüne 10 × tur daha gelir; 10. turda bu 500 + 200 + 100 puan demektir."
           }
         },
         {
@@ -9853,8 +9867,8 @@
     },
     "turkish-draughts": {
       "about": {
-        "en": "Turkish draughts, simply dama in Turkey, is played on all 64 squares of an 8 × 8 board rather than on the dark squares alone. Each side has 16 men lined up on its second and third rows. Men move one square straight forward or sideways, never diagonally and never backwards. A man that reaches the far row is crowned a dama, which slides any distance along a row or column, like a rook in chess.\n\nCapturing is what makes the game. A man jumps an enemy piece directly in front of it or beside it and lands just behind; a dama can take from a distance and land on any free square beyond. Capturing is compulsory, a jump that lands where another capture is possible keeps going, and when several captures are open you must play the one that takes the most pieces. Taken pieces leave the board at once, and a dama may not turn back 180° between two jumps.\n\nYou lose when you have no legal move left, which includes losing every piece. Solo you play white with 2 lives against a rival that grows from Rookie to Dama Master; online you play a friend on ayvago.com.",
-        "tr": "Dama, 8 × 8 tahtanın yalnızca koyu karelerinde değil, 64 karesinin hepsinde oynanır. Her tarafın 16 taşı, kendi ikinci ve üçüncü sırasına dizilir. Taşlar bir kare düz ileri ya da yana gider; çapraz ve geri gitmez. Karşı son sıraya varan taş dama olur ve satrançtaki kale gibi bir sıra ya da sütun boyunca istediği kadar ilerler.\n\nOyunu taş almak belirler. Taş, hemen önündeki ya da yanındaki rakip taşın üstünden atlayıp arkasındaki kareye iner; dama uzaktan alıp arkadaki herhangi bir boş kareye inebilir. Taş almak zorunludur; indiğin yerden bir taş daha alınabiliyorsa hamle devam eder ve birden çok alma yolu varsa en çok taş alanı oynamak zorundasın. Alınan taş hemen tahtadan kalkar; dama iki alma arasında geldiği yöne geri dönemez.\n\nOynayacak hamlen kalmadığında, bütün taşlarını kaybetmen de buna dahil, oyunu kaybedersin. Tek başına beyazla, 2 canla, Acemi'den Dama Ustası'na yükselen bir rakibe karşı oynarsın; çevrimiçi modda ayvago.com'da bir arkadaşınla oynarsın."
+        "en": "Turkish draughts, simply dama in Turkey, is played on all 64 squares of an 8 × 8 board rather than on the dark squares alone. Each side has 16 men lined up on its second and third rows. Men move one square straight forward or sideways, never diagonally and never backwards. A man that reaches the far row is crowned a dama, which slides any distance along a row or column, like a rook in chess.\n\nCapturing is what makes the game. A man jumps an enemy piece directly in front of it or beside it and lands just behind; a dama can take from a distance and land on any free square beyond. Capturing is compulsory, a jump that lands where another capture is possible keeps going, and when several captures are open you must play the one that takes the most pieces. Taken pieces leave the board at once, and a dama may not turn back 180° between two jumps.\n\nYou lose when you have no legal move left, which includes losing every piece. White always moves first. Solo you have 2 lives against a rival that grows from Rookie to Dama Master; you take white and open the odd rounds, the rival takes white and opens the even ones; online you play a friend on ayvago.com.",
+        "tr": "Dama, 8 × 8 tahtanın yalnızca koyu karelerinde değil, 64 karesinin hepsinde oynanır. Her tarafın 16 taşı, kendi ikinci ve üçüncü sırasına dizilir. Taşlar bir kare düz ileri ya da yana gider; çapraz ve geri gitmez. Karşı son sıraya varan taş dama olur ve satrançtaki kale gibi bir sıra ya da sütun boyunca istediği kadar ilerler.\n\nOyunu taş almak belirler. Taş, hemen önündeki ya da yanındaki rakip taşın üstünden atlayıp arkasındaki kareye iner; dama uzaktan alıp arkadaki herhangi bir boş kareye inebilir. Taş almak zorunludur; indiğin yerden bir taş daha alınabiliyorsa hamle devam eder ve birden çok alma yolu varsa en çok taş alanı oynamak zorundasın. Alınan taş hemen tahtadan kalkar; dama iki alma arasında geldiği yöne geri dönemez.\n\nOynayacak hamlen kalmadığında, bütün taşlarını kaybetmen de buna dahil, oyunu kaybedersin. İlk hamleyi her zaman beyaz yapar. Tek başına 2 canla, Acemi'den Dama Ustası'na yükselen bir rakibe karşı oynarsın; tek sayılı ellerde beyazı sen alıp başlarsın, çift sayılı ellerde beyazı rakip alıp açar; çevrimiçi modda ayvago.com'da bir arkadaşınla oynarsın."
       },
       "howToPlay": [
         {

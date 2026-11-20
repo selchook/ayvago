@@ -148,15 +148,15 @@ export const ARCADE_GAMES: SeedGame[] = [
     slug: 'astro-crew',
     title: { en: 'Astro Crew', tr: 'Uzay Tayfası' },
     description: {
-      en: 'Lead a crew of animal astronauts across a galaxy of alien planets! A 3D action adventure where every planet is an open world to roam from rim to rim. Your blaster comes up and aims by itself while you run, roll and fire your signature skill; alien nests wake as you come near, patrols roam, and when the hive alert fills, a swarm comes hunting for you. Destroy the nests, defend the dome, collect keycards, rescue stranded rovers and beat three huge bosses in their lairs; the minimap and the arrows at the edge show the way. Level up and pick power cards, charge your giant mech, and grow your base with crystals between missions. Four crew members, twelve planets, Easy or Normal.',
-      tr: "Hayvan astronotlardan oluşan tayfanı uzaylılarla dolu gezegenlerde yönet! 3B bir aksiyon macerası: her gezegen baştan sona dolaşabileceğin açık bir dünya. Sen koşar, takla atar ve özel yeteneğini kullanırken silahın kendi kalkar ve nişan alır; uzaylı yuvaları yaklaşınca uyanır, devriyeler dolaşır, kovan alarmı dolunca bir sürü seni avlamaya gelir. Yuvaları yık, kubbeyi koru, anahtar kartları topla, mahsur gezicileri kurtar ve üç dev boss'u ininde yen; harita ve kenardaki oklar yolu gösterir. Seviye atla, güç kartı seç, dev mekanı doldur ve görevler arasında kristallerle üssünü büyüt. Dört tayfa, on iki gezegen, Kolay ya da Normal.",
+      en: 'Lead a crew of animal astronauts across a galaxy of alien planets! A 3D action adventure where every planet is an open world to roam from rim to rim. Hold FIRE and your blaster locks onto the nearest alien ahead while you run, roll and fire your signature skill; alien nests wake as you come near, patrols roam, and when the hive alert fills, a swarm comes hunting for you. Destroy the nests, defend the dome, collect keycards, rescue stranded rovers and beat three huge bosses in their lairs; the minimap and the arrows at the edge show the way. Level up and pick power cards, charge your giant mech, and grow your base with crystals between missions. Four crew members, twelve planets, Easy or Normal.',
+      tr: "Hayvan astronotlardan oluşan tayfanı uzaylılarla dolu gezegenlerde yönet! 3B bir aksiyon macerası: her gezegen baştan sona dolaşabileceğin açık bir dünya. ATEŞ'i basılı tuttukça silahın önündeki en yakın uzaylıya nişan alıp ateş eder; koş, takla at, özel yeteneğini kullan; uzaylı yuvaları yaklaşınca uyanır, devriyeler dolaşır, kovan alarmı dolunca bir sürü seni avlamaya gelir. Yuvaları yık, kubbeyi koru, anahtar kartları topla, mahsur gezicileri kurtar ve üç dev boss'u ininde yen; harita ve kenardaki oklar yolu gösterir. Seviye atla, güç kartı seç, dev mekanı doldur ve görevler arasında kristallerle üssünü büyüt. Dört tayfa, on iki gezegen, Kolay ya da Normal.",
     },
     category: 'action',
     categories: ['action', 'arcade'],
     tags: ['astro', 'crew', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.2.0',
     addedAt: '2026-11-18',
   }),
   arcadeGame({
@@ -185,7 +185,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'backgammon', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.4.0',
+    version: '1.4.1',
     addedAt: '2026-10-30',
     multiplayer: 2,
   }),
@@ -315,7 +315,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['coaster', 'rush', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.0.2',
+    version: '1.0.3',
     addedAt: '2026-11-15',
   }),
   arcadeGame({
@@ -461,7 +461,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'dots', 'and', 'boxes', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.1.1',
     addedAt: '2026-10-29',
     multiplayer: true,
   }),
@@ -619,6 +619,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['jetpack', 'rush', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-10-29',
   }),
   arcadeGame({
@@ -705,6 +706,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['lunar', 'lander', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
   }),
   arcadeGame({
     slug: 'mangala',
@@ -866,6 +868,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['nonogram', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-10-28',
   }),
   arcadeGame({
@@ -897,6 +900,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['orbit', 'hop', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
     addedAt: '2026-11-04',
   }),
   arcadeGame({
@@ -1065,7 +1069,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'reversi', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.1.1',
     multiplayer: true,
   }),
   arcadeGame({
@@ -1167,6 +1171,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['simon', 'says', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
+    version: '1.0.1',
   }),
   arcadeGame({
     slug: 'skull-isle',
@@ -1347,7 +1352,7 @@ export const ARCADE_GAMES: SeedGame[] = [
       maxPerSecond: 1000,
       maxScore: 300,
     },
-    version: '1.0.1',
+    version: '1.0.2',
     addedAt: '2026-11-11',
   }),
   arcadeGame({
@@ -1492,7 +1497,7 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['multiplayer', 'turkish', 'draughts', 'retro'],
     orientation: 'portrait',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.1.1',
     addedAt: '2026-10-29',
     multiplayer: true,
   }),
@@ -1595,6 +1600,6 @@ export const ARCADE_GAMES: SeedGame[] = [
     tags: ['zombie', 'survivor', 'retro'],
     orientation: 'landscape',
     input: ['touch', 'keyboard', 'mouse'],
-    version: '1.1.0',
+    version: '1.1.1',
   }),
 ];
