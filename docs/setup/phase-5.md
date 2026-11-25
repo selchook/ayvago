@@ -564,3 +564,11 @@ through the usual "Sync arcade catalog" PR, in any order with this one.
   stage with the game in portrait; on a computer or a tablet the 16:9 stage with the game in
   landscape.
 
+## 5.35 Portrait cover art for adaptive games
+**Nothing to set up.** No secrets, env vars, functions or rules; merging deploys the web app.
+The portrait cards (`assets.cardPortrait` / `cardPortrait2x`) come from the studio and arrive
+through the usual "Sync arcade catalog" PR, in any order with this one: until then phones keep
+today's cover.
+
+- Optional check once the sync has landed: Relic Ruins' game page on a phone shows a tall cover
+  with the game's logo at the bottom (Turkish on `/tr`); on a computer or a tablet the 16:9 card.

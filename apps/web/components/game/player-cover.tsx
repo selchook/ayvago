@@ -1,7 +1,8 @@
 import type { Locale } from '@ayvago/shared';
 import { CoverArt } from '@/components/catalog/cover-art';
-import { gameCardArt, gameLogoUrl, type CatalogGame } from '@/lib/catalog';
+import { gameCardArt, gameLogoUrl, playerCardArt, type CatalogGame } from '@/lib/catalog';
 import styles from './game.module.css';
+import { PhoneCardArt } from './phone-card-art';
 
 /**
  * The art behind the player's Play button (game, room and table pages).
@@ -19,6 +20,10 @@ import styles from './game.module.css';
  * a landscape game. On a phone the player gives them a portrait stage, and there the card is
  * fitted whole (logo included) on a blurred copy of itself instead of being cropped. The CSS draws
  * that backdrop on the portrait stage only, so desktops and tablets never load it.
+ *
+ * An adaptive game that ships portrait card art (`assets.cardPortrait`, slice 5.35) shows that on
+ * a phone instead, filling the portrait stage (`PhoneCardArt`, which follows the same phone rule
+ * as the stage after hydration); desktops and tablets keep the 16:9 card.
  */
 export function PlayerCover({
   game,
@@ -44,8 +49,8 @@ export function PlayerCover({
       card2x={art.card2x}
     />
   );
-  if (manifest.orientation === 'any' && art.card) {
-    return (
+  if (manifest.orientation === 'any') {
+    const landscape = art.card ? (
       <div
         className={styles.adaptiveArt}
         style={{ '--art': `url("${art.card}")` } as React.CSSProperties}
@@ -53,6 +58,16 @@ export function PlayerCover({
       >
         {card}
       </div>
+    ) : (
+      card
+    );
+    // The art a phone's portrait stage shows: the portrait card when the game ships one.
+    const phoneArt = playerCardArt(game, locale, true);
+    if (!phoneArt.portrait) return landscape;
+    return (
+      <PhoneCardArt art={{ card: phoneArt.card, card2x: phoneArt.card2x }}>
+        {landscape}
+      </PhoneCardArt>
     );
   }
   if (manifest.orientation !== 'portrait' || !shot || !art.card) return card;
