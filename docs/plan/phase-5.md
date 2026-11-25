@@ -13,7 +13,8 @@
   [ADR 0020](../adr/0020-quick-play-settings-host-handover.md),
   [ADR 0024](../adr/0024-game-card-art.md), [ADR 0025](../adr/0025-phone-menu-drawer.md),
   [ADR 0026](../adr/0026-two-seat-tables.md),
-  [ADR 0028](../adr/0028-social-sign-in-providers.md)
+  [ADR 0028](../adr/0028-social-sign-in-providers.md),
+  [ADR 0029](../adr/0029-adaptive-orientation.md)
 
 **Done when:** a returning player finds their progress, rewards and choices (character, cosmetics)
 on every device and in every game that supports them.
@@ -60,6 +61,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.31 | Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (owner request) | ✅ code |
 | 5.32 | Card art per language: `assets.card` / `card2x` may be a `{ en, tr? }` map, so the logo baked into the card is Turkish on `/tr` on the Minimal and Cartoon tiles, the home spotlight and the landscape player overlay; a single ref still works (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-card-art-per-language-slice-532)) | ✅ code · ⏳ merge before the localized-card sync |
 | 5.33 | Facebook sign-in next to Google: one provider flow (guest upgrade by linking, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, a feature switch, a prepared auth-domain proxy and the privacy page's data-deletion section (owner request, [ADR 0028](../adr/0028-social-sign-in-providers.md)) | ✅ code · ⏳ Meta app, Firebase provider, switch |
+| 5.34 | Adaptive games: a game whose manifest says `orientation: 'any'` gets a portrait stage on phones and the 16:9 stage on desktops and tablets, by the phone rule shared with the studio; its landscape card and screenshot are treated as landscape art (owner request, [ADR 0029](../adr/0029-adaptive-orientation.md)) | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -2705,3 +2707,66 @@ Still open:
 - Production may unlink an unverified Facebook provider when a Google sign-in with the same email
   joins the account (the emulator keeps both); the player can connect Facebook again on the
   profile page.
+
+## 5.34 Adaptive games: portrait on phones, landscape elsewhere ✅ code
+
+The owner wants games to open in landscape on desktops and tablets and in portrait on phones. The
+studio (`selchook/ayvago-games`) is adding adaptive games: one build that picks its shape at boot,
+with `orientation: 'any'` in its manifest. The player treated `any` like `landscape` (a 16:9 stage
+on every device). Contract and reasons: [ADR 0029](../adr/0029-adaptive-orientation.md).
+
+What shipped:
+- **The phone rule** (`apps/web/lib/orientation.ts`), identical to the studio's:
+  `isPhone({ mobile, screenWidth, screenHeight })` is true when `MOBILE_QUERY`
+  (`(hover: none) and (pointer: coarse)`) matches and the screen's short side is under
+  `PHONE_MAX_SHORT_SIDE` (600 px). `readDeviceTraits()` reads both from the browser.
+  `stageOrientation(orientation, phone)` resolves `any` to `portrait` on a phone and `landscape`
+  everywhere else; `portrait` and `landscape` stay as they are.
+- **The stage** (`components/game/game-player.tsx`, `lib/use-is-phone.ts`): `useIsPhone()` takes
+  the answer once after hydration (`useSyncExternalStore`, "not a phone" on the server) and never
+  changes it while the page is open, like the game inside. The stage's `data-orientation` is now
+  the resolved shape, so the existing portrait and 16:9 sizing apply unchanged;
+  `data-game-orientation` keeps the manifest value for diagnostics and tests. No CSS keys on `any`.
+- **Fullscreen** (`locksInFullscreen`): unchanged, adaptive games are never locked.
+- **Art** (`artOrientation`): adaptive games' screenshot and card are landscape captures.
+  - Arcade tiles (`lib/catalog/tiles.ts`): `landscape` is now true for `any` too, so their
+    screenshot is fitted on its blurred copy in the 9:12 frame instead of cropped.
+  - Player cover (`components/game/player-cover.tsx`, `game.module.css`): an adaptive game with a
+    card shows the card like a landscape game, in a wrapper carrying the card as `--art`. On a
+    phone's portrait stage the card is fitted whole (logo included) on a blurred copy of itself;
+    the backdrop only exists on that stage, so desktops and tablets never load it. Without a card
+    the cover stays as before.
+
+Existing games: the catalog has 82 portrait and 23 landscape games and no `any` game; their stage,
+cover, tiles and fullscreen are unchanged (the resolved shape equals the manifest value). The
+parked imported games and the local bridge fixture declare `any`: on phones they now get the
+portrait stage.
+
+Deviations: the first plan sized the stage with the media query alone in CSS (no hydration step).
+The owner then made tablets landscape too, and a media query cannot express the screen's short
+side, so the stage is resolved on the client; the server render and the first paint show the
+16:9 stage and a phone switches right after hydration, before Play.
+
+Tests:
+- web `lib/orientation.test.ts` (+9): the contract's query and threshold, phones held either way,
+  tablets (600 px short side and the iPad gen 7 in both orientations) and desktops are not
+  phones, reading the traits in a browser and on the server, `stageOrientation` for all three
+  values on both kinds of device, `artOrientation`.
+- web `components/game/player-cover.test.tsx` (6): landscape games get the card, portrait games
+  the composed screenshot art, adaptive games the card with the `--art` backdrop (and the plain
+  cover without a card); the stage CSS sizes only resolved shapes (no rule on `any`) and draws the
+  adaptive backdrop on the portrait stage only.
+- **In the browser** (`next dev` with `AYVAGO_DEV_GAMES=1`, Playwright Chromium, the bridge fixture
+  pointed at a local copy that draws the shape it booted in and given Mud Rally's card art, a
+  temporary local change not committed): Minimal light and dark, Cartoon and Arcade on a 1440×900
+  desktop (stage 782×440, game "LANDSCAPE 1280×720"), an iPhone 13 (stage 356×531, game
+  "PORTRAIT 720×1280"), an iPad (gen 7) portrait (687×387) and landscape (781×439), both with the
+  media query matching and the game in landscape; before Play and while playing. Retro Snake
+  (portrait) and Mud Rally (landscape) measured the same stages as before on desktop, phone and
+  tablet. The Arcade tile of the adaptive game uses the landscape screenshot frame.
+
+Owner steps: none ([setup](../setup/phase-5.md#534-adaptive-games)). The studio's adaptive games
+reach the catalog through the usual "Sync arcade catalog" PR.
+
+Still open: nothing on the platform. The studio's adaptive games use the same rule
+(selchook/ayvago-games).

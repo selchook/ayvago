@@ -1218,3 +1218,35 @@
     height: 18cqh;
   }
 }
+
+/* Adaptive games' cover (slice 5.34): the 16:9 card, which fills the 16:9 stage of desktops and
+   tablets as for a landscape game. */
+.adaptiveArt {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.overlay .adaptiveArt > * {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* On a phone the player resolves an adaptive game's stage to portrait: the card is fitted whole,
+   logo included, on a blurred copy of itself instead of being cropped to its middle. The backdrop
+   only exists, and so only loads, on that stage. */
+.stage[data-orientation='portrait'] .adaptiveArt::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background: var(--art) center / cover;
+  filter: blur(18px) brightness(0.55) saturate(1.1);
+}
+
+.stage[data-orientation='portrait'] .adaptiveArt > * {
+  background: none;
+}
+
+.stage[data-orientation='portrait'] .adaptiveArt img[data-card] {
+  object-fit: contain;
+}

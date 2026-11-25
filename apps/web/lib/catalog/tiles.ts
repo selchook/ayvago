@@ -1,6 +1,7 @@
 import { gameCategories, SUPPORTED_LOCALES, type Locale } from '@ayvago/shared';
 import { getTranslations } from 'next-intl/server';
 import type { TileData, TileLabels } from '@/components/catalog/game-tile';
+import { artOrientation } from '@/lib/orientation';
 import { gameCardArt, gameTitle, type CatalogGame } from './index';
 import { gameLikePercent, getRankings } from './rankings';
 import { normalizeSearch } from './search';
@@ -45,7 +46,8 @@ export async function toTiles(games: CatalogGame[], locale: Locale): Promise<Til
       screenshot: game.screenshotUrl,
       card,
       card2x,
-      landscape: game.manifest.orientation === 'landscape',
+      // Adaptive games (`any`) are captured in landscape, so their screenshot is landscape art.
+      landscape: artOrientation(game.manifest.orientation) === 'landscape',
       likePercent: gameLikePercent(game, rankings),
       search: gameSearchText(game, categoryLabels),
     };

@@ -466,7 +466,7 @@ https URL (plain http only for localhost). The platform reads:
 |---|---|---|---|
 | `icon` | yes | App icon | 512×512 PNG |
 | `cover` | yes | Store cover for the game page and the home spotlight | 1920×1080 JPEG |
-| `screenshot` | no | In-game frame in the game's orientation (Arcade tiles, portrait player overlay) | JPEG, e.g. 540×960 (portrait) |
+| `screenshot` | no | In-game frame in the game's orientation, landscape for adaptive (`any`) games (Arcade tiles, portrait player overlay) | JPEG, e.g. 540×960 (portrait) |
 | `card` | no | Catalog card for the Minimal and Cartoon tiles, the spotlight and the landscape player overlay: in-game frames, a small logo, no text block. One ref, or `{ en, tr? }` with English required when the logo is localized | 640×360 WebP |
 | `card2x` | no | The same card for dense screens, used only with `card`, in the same shape (the 2x copy of the card's own language) | 1280×720 WebP |
 | `logo` | no | The game's own logo per locale, `{ en, tr? }` with English required; drawn over in-game art (player overlay) | transparent PNG, at most 640×320 |
@@ -577,6 +577,7 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Turkish Ö and Ü in the pixel font: "Ayvago Pixel TR" also draws full-height Ö and Ü for Press Start 2P (slice 5.31)
 - [x] Card art per language: `assets.card` / `card2x` may be `{ en, tr? }` maps, so the logo baked into the card follows the player's language on the Minimal and Cartoon tiles, the spotlight and the landscape player overlay, with English as the fallback; single refs still work (slice 5.32)
 - [x] Facebook sign-in next to Google: one provider flow (guest upgrade, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, `NEXT_PUBLIC_FACEBOOK_SIGN_IN`, a prepared auth-domain proxy (`FIREBASE_AUTH_PROXY_ORIGIN`) and the privacy page's data-deletion section (slice 5.33, [ADR 0028](../adr/0028-social-sign-in-providers.md)); the Meta app and the switch are owner steps
+- [x] Adaptive games: `orientation: 'any'` runs portrait on phones and landscape on desktops and tablets, by a phone rule shared with the studio (`(hover: none) and (pointer: coarse)` and a screen short side under 600 px); the player's stage follows it, adaptive art is landscape (slice 5.34, [ADR 0029](../adr/0029-adaptive-orientation.md))
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator
