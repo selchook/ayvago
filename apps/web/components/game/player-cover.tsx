@@ -14,6 +14,11 @@ import styles from './game.module.css';
  * (`assets.logo`, the locale's version or English) bottom-left. A game without a logo gets its
  * name written there in a display font (Fredoka, or the pixel font for retro games). Every theme
  * shows it, Arcade included. The art is decorative: the page names the game elsewhere.
+ *
+ * Adaptive games (`orientation: 'any'`, slice 5.34) have landscape art, so they show the card like
+ * a landscape game. On a phone the player gives them a portrait stage, and there the card is
+ * fitted whole (logo included) on a blurred copy of itself instead of being cropped. The CSS draws
+ * that backdrop on the portrait stage only, so desktops and tablets never load it.
  */
 export function PlayerCover({
   game,
@@ -39,6 +44,17 @@ export function PlayerCover({
       card2x={art.card2x}
     />
   );
+  if (manifest.orientation === 'any' && art.card) {
+    return (
+      <div
+        className={styles.adaptiveArt}
+        style={{ '--art': `url("${art.card}")` } as React.CSSProperties}
+        aria-hidden="true"
+      >
+        {card}
+      </div>
+    );
+  }
   if (manifest.orientation !== 'portrait' || !shot || !art.card) return card;
 
   const retro = (manifest.categories ?? [manifest.category]).includes('retro');

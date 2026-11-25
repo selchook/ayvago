@@ -555,3 +555,12 @@ the deploy service account and writes a table to the run summary: score sessions
 leaderboard entries and XP, split into guest, Google, Facebook and registered players. Numbers
 only, no names or ids; nothing is changed.
 
+## 5.34 Adaptive games
+**Nothing to set up.** No secrets, env vars, functions or rules; merging deploys the web app.
+Nothing changes for today's games. The studio's adaptive games (`orientation: 'any'`) arrive
+through the usual "Sync arcade catalog" PR, in any order with this one.
+
+- Optional check once an adaptive game is in the catalog: its game page on a phone shows a tall
+  stage with the game in portrait; on a computer or a tablet the 16:9 stage with the game in
+  landscape.
+

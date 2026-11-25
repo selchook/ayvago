@@ -16,7 +16,13 @@ import {
 } from '@/lib/gha/bridge';
 import { adManager } from '@/lib/ads/client';
 import { formatScore, type ScoreFormat } from '@/lib/format';
-import { lockLandscape, locksInFullscreen, unlockOrientation } from '@/lib/orientation';
+import {
+  lockLandscape,
+  locksInFullscreen,
+  stageOrientation,
+  unlockOrientation,
+} from '@/lib/orientation';
+import { useIsPhone } from '@/lib/use-is-phone';
 import { applyProgress, chosenCharacter, ensureGuest, useAccount } from '@/lib/account/store';
 import { isPersonalBest } from '@/lib/leaderboard/best';
 import { startBest, useServerBest } from '@/lib/leaderboard/server-best';
@@ -80,6 +86,10 @@ export function GamePlayer(props: GamePlayerProps) {
   const t = useTranslations();
   const locale = useLocale();
   const gameOrigin = useMemo(() => originOf(entry), [entry]);
+  // The stage's shape: an adaptive game (`any`) is portrait on a phone, landscape on desktops and
+  // tablets (slice 5.34); landscape until hydration on every device.
+  const phone = useIsPhone();
+  const stage = stageOrientation(orientation, phone);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -457,7 +467,8 @@ export function GamePlayer(props: GamePlayerProps) {
       <div
         ref={stageRef}
         className={styles.stage}
-        data-orientation={orientation}
+        data-orientation={stage}
+        data-game-orientation={orientation}
         data-fullscreen={fullscreen}
         data-phase={phase}
         data-bridge={connected ? 'connected' : 'none'}
