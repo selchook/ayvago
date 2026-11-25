@@ -246,6 +246,74 @@ describe('parseGameManifest', () => {
     );
   });
 
+  it('accepts optional portrait card art at 1x and 2x, as a single ref or a map', () => {
+    // Slice 5.35: adaptive games' portrait cards (360×640 and 720×1280 WebP), shown on phones.
+    const cardPortrait = '/ayvago/card-portrait-360x640.webp';
+    const cardPortrait2x = {
+      en: 'https://cdn.example.com/orb-surge/card-portrait-720x1280.webp',
+      tr: '/ayvago/card-portrait-tr-720x1280.webp',
+    };
+    const assets = { ...orbSurge.assets, cardPortrait, cardPortrait2x };
+    const result = parseGameManifest({ ...orbSurge, assets });
+    expect(result.ok && result.manifest.assets).toMatchObject({ cardPortrait, cardPortrait2x });
+    // Optional, independent of `card`, and a lone 2x copy is valid (the platform ignores it).
+    expect(
+      parseGameManifest({ ...orbSurge, assets: { ...orbSurge.assets, cardPortrait } }).ok,
+    ).toBe(true);
+    const lone = { ...orbSurge.assets, cardPortrait2x };
+    expect(parseGameManifest({ ...orbSurge, assets: lone }).ok).toBe(true);
+  });
+
+  it('rejects portrait card refs and maps like card ones', () => {
+    const assets = orbSurge.assets;
+    const paths = (ref: unknown, field: 'cardPortrait' | 'cardPortrait2x' = 'cardPortrait') =>
+      issuePaths({ ...orbSurge, assets: { ...assets, [field]: ref } });
+    expect(paths('card-portrait.webp')).toContain('assets.cardPortrait');
+    expect(paths('http://example.com/card-portrait.webp')).toContain('assets.cardPortrait');
+    expect(paths('')).toContain('assets.cardPortrait');
+    expect(paths({ tr: '/card-portrait-tr.webp' })).toContain('assets.cardPortrait');
+    expect(paths({ en: '/p.webp', de: '/p-de.webp' })).toContain('assets.cardPortrait');
+    expect(paths({ en: '/p.webp', tr: 'p-tr.webp' })).toContain('assets.cardPortrait.tr');
+    expect(paths({})).toContain('assets.cardPortrait');
+    expect(paths(['/p.webp'])).toContain('assets.cardPortrait');
+    expect(paths('javascript:alert(1)', 'cardPortrait2x')).toContain('assets.cardPortrait2x');
+    // A typo is an unknown key in the strict assets object.
+    expect(issuePaths({ ...orbSurge, assets: { ...assets, portraitCard: '/p.webp' } })).toContain(
+      'assets',
+    );
+  });
+
+  it('accepts the studio arcade entry shape with portrait cards per locale', () => {
+    // The shape the studio's generated arcade-catalog.ts is expected to give adaptive games.
+    const slug = 'relic-ruins';
+    const manifest: GameManifestInput = {
+      ...orbSurge,
+      id: 'relicruins',
+      entry: `https://ayvago-games-nine.vercel.app/games/${slug}/`,
+      orientation: 'any',
+      assets: {
+        icon: `/games/${slug}/ayvago/icon-512.png`,
+        cover: `/games/${slug}/ayvago/cover-1920x1080.jpg`,
+        card: `/games/${slug}/ayvago/card-640x360.webp`,
+        cardPortrait: {
+          en: `/games/${slug}/ayvago/card-portrait-360x640.webp`,
+          tr: `/games/${slug}/ayvago/card-portrait-tr-360x640.webp`,
+        },
+        cardPortrait2x: {
+          en: `/games/${slug}/ayvago/card-portrait-720x1280.webp`,
+          tr: `/games/${slug}/ayvago/card-portrait-tr-720x1280.webp`,
+        },
+      },
+    };
+    const result = parseGameManifest(manifest);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.manifest.assets.cardPortrait) return;
+    const card = localizedAssetMap(result.manifest.assets.cardPortrait);
+    expect(resolveAssetUrl(result.manifest, pickLocalized(card, 'tr'))).toBe(
+      'https://ayvago-games-nine.vercel.app/games/relic-ruins/ayvago/card-portrait-tr-360x640.webp',
+    );
+  });
+
   it('rejects non-snake_case ad placements', () => {
     const ads = { rewarded: ['Double Reward'], interstitial: [] };
     expect(issuePaths({ ...orbSurge, ads })).toContain('ads.rewarded.0');

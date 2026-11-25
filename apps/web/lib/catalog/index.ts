@@ -19,6 +19,7 @@ import {
   type SeedGame,
 } from '@ayvago/shared';
 import { MAX_TABLE_SIZE, MIN_TABLE_SIZE } from '../netcode/table-data';
+import { stageOrientation } from '../orientation';
 
 // Catalog access layer. Pages only talk to these functions, so the seed data can be swapped
 // for Firestore reads later without touching any page.
@@ -44,6 +45,12 @@ export type CatalogGame = {
   // pair for a locale with gameCardArt().
   cardUrl: LocalizedAsset | null;
   card2xUrl: LocalizedAsset | null;
+  // Absolute URLs of the portrait card art per locale (slice 5.35; 360×640 and 720×1280), in the
+  // same shape and with the same rules as cardUrl / card2xUrl. Only adaptive games
+  // (`orientation: 'any'`) use it, on a phone's portrait stage; pick the pair with
+  // gamePortraitCardArt(), or let playerCardArt() choose between the two cards.
+  cardPortraitUrl: LocalizedAsset | null;
+  cardPortrait2xUrl: LocalizedAsset | null;
   // Absolute URLs of the game's own logo per locale (English required, the fallback); null draws
   // the title as text where the logo would go (the portrait player overlay). Pick one with
   // gameLogoUrl().
@@ -52,7 +59,13 @@ export type CatalogGame = {
 
 export type GameArt = Pick<
   CatalogGame,
-  'coverUrl' | 'screenshotUrl' | 'cardUrl' | 'card2xUrl' | 'logoUrl'
+  | 'coverUrl'
+  | 'screenshotUrl'
+  | 'cardUrl'
+  | 'card2xUrl'
+  | 'cardPortraitUrl'
+  | 'cardPortrait2xUrl'
+  | 'logoUrl'
 >;
 
 /**
@@ -65,9 +78,17 @@ export function resolveGameArt(
   ownAssets: boolean,
 ): GameArt {
   if (!ownAssets) {
-    return { coverUrl: null, screenshotUrl: null, cardUrl: null, card2xUrl: null, logoUrl: null };
+    return {
+      coverUrl: null,
+      screenshotUrl: null,
+      cardUrl: null,
+      card2xUrl: null,
+      cardPortraitUrl: null,
+      cardPortrait2xUrl: null,
+      logoUrl: null,
+    };
   }
-  const { cover, screenshot, card, card2x, logo } = manifest.assets;
+  const { cover, screenshot, card, card2x, cardPortrait, cardPortrait2x, logo } = manifest.assets;
   const resolve = (ref: string | undefined) => (ref ? resolveAssetUrl(manifest, ref) : null);
   const resolveLocalized = (ref: MaybeLocalizedAsset | undefined): LocalizedAsset | null => {
     if (!ref) return null;
@@ -78,12 +99,16 @@ export function resolveGameArt(
     };
   };
   const cardUrl = resolveLocalized(card);
+  const cardPortraitUrl = resolveLocalized(cardPortrait);
   return {
     coverUrl: resolve(cover),
     screenshotUrl: resolve(screenshot),
     cardUrl,
     // The 2x art is only a sharper copy of the card: without the card there is nothing to sharpen.
     card2xUrl: cardUrl ? resolveLocalized(card2x) : null,
+    cardPortraitUrl,
+    // Likewise for the portrait card's sharper copy.
+    cardPortrait2xUrl: cardPortraitUrl ? resolveLocalized(cardPortrait2x) : null,
     logoUrl: resolveLocalized(logo),
   };
 }
@@ -245,18 +270,55 @@ export function gameLogoUrl(game: Pick<CatalogGame, 'logoUrl'>, locale: Locale):
   return game.logoUrl ? pickLocalized(game.logoUrl, locale) : null;
 }
 
+/** A card image and its optional 2x copy, absolute URLs; a null card shows the cover. */
+export type CardArt = { card: string | null; card2x: string | null };
+
 /**
- * The card art for a locale: the locale's card, else the English one; null shows the cover. The
- * 2x copy is the one in the same language as the card, so a srcset never mixes two languages (a
- * Turkish card without a Turkish 2x copy is used on its own).
+ * One locale's card pair: the locale's card, else the English one. The 2x copy is the one in the
+ * same language as the card, so a srcset never mixes two languages (a Turkish card without a
+ * Turkish 2x copy is used on its own).
  */
+function pickCardPair(card: LocalizedAsset | null, card2x: LocalizedAsset | null, locale: Locale) {
+  if (!card) return { card: null, card2x: null };
+  const language = card[locale] ? locale : 'en';
+  return { card: card[language] ?? null, card2x: card2x?.[language] ?? null };
+}
+
+/** The 16:9 card art for a locale (see pickCardPair); null shows the cover. */
 export function gameCardArt(
   game: Pick<CatalogGame, 'cardUrl' | 'card2xUrl'>,
   locale: Locale,
-): { card: string | null; card2x: string | null } {
-  if (!game.cardUrl) return { card: null, card2x: null };
-  const language = game.cardUrl[locale] ? locale : 'en';
-  return { card: game.cardUrl[language] ?? null, card2x: game.card2xUrl?.[language] ?? null };
+): CardArt {
+  return pickCardPair(game.cardUrl, game.card2xUrl, locale);
+}
+
+/** The portrait card art (slice 5.35) for a locale, with the same language rule as the 16:9 card. */
+export function gamePortraitCardArt(
+  game: Pick<CatalogGame, 'cardPortraitUrl' | 'cardPortrait2xUrl'>,
+  locale: Locale,
+): CardArt {
+  return pickCardPair(game.cardPortraitUrl, game.cardPortrait2xUrl, locale);
+}
+
+/**
+ * The card art the player shows before Play (slice 5.35). An adaptive game (`orientation: 'any'`)
+ * on a phone has a portrait stage (`stageOrientation`), and there it shows its portrait card when
+ * it ships one. Everywhere else, and for fixed `portrait` and `landscape` games, the 16:9 card.
+ * `portrait` says which of the two was picked.
+ */
+export function playerCardArt(
+  game: { manifest: Pick<GameManifest, 'orientation'> } & Pick<
+    CatalogGame,
+    'cardUrl' | 'card2xUrl' | 'cardPortraitUrl' | 'cardPortrait2xUrl'
+  >,
+  locale: Locale,
+  phone: boolean,
+): CardArt & { portrait: boolean } {
+  const portraitStage = stageOrientation(game.manifest.orientation, phone) === 'portrait';
+  if (game.manifest.orientation === 'any' && portraitStage && game.cardPortraitUrl) {
+    return { ...gamePortraitCardArt(game, locale), portrait: true };
+  }
+  return { ...gameCardArt(game, locale), portrait: false };
 }
 
 export function gamePath(game: CatalogGame): string {

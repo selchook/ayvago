@@ -49,3 +49,15 @@ sides need the same rule.
 - A phone held sideways still gets the portrait stage and game, as portrait games do; tablets and
   desktops never get a portrait stage for an adaptive game.
 - On phones the stage changes shape once, right after hydration, before the player presses Play.
+
+## Amendment: portrait card art (slice 5.35)
+The owner asked that adaptive games show their cover art in portrait on phones too. An adaptive
+game may now ship **portrait card art** next to its landscape card: `assets.cardPortrait`
+(360×640 WebP, an in-game frame from a phone run with the small game logo) and
+`assets.cardPortrait2x` (720×1280 WebP, only with `cardPortrait`), each one ref or a `{ en, tr? }`
+map like `card`. On a phone (the rule above, resolved after hydration like the stage) the player
+cover shows the portrait card in the player's language, filling the portrait stage; desktops and
+tablets keep the 16:9 card and never load the portrait art. Without a portrait card the phone
+keeps the fitted landscape card. The `screenshot` and `card` of adaptive games stay landscape;
+tiles, the spotlight and the OG image do not use the portrait card. Fixed `portrait` and
+`landscape` games ignore it.

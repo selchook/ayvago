@@ -225,6 +225,8 @@ describe('resolveGameArt', () => {
       // A single ref is the English card, the fallback of every locale.
       cardUrl: { en: 'https://games.example.com/games/orb-surge/ayvago/card-640x360.webp' },
       card2xUrl: { en: 'https://games.example.com/games/orb-surge/ayvago/card-1280x720.webp' },
+      cardPortraitUrl: null,
+      cardPortrait2xUrl: null,
       logoUrl: null,
     });
     // Absolute https refs stay where they point.
@@ -315,7 +317,100 @@ describe('resolveGameArt', () => {
       screenshotUrl: null,
       cardUrl: null,
       card2xUrl: null,
+      cardPortraitUrl: null,
+      cardPortrait2xUrl: null,
       logoUrl: null,
+    });
+  });
+
+  describe('portrait card art (slice 5.35)', () => {
+    const portrait = '/games/orb-surge/ayvago/card-portrait-360x640.webp';
+    const portrait2x = '/games/orb-surge/ayvago/card-portrait-720x1280.webp';
+    const trPortrait = '/games/orb-surge/ayvago/card-portrait-tr-360x640.webp';
+    const trPortrait2x = 'https://cdn.example.com/card-portrait-tr-720x1280.webp';
+    const url = (ref: string) => new URL(ref, entry).toString();
+
+    it('resolves like the 16:9 card: single refs, maps, no 2x copy alone, no own assets', async () => {
+      const { resolveGameArt } = await loadCatalog();
+      const art = (more: object, own = true) =>
+        resolveGameArt({ entry, assets: { ...assets, ...more } }, own);
+      expect(art({ cardPortrait: portrait, cardPortrait2x: portrait2x })).toMatchObject({
+        cardPortraitUrl: { en: url(portrait) },
+        cardPortrait2xUrl: { en: url(portrait2x) },
+        // Independent of the 16:9 card.
+        cardUrl: null,
+      });
+      const maps = {
+        cardPortrait: { en: portrait, tr: trPortrait },
+        cardPortrait2x: { en: portrait2x, tr: trPortrait2x },
+      };
+      expect(art(maps)).toMatchObject({
+        cardPortraitUrl: { en: url(portrait), tr: url(trPortrait) },
+        cardPortrait2xUrl: { en: url(portrait2x), tr: trPortrait2x },
+      });
+      expect(art({ cardPortrait2x: portrait2x })).toMatchObject({
+        cardPortraitUrl: null,
+        cardPortrait2xUrl: null,
+      });
+      expect(art(maps, false)).toMatchObject({ cardPortraitUrl: null, cardPortrait2xUrl: null });
+    });
+
+    it("picks the locale's portrait card and its 2x copy, falling back to English", async () => {
+      const { gamePortraitCardArt, resolveGameArt } = await loadCatalog();
+      const art = (more: object) => resolveGameArt({ entry, assets: { ...assets, ...more } }, true);
+      const both = art({
+        cardPortrait: { en: portrait, tr: trPortrait },
+        cardPortrait2x: { en: portrait2x, tr: trPortrait2x },
+      });
+      expect(gamePortraitCardArt(both, 'tr')).toEqual({
+        card: url(trPortrait),
+        card2x: trPortrait2x,
+      });
+      expect(gamePortraitCardArt(both, 'en')).toEqual({
+        card: url(portrait),
+        card2x: url(portrait2x),
+      });
+      const single = art({ cardPortrait: portrait, cardPortrait2x: portrait2x });
+      expect(gamePortraitCardArt(single, 'tr')).toEqual({
+        card: url(portrait),
+        card2x: url(portrait2x),
+      });
+      // A Turkish portrait card without a Turkish 2x copy is used alone.
+      const noTr2x = art({
+        cardPortrait: { en: portrait, tr: trPortrait },
+        cardPortrait2x: portrait2x,
+      });
+      expect(gamePortraitCardArt(noTr2x, 'tr')).toEqual({ card: url(trPortrait), card2x: null });
+      expect(gamePortraitCardArt(art({}), 'en')).toEqual({ card: null, card2x: null });
+    });
+
+    it('shows the portrait card only for adaptive games on a phone', async () => {
+      const { playerCardArt, resolveGameArt } = await loadCatalog();
+      const game = (orientation: 'any' | 'portrait' | 'landscape', more: object) => ({
+        manifest: { orientation },
+        ...resolveGameArt({ entry, assets: { ...assets, card, card2x, ...more } }, true),
+      });
+      const withPortrait = { cardPortrait: portrait, cardPortrait2x: portrait2x };
+      const landscapePair = { card: url(card), card2x: url(card2x), portrait: false };
+      expect(playerCardArt(game('any', withPortrait), 'en', true)).toEqual({
+        card: url(portrait),
+        card2x: url(portrait2x),
+        portrait: true,
+      });
+      // Desktops and tablets keep the 16:9 card.
+      expect(playerCardArt(game('any', withPortrait), 'en', false)).toEqual(landscapePair);
+      // Without a portrait card a phone keeps the 16:9 card (fitted on its blurred copy).
+      expect(playerCardArt(game('any', {}), 'en', true)).toEqual(landscapePair);
+      // Fixed orientations never use it.
+      expect(playerCardArt(game('portrait', withPortrait), 'en', true)).toEqual(landscapePair);
+      expect(playerCardArt(game('landscape', withPortrait), 'en', true)).toEqual(landscapePair);
+      // The locale follows through.
+      const tr = game('any', { cardPortrait: { en: portrait, tr: trPortrait } });
+      expect(playerCardArt(tr, 'tr', true)).toEqual({
+        card: url(trPortrait),
+        card2x: null,
+        portrait: true,
+      });
     });
   });
 

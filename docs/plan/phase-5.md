@@ -62,6 +62,7 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.32 | Card art per language: `assets.card` / `card2x` may be a `{ en, tr? }` map, so the logo baked into the card is Turkish on `/tr` on the Minimal and Cartoon tiles, the home spotlight and the landscape player overlay; a single ref still works (owner request, [ADR 0024](../adr/0024-game-card-art.md#amendment-card-art-per-language-slice-532)) | ✅ code · ⏳ merge before the localized-card sync |
 | 5.33 | Facebook sign-in next to Google: one provider flow (guest upgrade by linking, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, a feature switch, a prepared auth-domain proxy and the privacy page's data-deletion section (owner request, [ADR 0028](../adr/0028-social-sign-in-providers.md)) | ✅ code · ⏳ Meta app, Firebase provider, switch |
 | 5.34 | Adaptive games: a game whose manifest says `orientation: 'any'` gets a portrait stage on phones and the 16:9 stage on desktops and tablets, by the phone rule shared with the studio; its landscape card and screenshot are treated as landscape art (owner request, [ADR 0029](../adr/0029-adaptive-orientation.md)) | ✅ code |
+| 5.35 | Portrait cover art for adaptive games: optional `assets.cardPortrait` (360×640) / `cardPortrait2x` (720×1280) WebP in `ayvago.json`; on a phone the player cover of an `orientation: 'any'` game (Relic Ruins) shows that portrait card, in the player's language, filling the portrait stage; desktops and tablets keep the 16:9 card (owner request, [ADR 0029](../adr/0029-adaptive-orientation.md#amendment-portrait-card-art-slice-535)) | ✅ code · ⏳ studio art and catalog sync |
 
 ## 5.1 Player characters ✅
 
@@ -2770,3 +2771,89 @@ reach the catalog through the usual "Sync arcade catalog" PR.
 
 Still open: nothing on the platform. The studio's adaptive games use the same rule
 (selchook/ayvago-games).
+
+## 5.35 Portrait cover art for adaptive games ✅ code
+
+The owner asked that adaptive games such as Relic Ruins (`orientation: 'any'`, slice 5.34) show
+their cover art in portrait on phones too, while desktops and tablets keep the landscape art.
+Until now an adaptive game's phone cover was its 16:9 card fitted whole on a blurred copy of
+itself. Contract: [ADR 0029, amendment](../adr/0029-adaptive-orientation.md#amendment-portrait-card-art-slice-535).
+
+What shipped:
+- **Manifest** (`packages/shared/src/manifest.ts`, the file the studio vendors as
+  `scripts/vendor/manifest.ts`): two optional `assets` fields next to `card` / `card2x`, in the same
+  `maybeLocalizedAsset` shape (one ref or `{ en, tr? }` with English required):
+  - `cardPortrait`: portrait card art, 360×640 WebP, an in-game frame from a phone (portrait) run
+    with the small game logo;
+  - `cardPortrait2x`: the same at 720×1280 WebP, only used together with `cardPortrait`, and only
+    in the language of the card it sharpens.
+- **Catalog** (`apps/web/lib/catalog/index.ts`): `CatalogGame.cardPortraitUrl` and
+  `cardPortrait2xUrl` (`{ en, tr? } | null` absolute URLs, resolved like `cardUrl` / `card2xUrl`:
+  same own-assets rule, no 2x copy without the card). `gamePortraitCardArt(game, locale)` picks the
+  pair with the card's language rule (the locale's card, else English; the 2x copy of the same
+  language only); `gameCardArt` now shares that helper. `playerCardArt(game, locale, phone)` is the
+  choice: the portrait card for an `any` game on a phone (portrait stage) that ships one, the 16:9
+  card otherwise.
+- **Player cover** (`components/game/player-cover.tsx`, new `components/game/phone-card-art.tsx`,
+  `game.module.css`): for an `any` game with a portrait card, `PhoneCardArt` (a client component)
+  follows `useIsPhone` like the stage: the server render, the first paint, desktops and tablets get
+  today's 16:9 cover; a phone switches to the portrait card right after hydration, in the same
+  render as the stage. The card fills the portrait stage (`object-fit: cover`, anchored at the
+  bottom so the logo there is never cropped), `srcset` 360w / 720w at `100vw`. On a wide stage (a
+  phone held sideways) a container query fits it whole over a blurred copy of itself; the copy is
+  a second `<img>` with the same candidates, so it never costs a second download. Because it is
+  rendered on the client only, desktops and tablets never request the portrait art. Every theme
+  shows it, Arcade included, like the 16:9 overlay card. Game, room and table pages all use
+  `PlayerCover`. Without a portrait card the phone fallback of slice 5.34 stays.
+- Fixed `portrait` and `landscape` games: unchanged (a `cardPortrait` in their manifest is ignored).
+
+Other surfaces considered, unchanged:
+- **Catalog tiles** (Minimal and Cartoon, every list and search results): 16:9 frames on every
+  device; the brief keeps tile shapes. **Arcade tiles**: a 9:12 frame on every device (not only on
+  phones) showing the logo-less in-game screenshot under the tile's own title; the portrait card
+  carries a baked-in logo, so it would print the name twice, and the frame is not specific to
+  phones.
+- **Home spotlight** and its thumbnails: 16:9 on phones too.
+- **OG / Twitter images**: the 1920×1080 cover, unchanged by the brief.
+
+Deviations: the first build drew the sideways backdrop as a CSS background inside the container
+query; Chrome fetched it on tall stages as well (before layout settled), so the backdrop became a
+second image with the card's own candidates.
+
+Tests:
+- shared `manifest.test.ts` (+3): portrait cards as single refs and `{ en, tr? }` maps at 1x and 2x
+  are valid (a lone 2x copy too); bad refs, maps without English, unknown locales, empty maps and
+  arrays are rejected at `assets.cardPortrait(.tr)` / `assets.cardPortrait2x`, a misspelt key as
+  unknown; the studio entry shape for Relic Ruins parses and resolves the Turkish portrait card
+  against the studio origin.
+- web `lib/catalog/catalog.test.ts` (+3; two full-object expectations gain the new fields):
+  resolution (single refs, maps, independent of `card`, no lone 2x copy, nothing without own
+  assets); `gamePortraitCardArt` per locale with English fallback and no mixed-language 2x copy;
+  `playerCardArt` for `any` on a phone and off it, without a portrait card, for fixed orientations,
+  and in Turkish.
+- web `components/game/player-cover.test.tsx` (+5): an `any` game on a phone gets the portrait card
+  with its srcset in English and Turkish (and no 16:9 card); off a phone it keeps the 16:9 card and
+  renders no portrait art; without a portrait card a phone keeps the 5.34 fallback; fixed
+  orientations never get it; the CSS fills the stage, fits it whole only on wide stages and has no
+  CSS-background backdrop.
+- Full run: shared 140, web 319, themes 16, adapter 30, firebase 250 passed and 3 skipped;
+  `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass.
+- **In the browser** (`next start` of a scratch copy of this branch whose `arcadeGame()` gave the
+  `any` games portrait cards; the studio's Relic Ruins art served locally and a temporary 720×1280
+  test card stamped "PORTRAIT TEST EN / TR" with the game's logo bottom-left): Relic Ruins before
+  Play in Minimal light and dark, Cartoon and Arcade on a 1440×900 desktop (16:9 stage,
+  `card-1280x720.webp`, no portrait request), an iPhone 13 (356×531 portrait stage,
+  `card-portrait-720x1280.webp` and nothing else of the portrait art, logo whole; `/tr` shows the
+  Turkish card) and an iPad (gen 7) portrait (16:9 stage, no portrait request); an iPhone 13 held
+  sideways shows the whole card on its blurred copy.
+
+Owner steps ([setup](../setup/phase-5.md#535-portrait-cover-art-for-adaptive-games)): none on the
+platform. The studio renders the portrait cards and lists them in its adaptive games' manifests;
+they arrive with the usual "Sync arcade catalog" PR, in any order with this one (a phone keeps the
+5.34 cover until then).
+
+Still open:
+- Studio (`selchook/ayvago-games`): copy the new `manifest.ts` fields into
+  `scripts/vendor/manifest.ts`, render `card-portrait-360x640.webp` / `card-portrait-720x1280.webp`
+  (and the `-tr-` versions) for adaptive games, and emit `cardPortrait` / `cardPortrait2x` for them
+  in the generated `arcade-catalog.ts`.
