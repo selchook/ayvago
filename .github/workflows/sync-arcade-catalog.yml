@@ -34,13 +34,20 @@ jobs:
       - name: Fetch the catalog and the guides from ayvago-games main
         id: fetch
         # Authenticated calls: anonymous GitHub API requests share the runner's IP rate limit and
-        # failed with 403 (then a 404 for the "null" commit). The studio repo is public, so this
-        # workflow's own token can read it.
+        # failed with 403 (then a 404 for the "null" commit). The studio repo is private, so the
+        # reads use STUDIO_READ_TOKEN, a repository secret holding a read-only token for
+        # selchook/ayvago-games (Contents: read; docs/setup/phase-5.md §5.36). Without the secret
+        # the workflow's own token is used, which can only read the studio while it is public.
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.STUDIO_READ_TOKEN || github.token }}
+          HAS_STUDIO_TOKEN: ${{ secrets.STUDIO_READ_TOKEN != '' }}
         run: |
-          sha=$(gh api repos/selchook/ayvago-games/commits/main --jq .sha)
+          sha=$(gh api repos/selchook/ayvago-games/commits/main --jq .sha) || true
           if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            if [ "$HAS_STUDIO_TOKEN" != "true" ]; then
+              echo "::error::Could not read selchook/ayvago-games. The studio repository is private: add the STUDIO_READ_TOKEN secret (docs/setup/phase-5.md §5.36)."
+              exit 1
+            fi
             echo "::error::Could not read the commit of selchook/ayvago-games main (got '$sha')."
             exit 1
           fi

@@ -572,3 +572,20 @@ today's cover.
 
 - Optional check once the sync has landed: Relic Ruins' game page on a phone shows a tall cover
   with the game's logo at the bottom (Turkish on `/tr`); on a computer or a tablet the 16:9 card.
+
+## 5.36 Catalog sync from a private studio
+The studio repository (`selchook/ayvago-games`) is private, so the "Sync arcade catalog" workflow
+can no longer read it with its own token. It reads the studio with a repository secret instead.
+
+1. ⏳ GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** →
+   Generate new token. Resource owner `selchook`, **Only select repositories**:
+   `selchook/ayvago-games`. Permissions → Repository → **Contents: Read-only** (Metadata read-only
+   is added by itself). Pick an expiry and note it, since the sync stops when the token expires.
+2. ⏳ `selchook/ayvago` → Settings → Secrets and variables → Actions → **New repository secret**:
+   name `STUDIO_READ_TOKEN`, value the token. Never paste it into chat or a file.
+3. ⏳ Actions → **Sync arcade catalog** → Run workflow. It should open or update the
+   "Sync arcade catalog" PR.
+
+Without the secret the workflow falls back to its own token, which works only while the studio is
+public; when it can't read the studio, the run fails with an error that points here.
+
