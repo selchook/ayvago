@@ -2857,3 +2857,16 @@ Still open:
   `scripts/vendor/manifest.ts`, render `card-portrait-360x640.webp` / `card-portrait-720x1280.webp`
   (and the `-tr-` versions) for adaptive games, and emit `cardPortrait` / `cardPortrait2x` for them
   in the generated `arcade-catalog.ts`.
+
+## 5.36 Catalog sync from a private studio ✅ code
+The studio repository became private, so the "Sync arcade catalog" workflow's own token got a 404
+for `repos/selchook/ayvago-games/commits/main` and the sync stopped. The workflow now reads the
+studio with `STUDIO_READ_TOKEN`, a repository secret holding a fine-grained, read-only token for
+`selchook/ayvago-games`, and falls back to `github.token` when the secret is not set (enough
+while the studio is public). A failed read without the secret names the missing secret and the
+setup step.
+
+- Owner step: `docs/setup/phase-5.md` §5.36 (create the token, add the secret, run the workflow).
+- Tests: no code change; the workflow is checked by running it once the secret is set.
+- Open: the token expires; renew it before its date (the run fails with the same pointer).
+
