@@ -581,6 +581,8 @@ Slice plan and status: [Phase 5 plan](phase-5.md) · owner steps: [Phase 5 setup
 - [x] Facebook sign-in next to Google: one provider flow (guest upgrade, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, `NEXT_PUBLIC_FACEBOOK_SIGN_IN`, a prepared auth-domain proxy (`FIREBASE_AUTH_PROXY_ORIGIN`) and the privacy page's data-deletion section (slice 5.33, [ADR 0028](../adr/0028-social-sign-in-providers.md)); the Meta app and the switch are owner steps
 - [x] Adaptive games: `orientation: 'any'` runs portrait on phones and landscape on desktops and tablets, by a phone rule shared with the studio (`(hover: none) and (pointer: coarse)` and a screen short side under 600 px); the player's stage follows it, adaptive art is landscape (slice 5.34, [ADR 0029](../adr/0029-adaptive-orientation.md))
 - [x] Portrait cover art for adaptive games: optional `assets.cardPortrait` (360×640) / `cardPortrait2x` (720×1280) WebP; on a phone an `any` game's player cover shows it, in the player's language, filling the portrait stage; desktops and tablets keep the 16:9 card (slice 5.35, [ADR 0029](../adr/0029-adaptive-orientation.md#amendment-portrait-card-art-slice-535))
+- [x] Catalog sync from a private studio: `STUDIO_READ_TOKEN`, falling back to the workflow's token (slice 5.36)
+- [x] Sitemap dates: `lastmod` on game pages (the day the game joined) and list pages (their newest game) (slice 5.37)
 
 ### Phase 6 — Developer program (4–6 weeks)
 - [ ] Developer accounts (custom claim), agreement, `ayvago.json` validator

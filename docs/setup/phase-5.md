@@ -589,3 +589,11 @@ can no longer read it with its own token. It reads the studio with a repository 
 Without the secret the workflow falls back to its own token, which works only while the studio is
 public; when it can't read the studio, the run fails with an error that points here.
 
+## 5.37 Sitemap dates
+**Nothing to set up.** No secrets, env vars, functions or rules; merging deploys the web app.
+
+- Optional, in Google Search Console after the deploy: Sitemaps → `https://ayvago.com/sitemap.xml`
+  → resubmit, so Google reads the new dates. URL Inspection → "Request indexing" for the home pages
+  (`/en`, `/tr`) and the most important game pages speeds up the first crawl (about ten requests a
+  day).
+
