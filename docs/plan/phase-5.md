@@ -63,6 +63,8 @@ Legend: ✅ done · 🚧 in progress · ⏳ owner action · ⬜ not started
 | 5.33 | Facebook sign-in next to Google: one provider flow (guest upgrade by linking, switch and merge), the same-email case (continue with Google, then Facebook is connected), connected sign-in methods on the profile, deletion re-confirmed with the player's own provider, a feature switch, a prepared auth-domain proxy and the privacy page's data-deletion section (owner request, [ADR 0028](../adr/0028-social-sign-in-providers.md)) | ✅ code · ⏳ Meta app, Firebase provider, switch |
 | 5.34 | Adaptive games: a game whose manifest says `orientation: 'any'` gets a portrait stage on phones and the 16:9 stage on desktops and tablets, by the phone rule shared with the studio; its landscape card and screenshot are treated as landscape art (owner request, [ADR 0029](../adr/0029-adaptive-orientation.md)) | ✅ code |
 | 5.35 | Portrait cover art for adaptive games: optional `assets.cardPortrait` (360×640) / `cardPortrait2x` (720×1280) WebP in `ayvago.json`; on a phone the player cover of an `orientation: 'any'` game (Relic Ruins) shows that portrait card, in the player's language, filling the portrait stage; desktops and tablets keep the 16:9 card (owner request, [ADR 0029](../adr/0029-adaptive-orientation.md#amendment-portrait-card-art-slice-535)) | ✅ code · ⏳ studio art and catalog sync |
+| 5.36 | Catalog sync from a private studio: the "Sync arcade catalog" workflow reads `selchook/ayvago-games` with the `STUDIO_READ_TOKEN` secret, falling back to the workflow's own token while the studio is public | ✅ code · ⏳ secret only while the studio is private |
+| 5.37 | Sitemap dates: every game page carries `lastmod` (the day the game joined the catalog), every list page (home, new, most played, multiplayer, a category) the day its newest live game joined; the info pages carry none (owner request after Search Console showed most pages "Discovered – currently not indexed") | ✅ code |
 
 ## 5.1 Player characters ✅
 
@@ -2869,4 +2871,30 @@ setup step.
 - Owner step: `docs/setup/phase-5.md` §5.36 (create the token, add the secret, run the workflow).
 - Tests: no code change; the workflow is checked by running it once the secret is set.
 - Open: the token expires; renew it before its date (the run fails with the same pointer).
+
+## 5.37 Sitemap dates ✅ code
+Search Console listed 236 pages as "Discovered – currently not indexed": nearly the whole sitemap
+(about 240 URLs, every page in English and Turkish). That is Google's crawl queue for a young
+domain, not an error in the pages. The pages already render on the server with canonical and
+hreflang links, guides and JSON-LD. One thing the site could give crawlers and did not was a date:
+the sitemap had no `lastmod`, so nothing told Google which pages are new.
+
+- `apps/web/app/sitemap.ts`: each entry gets `lastModified` as a W3C date (`YYYY-MM-DD`).
+  - A game page: the game's `addedAt`.
+  - Home, New and Most played: the newest `addedAt` among the live games.
+  - Multiplayer and each category: the newest `addedAt` among their live games.
+  - About, Privacy, Terms and Contact: none, rather than a made-up date.
+- `apps/web/lib/seo.ts`: `newestAdded(games)`, the newest `addedAt` among a list's live games
+  (coming-soon games do not count, since they are not in the sitemap).
+- A game's later updates (a new version, a rewritten guide) do not move its date: the studio's
+  catalog has no update date yet.
+
+Tests: `app/seo.test.ts` (+2). Game pages carry their `addedAt` in both locales; home, New and a
+category carry the newest live game's date; the info pages carry none; every date is `YYYY-MM-DD`;
+`newestAdded` skips coming-soon games and gives nothing for an empty list. Full web run 321
+passed; `pnpm format:check`, `pnpm typecheck` and `pnpm --filter @ayvago/web build` pass. The built
+sitemap has 248 URLs, 240 of them dated.
+
+Still open: an update date from the studio (for example the date of a game's last release) would
+let game pages move their `lastmod` when they change.
 

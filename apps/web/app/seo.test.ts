@@ -47,6 +47,49 @@ describe('sitemap', () => {
     expect(urls.filter((url) => url.endsWith('/leaderboard'))).toEqual([]);
   });
 
+  it('dates game pages by the day they joined and list pages by their newest game', async () => {
+    const { default: sitemap } = await import('./sitemap');
+    const { getGameBySlug, getLiveGames, getGamesByCategory } = await import('@/lib/catalog');
+    const entries = sitemap();
+    const at = (url: string) => entries.find((entry) => entry.url === url)?.lastModified;
+    const game = getGameBySlug('block-drop')!;
+    expect(at('https://ayvago.com/en/games/block-drop')).toBe(game.addedAt);
+    expect(at('https://ayvago.com/tr/games/block-drop')).toBe(game.addedAt);
+    const newest = getLiveGames()
+      .map((g) => g.addedAt)
+      .sort()
+      .at(-1);
+    expect(at('https://ayvago.com/en')).toBe(newest);
+    expect(at('https://ayvago.com/tr/new')).toBe(newest);
+    const puzzle = getGamesByCategory('puzzle')
+      .filter((g) => g.status === 'live')
+      .map((g) => g.addedAt)
+      .sort()
+      .at(-1);
+    expect(at('https://ayvago.com/en/c/puzzle')).toBe(puzzle);
+    // the info pages have no real date to give
+    expect(at('https://ayvago.com/en/about')).toBeUndefined();
+    // every date is a plain W3C date
+    for (const entry of entries) {
+      if (entry.lastModified) expect(String(entry.lastModified)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it('dates a list by its newest live game only', async () => {
+    const { newestAdded } = await import('@/lib/seo');
+    const { getAllGames } = await import('@/lib/catalog');
+    const all = getAllGames();
+    const a = all[0]!;
+    const b = all[1]!;
+    expect(newestAdded([])).toBeUndefined();
+    expect(
+      newestAdded([
+        { ...a, status: 'live', addedAt: '2026-10-01' },
+        { ...b, status: 'coming_soon', addedAt: '2026-12-01' },
+      ]),
+    ).toBe('2026-10-01');
+  });
+
   it('leaves coming-soon games out', async () => {
     await withComingSoon('block-drop');
     const { default: sitemap } = await import('./sitemap');
