@@ -4545,6 +4545,134 @@
         }
       ]
     },
+    "luna-survey": {
+      "about": {
+        "en": "Luna Survey puts you in charge of R-1, a small four-wheeled research rover at Selene-1, a lunar base surrounded by craters. The Moon's gravity is one sixth of Earth's: the rover floats over bumps, its suspension soaks up every rock and a hard turn at full speed makes it slide. Dust drifts down slowly behind the wheels and the tracks stay on the regolith.\n\nThe science team sends you on five missions, each for a kind of sample: dark basalt on the plains, bright anorthosite on crater rims, an ice core at the bottom of a dark crater and a meteorite fragment far from the base. Find them with the radar and the map, collect them and drive them home before the battery runs dry.",
+        "tr": "Luna Survey'de, kraterlerle çevrili Selene-1 ay üssünün dört tekerlekli küçük araştırma aracı R-1'i yönetiyorsun. Ayın yerçekimi Dünya'nınkinin altıda biri: araç tümseklerin üstünden süzülür, süspansiyonu her kayayı yutar ve tam hızda sert bir dönüşte kayar. Tekerleklerin arkasında toz yavaşça çöker, izler regolitte kalır.\n\nBilim ekibi seni beş göreve gönderir, her biri bir tür numune için: düzlüklerde koyu bazalt, krater kenarlarında parlak anortozit, karanlık bir kraterin dibinde buz çekirdeği ve üsten uzakta bir meteor parçası. Onları radarla ve haritayla bul, topla ve batarya bitmeden üsse getir."
+      },
+      "howToPlay": [
+        {
+          "en": "Press PLAY. Base control tells you the mission on the radio; the panel at the top left shows what to bring and how many.",
+          "tr": "OYNA'ya bas. Üs kontrol görevi telsizden anlatır; sol üstteki panel neyi ve kaç tane getireceğini gösterir."
+        },
+        {
+          "en": "Follow the diamond marker and the radar ring to the next target, the one with a light beam above it.",
+          "tr": "Elmas işaretçiyi ve radardaki halkayı izleyerek üstünde ışık sütunu yanan bir sonraki hedefe git."
+        },
+        {
+          "en": "Stop next to the sample and hold COLLECT until the bar fills. It flies into the cargo bay, which holds three samples.",
+          "tr": "Numunenin yanında dur ve çubuk dolana kadar TOPLA'yı basılı tut. Numune kargo bölmesine uçar; bölme üç numune alır."
+        },
+        {
+          "en": "Drive into the orange delivery zone at the base to unload the samples and recharge the battery.",
+          "tr": "Numuneleri boşaltmak ve bataryayı şarj etmek için üsteki turuncu teslim alanına gir."
+        },
+        {
+          "en": "Finish all five missions to win. If the battery reaches zero the round is over.",
+          "tr": "Kazanmak için beş görevi de bitir. Batarya sıfıra inerse tur biter."
+        }
+      ],
+      "controls": {
+        "keyboard": {
+          "en": "W/S or ↑/↓ for gas and brake (hold brake to reverse), A/D or ←/→ to steer. Hold Space or E to collect, M opens the map, L the headlights, hold R to recover, Esc or P pauses. Right mouse button looks around, the wheel zooms.",
+          "tr": "W/S ya da ↑/↓ gaz ve fren (geri gitmek için freni basılı tut), A/D ya da ←/→ direksiyon. Toplamak için Boşluk ya da E'yi basılı tut, M haritayı, L farları açar, kurtarmak için R'yi basılı tut, Esc ya da P duraklatır. Farenin sağ tuşu etrafa baktırır, tekerlek yakınlaştırır."
+        },
+        "touch": {
+          "en": "Choose ARROWS, WHEEL or TILT steering on the menu for the left thumb. GAS, BRAKE and COLLECT sit under the right thumb, with LIGHTS, MAP and RECOVER beside them. The pause button is at the top right.",
+          "tr": "Sol başparmak için menüden OKLAR, DİREKSİYON ya da EĞİM seç. GAZ, FREN ve TOPLA sağ başparmağın altında; yanlarında FAR, HARİTA ve KURTAR var. Duraklatma düğmesi sağ üstte."
+        },
+        "gamepad": {
+          "en": "Left stick or D-pad steers, RT is gas, LT brakes. A collects, X the headlights, hold Y to recover, Select opens the map, Start pauses, B goes back. The right stick turns the camera.",
+          "tr": "Sol çubuk ya da yön tuşları direksiyon, RT gaz, LT fren. A toplar, X farları açar, Y'yi basılı tutmak kurtarır, Select haritayı açar, Start duraklatır, B geri döner. Sağ çubuk kamerayı çevirir."
+        }
+      },
+      "tips": [
+        {
+          "en": "Fill the cargo bay before you drive home: three samples per trip save battery and time.",
+          "tr": "Üsse dönmeden önce kargo bölmesini doldur: her seferde üç numune hem bataryayı hem zamanı korur."
+        },
+        {
+          "en": "Charge to full before the last two missions. The dark crater and the meteorite crater are the farthest points from the base.",
+          "tr": "Son iki görevden önce bataryayı doldur. Karanlık krater ve meteor krateri üsse en uzak noktalardır."
+        },
+        {
+          "en": "Turn on the headlights with L before you roll into the dark crater; the ice cores glow blue on its floor.",
+          "tr": "Karanlık kratere inmeden önce L ile farları aç; buz çekirdekleri kraterin dibinde mavi parlar."
+        },
+        {
+          "en": "Slow down before tight turns; in low gravity the rover slides wide at full speed.",
+          "tr": "Keskin dönüşlerden önce yavaşla; düşük yerçekiminde araç tam hızda geniş kayar."
+        },
+        {
+          "en": "Open the map with M to see every sample the radar has found.",
+          "tr": "Radarın bulduğu tüm numuneleri görmek için M ile haritayı aç."
+        }
+      ],
+      "features": [
+        {
+          "en": "A procedural lunar surface with nearly a hundred craters, hills and boulder fields.",
+          "tr": "Yüze yakın krater, tepeler ve kaya alanlarıyla prosedürel bir ay yüzeyi."
+        },
+        {
+          "en": "Real lunar gravity, working suspension, slow dust and tyre tracks.",
+          "tr": "Gerçek ay yerçekimi, çalışan süspansiyon, yavaş çöken toz ve tekerlek izleri."
+        },
+        {
+          "en": "Four sample types, five missions, a battery to manage and a cargo bay for three.",
+          "tr": "Dört numune türü, beş görev, idare edilecek bir batarya ve üç numunelik kargo bölmesi."
+        },
+        {
+          "en": "Radar, a lunar map and guide markers that always point to the next target.",
+          "tr": "Radar, ay haritası ve her zaman bir sonraki hedefi gösteren işaretçiler."
+        },
+        {
+          "en": "Easy and Normal, in Turkish and English, on phones and computers.",
+          "tr": "Kolay ve Normal, Türkçe ve İngilizce, telefonda ve bilgisayarda."
+        }
+      ],
+      "faq": [
+        {
+          "q": {
+            "en": "How are points scored?",
+            "tr": "Puan nasıl kazanılır?"
+          },
+          "a": {
+            "en": "Delivered samples score points: basalt 100, anorthosite 175, ice core 400, meteorite 500. Each finished mission adds a bonus, and a win adds 4 points for every second under 15 minutes.",
+            "tr": "Teslim edilen numuneler puan getirir: bazalt 100, anortozit 175, buz çekirdeği 400, meteor 500. Biten her görev bonus ekler; kazanırsan 15 dakikanın altında kalan her saniye için 4 puan daha alırsın."
+          }
+        },
+        {
+          "q": {
+            "en": "What happens when the battery runs out?",
+            "tr": "Batarya biterse ne olur?"
+          },
+          "a": {
+            "en": "The rover stops and the round ends. On ayvago.com you may watch an ad once per round to recharge to 60% and keep going.",
+            "tr": "Araç durur ve tur biter. ayvago.com'da her turda bir kez reklam izleyip bataryayı %60'a getirerek devam edebilirsin."
+          }
+        },
+        {
+          "q": {
+            "en": "Is there an easy mode?",
+            "tr": "Kolay mod var mı?"
+          },
+          "a": {
+            "en": "Yes. On Easy the battery drains at half speed. Easy rounds are practice: they do not go on the leaderboards.",
+            "tr": "Evet. Kolay modda batarya yarı hızda biter. Kolay turlar antrenmandır, sıralamaya girmez."
+          }
+        },
+        {
+          "q": {
+            "en": "My rover flipped over. What now?",
+            "tr": "Aracım ters döndü, ne yapmalıyım?"
+          },
+          "a": {
+            "en": "Hold R (RECOVER on touch screens) and the rover is set back on its wheels.",
+            "tr": "R'yi (dokunmatikte KURTAR'ı) basılı tut; araç tekerleklerinin üstüne geri konur."
+          }
+        }
+      ]
+    },
     "lunar-lander": {
       "about": {
         "en": "Lunar Lander puts you at the controls of a small module dropping toward a jagged moon surface. Gravity pulls all the time and the engine pushes the way the module points, so every landing is a balance of rotating, burning fuel and waiting.\n\nEach level draws new terrain with green pads marked x2, x3 and x5 (x2, x4 and x6 from level 3): the narrower the pad, the bigger the multiplier. A landing counts only with both feet on a pad, the module within 12 degrees of upright and moving slowly. The H-SPEED and V-SPEED readouts at the top turn green when your speed is safe, and the module glows red while it is too fast or tilted to land. Touch down anywhere else, too fast or tilted, and you crash.\n\nEvery level is a little harder: gravity grows, the ground gets rougher and the pads shrink. From level 3 a wind pushes you sideways, and from level 6 the x6 pad is gone. You have three lives and one tank of 1000 fuel units that carries over from landing to landing.",
