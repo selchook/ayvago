@@ -741,6 +741,31 @@ export const ARCADE_GAMES: SeedGame[] = [
     input: ['touch', 'keyboard', 'mouse'],
   }),
   arcadeGame({
+    slug: 'luna-survey',
+    title: { en: 'Luna Survey', tr: 'Luna Survey' },
+    description: {
+      en: "A 3D research mission on the Moon! Drive R-1, the rover of Selene-1 base, in real lunar gravity through craters, bumps and boulders. Find glowing samples with the radar, stop beside them to collect, and bring them to the base's orange delivery zone. Basalt, anorthosite from crater rims, an ice core from the floor of the dark crater and a meteorite fragment from a distant impact: finish five missions before your battery runs out. The delivery zone recharges the rover; the cargo bay holds three samples. Easy or Normal.",
+      tr: "Ay yüzeyinde bir 3B araştırma görevi! Selene-1 üssünün gezicisi R-1'i gerçek ay yerçekiminde sür; kraterlerin, tümseklerin ve kayaların arasından geç. Parlayan numuneleri radarla bul, yanında durup topla ve üssün turuncu teslim alanına getir. Bazalt, krater kenarlarındaki anortozit, karanlık kraterin dibindeki buz çekirdeği ve uzak çarpma kraterindeki meteor parçası: beş görevi bataryan bitmeden tamamla. Teslim alanı aracı şarj eder; kargo üç numune taşır. Kolay ya da Normal.",
+    },
+    category: 'action',
+    categories: ['action', 'casual'],
+    tags: ['luna', 'survey', 'retro'],
+    orientation: 'any',
+    input: ['touch', 'keyboard', 'gamepad', 'mouse'],
+    scoring: {
+      metric: 'points',
+      order: 'desc',
+      format: 'number',
+      label: { en: 'Research points', tr: 'Araştırma puanı' },
+      minDurationMs: 3000,
+      maxPerSecond: 150,
+      maxScore: 20000,
+      accumulate: false,
+    },
+    addedAt: '2026-11-28',
+    portraitCards: true,
+  }),
+  arcadeGame({
     slug: 'lunar-lander',
     title: { en: 'Lunar Lander', tr: 'Ay İnişi' },
     description: {
